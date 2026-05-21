@@ -133,7 +133,17 @@ export interface StockOverviewContract {
   priceSeries: Array<{ date: string; close: number | null }>;
   keyStats: Record<string, unknown>;
   optionLiquidity: Record<string, unknown>;
-  expectedMoves: Array<{ bucket: string; pct: number; straddleUsd: number; expiration: string }>;
+  expectedMoves: Array<{
+    bucket: string;
+    pct: number;
+    straddleUsd: number;
+    expiration: string;
+    bucketZh?: string;
+    spot?: number;
+    atmStrike?: number;
+    callMid?: number;
+    putMid?: number;
+  }>;
   earnings: { nextDate: string | null; daysTo: number | null };
   bar?: { price?: number; changePct?: number };
 }

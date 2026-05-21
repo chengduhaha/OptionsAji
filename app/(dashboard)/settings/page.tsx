@@ -319,12 +319,20 @@ export default function SettingsPage() {
                 退出登录
               </button>
               {isAdmin ? (
-                <Link
-                  href="/admin/users"
-                  className="text-[12px] px-3 py-1.5 rounded-md border border-gold text-gold hover:bg-gold/10 inline-flex items-center"
-                >
-                  用户管理 →
-                </Link>
+                <>
+                  <Link
+                    href="/admin/menu"
+                    className="text-[12px] px-3 py-1.5 rounded-md border border-gold text-gold hover:bg-gold/10 inline-flex items-center"
+                  >
+                    菜单管理 →
+                  </Link>
+                  <Link
+                    href="/admin/users"
+                    className="text-[12px] px-3 py-1.5 rounded-md border border-gold text-gold hover:bg-gold/10 inline-flex items-center"
+                  >
+                    用户管理 →
+                  </Link>
+                </>
               ) : null}
             </div>
           </dl>

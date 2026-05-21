@@ -1,5 +1,6 @@
 import Sidebar from "@/components/Sidebar";
 import DashboardAuthGuard from "@/components/DashboardAuthGuard";
+import NavVisibilityGuard from "@/components/NavVisibilityGuard";
 
 export default function DashboardLayout({
   children,
@@ -16,7 +17,9 @@ export default function DashboardLayout({
               <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
               <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/5 rounded-full blur-3xl" />
             </div>
-            <div className="relative h-full">{children}</div>
+            <div className="relative h-full">
+              <NavVisibilityGuard>{children}</NavVisibilityGuard>
+            </div>
           </main>
         </div>
       </DashboardAuthGuard>

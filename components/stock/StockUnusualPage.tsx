@@ -16,7 +16,21 @@ type UnusualRow = {
   expiration_date?: string;
   volume?: number | null;
   open_interest?: number | null;
+  lastTradeAt?: string | null;
 };
+
+function formatLastTrade(iso: string | null | undefined): string {
+  if (!iso || !iso.trim()) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleString("zh-CN", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
 
 type PagePayload = {
   items?: UnusualRow[];
@@ -117,6 +131,9 @@ export default function StockUnusualPage({ symbol }: { symbol: string }) {
               <th className="py-2 px-2">Vol/OI</th>
               <th className="py-2 px-2">OI Δ%</th>
               <th className="py-2 px-2">资金流$</th>
+              <th className="py-2 px-2" title="Massive 快照最近一笔成交，约 15 分钟延迟">
+                最近成交
+              </th>
               <th className="py-2 px-2">原因</th>
             </tr>
           </thead>
@@ -139,6 +156,9 @@ export default function StockUnusualPage({ symbol }: { symbol: string }) {
                       ? `${(r.estimatedFlowUsd / 1_000_000).toFixed(2)}M`
                       : `${(r.estimatedFlowUsd / 1000).toFixed(0)}K`
                     : "—"}
+                </td>
+                <td className="py-1.5 px-2 text-muted whitespace-nowrap">
+                  {formatLastTrade(r.lastTradeAt)}
                 </td>
                 <td className="py-1.5 px-2 text-[10px] text-muted leading-snug max-w-[220px]">
                   {r.reasons.join(" · ")}

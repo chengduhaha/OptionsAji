@@ -27,8 +27,11 @@ import {
   Shield,
 } from "lucide-react";
 import { clsx } from "clsx";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useNavVisibility } from "@/lib/nav-visibility-context";
+import type { NavMenuId } from "@/lib/nav-visibility";
+import { Menu } from "lucide-react";
 
 const NAV_GROUPS = [
   {
@@ -95,7 +98,9 @@ function NavItem({
                     : item.id === "profile"
             ? pathname === "/profile" || pathname.startsWith("/profile/")
             : item.id === "admin_users"
-            ? pathname.startsWith("/admin")
+            ? pathname.startsWith("/admin/users")
+            : item.id === "admin_menu"
+            ? pathname.startsWith("/admin/menu")
             : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
   return (
@@ -137,6 +142,15 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [logoutBusy, setLogoutBusy] = useState(false);
   const { user, isAdmin, logout } = useAuth();
+  const { isVisible } = useNavVisibility();
+
+  const visibleGroups = useMemo(() => {
+    if (isAdmin) return NAV_GROUPS;
+    return NAV_GROUPS.map((group) => ({
+      ...group,
+      items: group.items.filter((item) => isVisible(item.id as NavMenuId)),
+    })).filter((group) => group.label === null || group.items.length > 0);
+  }, [isAdmin, isVisible]);
 
   async function handleLogout() {
     if (logoutBusy) return;
@@ -173,7 +187,7 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-1">
-        {NAV_GROUPS.map((group, gi) => {
+        {visibleGroups.map((group, gi) => {
           const key = group.label || "root";
           const isOpen = collapsed[key] !== false;
           return (
@@ -192,7 +206,7 @@ export default function Sidebar() {
                   {group.items.map((item) => (
                     <NavItem key={item.id} item={item} pathname={pathname} />
                   ))}
-                  {group.label === null && user ? (
+                  {group.label === null && user && (isAdmin || isVisible("profile")) ? (
                     <NavItem
                       item={{
                         id: "profile",
@@ -204,15 +218,26 @@ export default function Sidebar() {
                     />
                   ) : null}
                   {group.label === null && isAdmin ? (
-                    <NavItem
-                      item={{
-                        id: "admin_users",
-                        label: "用户管理",
-                        href: "/admin/users",
-                        icon: Shield,
-                      }}
-                      pathname={pathname}
-                    />
+                    <>
+                      <NavItem
+                        item={{
+                          id: "admin_menu",
+                          label: "菜单管理",
+                          href: "/admin/menu",
+                          icon: Menu,
+                        }}
+                        pathname={pathname}
+                      />
+                      <NavItem
+                        item={{
+                          id: "admin_users",
+                          label: "用户管理",
+                          href: "/admin/users",
+                          icon: Shield,
+                        }}
+                        pathname={pathname}
+                      />
+                    </>
                   ) : null}
                 </div>
               )}

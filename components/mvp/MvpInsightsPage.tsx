@@ -37,6 +37,9 @@ import {
 import { interpretPCR, interpretVix } from "@/components/shared/DataLabel";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import ExpectedMoveDetailModal, {
+  type ExpectedMoveRow,
+} from "@/components/mvp/ExpectedMoveDetailModal";
 import {
   OPTION_FRAMEWORK_INTRO,
   OPTION_TABLE_LEGEND,
@@ -95,7 +98,6 @@ type StockReport = {
   overview: AsyncSlot<StockOverviewContract>;
   priceTarget: AsyncSlot<AnalystPriceTargetContract>;
   smart: AsyncSlot<SmartVsRetailContract>;
-  news: AsyncSlot<JsonRecord>;
   chain: AsyncSlot<JsonRecord>;
   unusual: AsyncSlot<JsonRecord>;
   strategy: AsyncSlot<JsonRecord>;
@@ -1201,6 +1203,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
   const [report, setReport] = useState<StockReport | null>(initialReportCache?.data ?? null);
   const [reportLoading, setReportLoading] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
+  const [selectedExpectedMove, setSelectedExpectedMove] = useState<ExpectedMoveRow | null>(null);
   const initialReportLoadedRef = useRef(Boolean(initialReportCache));
 
   useEffect(() => {
@@ -1288,13 +1291,10 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
       return;
     }
     setReportLoading(true);
-    const [overview, priceTarget, smart, news, chain, unusual, strategy] = await Promise.all([
+    const [overview, priceTarget, smart, chain, unusual, strategy] = await Promise.all([
       settle<StockOverviewContract>(() => api.stock.overview(sym)),
       settle<AnalystPriceTargetContract>(() => api.analyst.priceTarget(sym)),
       settle<SmartVsRetailContract>(() => api.social.smartVsRetail(sym)),
-      settle<JsonRecord>(() =>
-        fetchJson(`/api/news/stock?tickers=${encodeURIComponent(sym)}&max_age_hours=24`) as Promise<JsonRecord>,
-      ),
       settle<JsonRecord>(() => api.options.chain(sym) as Promise<JsonRecord>),
       settle<JsonRecord>(() =>
         fetchJson(`/api/stock/${encodeURIComponent(sym)}/unusual-v2?page_size=20&min_score=20`),
@@ -1321,7 +1321,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
         market_regime_label: currentMarketRegime?.label ?? null,
       }),
     );
-    const nextReport = { overview, priceTarget, smart, news, chain, unusual, strategy, optionsInsights };
+    const nextReport = { overview, priceTarget, smart, chain, unusual, strategy, optionsInsights };
     cachedStockReports.set(reportCacheKey(sym, direction, regimeCode), {
       data: nextReport,
       cachedAt: Date.now(),
@@ -1395,13 +1395,11 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
     .map((row) => ({ date: row.date.slice(5), close: row.close ?? null }));
   const optionCandidates = normalizeOptionCandidates(report?.chain.data ?? null, direction);
   const checklist = buildChecklist(direction, report);
-  const stockNews = getArticles(report?.news.data ?? null).slice(0, 4);
   const reportErrorList = report
     ? reportErrors([
         { slot: report.overview, key: "overview" },
         { slot: report.priceTarget, key: "priceTarget" },
         { slot: report.smart, key: "smart" },
-        { slot: report.news, key: "news" },
         { slot: report.chain, key: "chain" },
         { slot: report.unusual, key: "unusual" },
         { slot: report.strategy, key: "strategy" },
@@ -1873,8 +1871,17 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                 <div className="text-[10px] font-medium text-muted-foreground">隐含预期波动（Expected Move）</div>
                 {(stockOverview?.expectedMoves ?? []).slice(0, 3).map((move) => {
                   const aiMove = expectedMoveReads.get(move.bucket);
+                  const row: ExpectedMoveRow = {
+                    ...move,
+                    bucketZh: move.bucketZh ?? aiMove?.bucket_zh,
+                  };
                   return (
-                  <div key={move.bucket} className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
+                  <button
+                    key={move.bucket}
+                    type="button"
+                    onClick={() => setSelectedExpectedMove(row)}
+                    className="w-full rounded-lg border border-border2 bg-white/[0.02] px-3 py-2 text-left transition hover:border-gold/40 hover:bg-gold/5 cursor-pointer"
+                  >
                     <div className="text-[11px] font-medium text-foreground">
                       {aiMove?.bucket_zh ?? expectedMoveBucketLabel(move.bucket)}
                     </div>
@@ -1882,11 +1889,11 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                     <div className="mt-1 font-mono text-sm text-foreground">
                       ±{move.pct.toFixed(2)}% · {money(move.straddleUsd)}
                     </div>
-                    <div className="mt-1 text-[10px] text-muted">到期 {move.expiration}</div>
+                    <div className="mt-1 text-[10px] text-muted">到期 {move.expiration} · 点击查看详情</div>
                     {aiMove?.interpretation ? (
-                      <p className="mt-2 text-[10px] leading-4 text-muted-foreground">{aiMove.interpretation}</p>
+                      <p className="mt-2 line-clamp-2 text-[10px] leading-4 text-muted-foreground">{aiMove.interpretation}</p>
                     ) : null}
-                  </div>
+                  </button>
                   );
                 })}
                 {strategyIdeas.map((idea) => (
@@ -1924,47 +1931,42 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
           <Card className="p-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <BarChart3 className="h-4 w-4 text-green" />
-              个股新闻与期权异动
+              期权异动
             </div>
-            <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
-              <div className="space-y-2">
-                {stockNews.length > 0 ? (
-                  stockNews.map((article, index) => (
-                    <div key={`${text(article.title)}-${index}`} className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
-                      <div className="line-clamp-2 text-xs font-medium text-foreground">
-                        {text(article.title_zh) || text(article.title, "个股新闻")}
+            <p className="mt-1 text-[10px] text-muted leading-relaxed">
+              最近成交时间来自 Massive 期权快照（约 15 分钟延迟），为合约最后一笔成交，非逐笔大单流水。
+            </p>
+            <div className="mt-4 space-y-2">
+              {unusualItems.length > 0 ? (
+                unusualItems.map((item, index) => {
+                  const side = text(item.type ?? item.contract_type).toLowerCase().includes("put") ? "PUT" : "CALL";
+                  const lastTradeRaw = item.lastTradeAt ?? item.last_trade_at;
+                  const lastTradeLabel =
+                    lastTradeRaw != null && String(lastTradeRaw).trim()
+                      ? zhTime(lastTradeRaw)
+                      : "—";
+                  return (
+                    <div key={`${side}-${String(item.strike ?? item.strike_price)}-${index}`} className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className={side === "CALL" ? "text-green" : "text-red"}>
+                          {side} {String(item.strike ?? item.strike_price ?? "—")}
+                        </span>
+                        <span className="font-mono text-gold">
+                          {item.score != null ? `Score ${String(item.score)}` : `Vol/OI ${String(item.volOiRatio ?? "—")}`}
+                        </span>
                       </div>
-                      <div className="mt-1 text-[10px] text-muted">{text(article.source, "News")} · {zhTime(article.published_at ?? article.publishedDate ?? article.date)}</div>
+                      <div className="mt-1 text-[10px] text-muted">
+                        {item.source === "hot_chain" ? "热门成交" : "异动评分"} · Flow {compactMoney(item.estimatedFlowUsd)} · Vol {String(item.volume ?? item.day_volume ?? "—")}
+                      </div>
+                      <div className="mt-0.5 text-[10px] text-muted">
+                        最近成交 · {lastTradeLabel}
+                      </div>
                     </div>
-                  ))
-                ) : (
-                  <EmptyLine text="暂无个股新闻" />
-                )}
-              </div>
-              <div className="space-y-2">
-                {unusualItems.length > 0 ? (
-                  unusualItems.map((item, index) => {
-                    const side = text(item.type ?? item.contract_type).toLowerCase().includes("put") ? "PUT" : "CALL";
-                    return (
-                      <div key={`${side}-${String(item.strike ?? item.strike_price)}-${index}`} className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className={side === "CALL" ? "text-green" : "text-red"}>
-                            {side} {String(item.strike ?? item.strike_price ?? "—")}
-                          </span>
-                          <span className="font-mono text-gold">
-                            {item.score != null ? `Score ${String(item.score)}` : `Vol/OI ${String(item.volOiRatio ?? "—")}`}
-                          </span>
-                        </div>
-                        <div className="mt-1 text-[10px] text-muted">
-                          {item.source === "hot_chain" ? "热门成交" : "异动评分"} · Flow {compactMoney(item.estimatedFlowUsd)} · Vol {String(item.volume ?? item.day_volume ?? "—")}
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <EmptyLine text="暂无期权异动" />
-                )}
-              </div>
+                  );
+                })
+              ) : (
+                <EmptyLine text="暂无期权异动" />
+              )}
             </div>
           </Card>
         </section>
@@ -1975,6 +1977,19 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
             impact={selectedEvent.impact}
             impactLabel={selectedEvent.impactLabel}
             onClose={() => setSelectedEvent(null)}
+          />
+        ) : null}
+
+        {selectedExpectedMove ? (
+          <ExpectedMoveDetailModal
+            move={selectedExpectedMove}
+            interpretation={expectedMoveReads.get(selectedExpectedMove.bucket)?.interpretation}
+            strategyIdeas={strategyIdeas.map((idea) => ({
+              id: text(idea.id),
+              title: text(idea.title),
+              note: text(idea.note),
+            }))}
+            onClose={() => setSelectedExpectedMove(null)}
           />
         ) : null}
 
