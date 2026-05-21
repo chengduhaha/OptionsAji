@@ -24,7 +24,6 @@ import {
   User,
   Zap,
   Activity,
-  BarChart3,
   Shield,
 } from "lucide-react";
 import { clsx } from "clsx";
@@ -43,7 +42,6 @@ const NAV_GROUPS = [
       { id: "ai", label: "AI 分析师", href: "/ai", icon: Sparkles, badge: "AI" },
       { id: "learn", label: "期权学院", href: "/learn", icon: BookOpen },
       { id: "macro", label: "宏观经济", href: "/macro", icon: Activity },
-      { id: "indices", label: "指数行情", href: "/indices", icon: BarChart3 },
       { id: "settings", label: "设置", href: "/settings", icon: Settings },
     ],
   },
@@ -265,7 +263,7 @@ export default function Sidebar() {
             href="/landing"
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-glass border border-glass-border text-[11px] text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all"
           >
-            <BarChart3 className="w-3 h-3" />
+            <LayoutDashboard className="w-3 h-3" />
             产品介绍
           </Link>
           <Link

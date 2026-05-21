@@ -1,4 +1,4 @@
-/** MVP「期权选择框架」展示文案与 Expected Move 桶标签 */
+/** MVP「期权合约筛选器」展示文案与 Expected Move 桶标签 */
 
 export const EXPECTED_MOVE_BUCKET_ZH: Record<string, string> = {
   this_week: "本周到期",

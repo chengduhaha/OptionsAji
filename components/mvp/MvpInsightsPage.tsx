@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   BarChart3,
@@ -114,6 +114,10 @@ type EventDetail = {
   relatedAssets: string[];
   watchZh?: string;
   impactNote?: string;
+  deepDive?: string;
+  tradeImplications?: string;
+  scenario?: string;
+  riskWatch?: string;
   impactScopeLabel: string;
 };
 
@@ -230,6 +234,35 @@ function EventDetailModal({
           </section>
         ) : null}
 
+        {detail.deepDive || detail.tradeImplications || detail.scenario || detail.riskWatch ? (
+          <section className="mt-4 grid grid-cols-1 gap-2">
+            {detail.deepDive ? (
+              <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
+                <h3 className="text-[11px] uppercase tracking-wider text-muted">深度解析</h3>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground whitespace-pre-wrap">{detail.deepDive}</p>
+              </div>
+            ) : null}
+            {detail.tradeImplications ? (
+              <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
+                <h3 className="text-[11px] uppercase tracking-wider text-muted">交易影响</h3>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground whitespace-pre-wrap">{detail.tradeImplications}</p>
+              </div>
+            ) : null}
+            {detail.scenario ? (
+              <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
+                <h3 className="text-[11px] uppercase tracking-wider text-muted">情景推演</h3>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground whitespace-pre-wrap">{detail.scenario}</p>
+              </div>
+            ) : null}
+            {detail.riskWatch ? (
+              <div className="rounded-lg border border-red/20 bg-red/10 px-3 py-2">
+                <h3 className="text-[11px] uppercase tracking-wider text-red">失效条件</h3>
+                <p className="mt-1 text-sm leading-6 text-red/90 whitespace-pre-wrap">{detail.riskWatch}</p>
+              </div>
+            ) : null}
+          </section>
+        ) : null}
+
         {detail.summary ? (
           <section className="mt-4">
             <h3 className="text-[11px] uppercase tracking-wider text-muted">AI 摘要</h3>
@@ -294,6 +327,7 @@ const QUICK_SYMBOLS = ["SPY", "QQQ", "NVDA", "TSLA", "AAPL", "AMD"];
 const DISCORD_EVENT_HOURS = 6;
 /** Auto-refresh market overview + Discord-backed events. */
 const WAR_ROOM_REFRESH_MS = 5 * 60 * 1000;
+const PAGE_CACHE_TTL_MS = 3 * 60 * 1000;
 const ACTIVE_EVENT_KINDS = new Set(["discord", "macro", "news"]);
 
 const EMPTY_WAR_ROOM: WarRoomData = {
@@ -307,6 +341,39 @@ const EMPTY_WAR_ROOM: WarRoomData = {
   feed: { data: null, error: null },
   signals: { data: null, error: null },
 };
+
+let cachedWarRoom:
+  | {
+      data: WarRoomData;
+      updatedAt: string | null;
+      cachedAt: number;
+    }
+  | null = null;
+
+const cachedStockReports = new Map<
+  string,
+  {
+    data: StockReport;
+    cachedAt: number;
+  }
+>();
+
+function isFresh(cachedAt: number): boolean {
+  return Date.now() - cachedAt < PAGE_CACHE_TTL_MS;
+}
+
+function getFreshWarRoomCache() {
+  return cachedWarRoom && isFresh(cachedWarRoom.cachedAt) ? cachedWarRoom : null;
+}
+
+function reportCacheKey(symbol: string, direction: Direction, regimeCode?: string | null): string {
+  return `${symbol.toUpperCase()}:${direction}:${regimeCode || "no-regime"}`;
+}
+
+function getFreshReportCache(symbol: string, direction: Direction, regimeCode?: string | null) {
+  const cached = cachedStockReports.get(reportCacheKey(symbol, direction, regimeCode));
+  return cached && isFresh(cached.cachedAt) ? cached : null;
+}
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -611,6 +678,10 @@ function eventsFromMvpWarRoom(mvp: JsonRecord | null): EventItem[] {
     const relatedAssets = mergeRelatedAssets(ev.related_assets, ev.tickers);
     const impactNote = text(ev.impact_note_zh) || undefined;
     const watchZh = text(ev.watch_zh) || undefined;
+    const deepDive = text(ev.deep_dive_zh) || undefined;
+    const tradeImplications = text(ev.trade_implications_zh) || undefined;
+    const scenario = text(ev.scenario_zh) || undefined;
+    const riskWatch = text(ev.risk_watch_zh) || undefined;
     return makeWarRoomEventItem({
       id: text(ev.id, `${timeLabel}-${title}`),
       title,
@@ -622,6 +693,12 @@ function eventsFromMvpWarRoom(mvp: JsonRecord | null): EventItem[] {
       relatedAssets,
       impactNote,
       watchZh,
+      detailExtras: {
+        deepDive,
+        tradeImplications,
+        scenario,
+        riskWatch,
+      },
     });
   });
 }
@@ -1112,15 +1189,19 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
     ? "h-full overflow-y-auto bg-background text-foreground"
     : "min-h-screen bg-background text-foreground";
   const auth = useAuth();
+  const initialWarRoomCache = getFreshWarRoomCache();
+  const initialRegimeCode = initialWarRoomCache?.data.marketInsights.data?.regime?.code ?? null;
+  const initialReportCache = getFreshReportCache("SPY", "bull", initialRegimeCode);
   const [apiKey, setApiKey] = useState("");
-  const [warRoom, setWarRoom] = useState<WarRoomData>(EMPTY_WAR_ROOM);
-  const [warLoading, setWarLoading] = useState(true);
-  const [warRoomUpdatedAt, setWarRoomUpdatedAt] = useState<string | null>(null);
+  const [warRoom, setWarRoom] = useState<WarRoomData>(initialWarRoomCache?.data ?? EMPTY_WAR_ROOM);
+  const [warLoading, setWarLoading] = useState(!initialWarRoomCache);
+  const [warRoomUpdatedAt, setWarRoomUpdatedAt] = useState<string | null>(initialWarRoomCache?.updatedAt ?? null);
   const [symbol, setSymbol] = useState("SPY");
   const [direction, setDirection] = useState<Direction>("bull");
-  const [report, setReport] = useState<StockReport | null>(null);
+  const [report, setReport] = useState<StockReport | null>(initialReportCache?.data ?? null);
   const [reportLoading, setReportLoading] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
+  const initialReportLoadedRef = useRef(Boolean(initialReportCache));
 
   useEffect(() => {
     try {
@@ -1132,27 +1213,56 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
 
   const deepMode = Boolean(auth.token || apiKey.trim().length >= 8);
 
-  const loadWarRoom = useCallback(async (opts?: { silent?: boolean }) => {
+  const loadWarRoom = useCallback(async (opts?: { silent?: boolean; force?: boolean }) => {
+    if (!opts?.force) {
+      const cached = getFreshWarRoomCache();
+      if (cached) {
+        setWarRoom(cached.data);
+        setWarRoomUpdatedAt(cached.updatedAt);
+        if (!opts?.silent) setWarLoading(false);
+        return;
+      }
+    }
     if (!opts?.silent) setWarLoading(true);
     const today = beijingDateString(0);
     const tomorrow = beijingDateString(1);
-    const [mvp, overview, marketInsights, brief, macro, treasury, news, feed, signals] = await Promise.all([
-      settle<JsonRecord>(() => fetchJson(`/api/mvp/war-room?hours=${DISCORD_EVENT_HOURS}`)),
-      settle<MarketOverviewContract>(() => api.market.overview()),
-      settle<MvpMarketInsightsContract>(() => api.market.mvpMarketInsights()),
-      settle<{ brief?: string }>(() => api.market.brief() as Promise<{ brief?: string }>),
-      settle<JsonRecord>(() => api.macro.calendar(today, tomorrow, "US") as Promise<JsonRecord>),
-      settle<JsonRecord>(() => api.macro.treasury(30) as Promise<JsonRecord>),
-      settle<JsonRecord>(() => api.news.latest() as Promise<JsonRecord>),
-      settle<FeedEnvelopeContract>(() =>
-        api.feed.unified(80, undefined, { kind: "discord", hours: DISCORD_EVENT_HOURS }),
-      ),
-      settle<SignalsFeedEnvelopeContract>(() => api.market.signalsFeed()),
-    ]);
-    setWarRoom({ mvp, overview, marketInsights, brief, macro, treasury, news, feed, signals });
-    const mvpGenerated = text(mvp.data?.generated_at_utc);
-    const insightsGenerated = text(marketInsights.data?.generated_at_utc);
-    setWarRoomUpdatedAt(insightsGenerated || mvpGenerated || new Date().toISOString());
+    const tasks = [
+      ["mvp", settle<JsonRecord>(() => fetchJson(`/api/mvp/war-room?hours=${DISCORD_EVENT_HOURS}`))],
+      ["overview", settle<MarketOverviewContract>(() => api.market.overview())],
+      ["marketInsights", settle<MvpMarketInsightsContract>(() => api.market.mvpMarketInsights())],
+      ["brief", settle<{ brief?: string }>(() => api.market.brief() as Promise<{ brief?: string }>)],
+      ["macro", settle<JsonRecord>(() => api.macro.calendar(today, tomorrow, "US") as Promise<JsonRecord>)],
+      ["treasury", settle<JsonRecord>(() => api.macro.treasury(30) as Promise<JsonRecord>)],
+      ["news", settle<JsonRecord>(() => api.news.latest() as Promise<JsonRecord>)],
+      [
+        "feed",
+        settle<FeedEnvelopeContract>(() =>
+          api.feed.unified(80, undefined, { kind: "discord", hours: DISCORD_EVENT_HOURS }),
+        ),
+      ],
+      ["signals", settle<SignalsFeedEnvelopeContract>(() => api.market.signalsFeed())],
+    ] as const;
+    let latestWarRoom = cachedWarRoom?.data ?? EMPTY_WAR_ROOM;
+    let loadingCleared = Boolean(opts?.silent);
+    const applySlot = (key: keyof WarRoomData, slot: AsyncSlot<unknown>) => {
+      latestWarRoom = { ...latestWarRoom, [key]: slot } as WarRoomData;
+      const mvpGenerated = text(latestWarRoom.mvp.data?.generated_at_utc);
+      const insightsGenerated = text(latestWarRoom.marketInsights.data?.generated_at_utc);
+      const updatedAt = insightsGenerated || mvpGenerated || new Date().toISOString();
+      cachedWarRoom = { data: latestWarRoom, updatedAt, cachedAt: Date.now() };
+      setWarRoom(latestWarRoom);
+      setWarRoomUpdatedAt(updatedAt);
+      if (!loadingCleared) {
+        loadingCleared = true;
+        setWarLoading(false);
+      }
+    };
+    await Promise.all(
+      tasks.map(async ([key, promise]) => {
+        const slot = await promise;
+        applySlot(key, slot);
+      }),
+    );
     if (!opts?.silent) setWarLoading(false);
   }, []);
 
@@ -1164,10 +1274,19 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
     return () => window.clearInterval(timer);
   }, [loadWarRoom]);
 
+  const currentMarketRegime = warRoom.marketInsights.data?.regime ?? null;
+
   const runStockReport = useCallback(async (nextSymbol?: string) => {
     const sym = (nextSymbol || symbol).trim().toUpperCase();
     if (!sym) return;
     setSymbol(sym);
+    const regimeCode = currentMarketRegime?.code ?? null;
+    const cached = getFreshReportCache(sym, direction, regimeCode);
+    if (cached) {
+      setReport(cached.data);
+      setReportLoading(false);
+      return;
+    }
     setReportLoading(true);
     const [overview, priceTarget, smart, news, chain, unusual, strategy] = await Promise.all([
       settle<StockOverviewContract>(() => api.stock.overview(sym)),
@@ -1188,7 +1307,6 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
     const strictUnusual = asArray(unusual.data?.items).map(asRecord).slice(0, 5);
     const hotOpts = normalizeOptionActivity(chainData).slice(0, 5);
     const unusualForInsight = strictUnusual.length > 0 ? strictUnusual : hotOpts;
-    const regimeInsight = warRoom.marketInsights.data?.regime;
     const insightDirection: "bull" | "bear" = direction === "bear" ? "bear" : "bull";
     const optionsInsights = await settle<StockOptionsInsightsContract>(() =>
       api.market.stockOptionsInsights({
@@ -1199,19 +1317,24 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
         expected_moves: overviewData?.expectedMoves ?? [],
         contracts: contractsForInsights(candidates),
         unusual_items: unusualForInsight,
-        market_regime_code: regimeInsight?.code ?? null,
-        market_regime_label: regimeInsight?.label ?? null,
+        market_regime_code: currentMarketRegime?.code ?? null,
+        market_regime_label: currentMarketRegime?.label ?? null,
       }),
     );
-    setReport({ overview, priceTarget, smart, news, chain, unusual, strategy, optionsInsights });
+    const nextReport = { overview, priceTarget, smart, news, chain, unusual, strategy, optionsInsights };
+    cachedStockReports.set(reportCacheKey(sym, direction, regimeCode), {
+      data: nextReport,
+      cachedAt: Date.now(),
+    });
+    setReport(nextReport);
     setReportLoading(false);
-  }, [symbol, direction]);
+  }, [symbol, direction, currentMarketRegime]);
 
   useEffect(() => {
+    if (initialReportLoadedRef.current) return;
+    initialReportLoadedRef.current = true;
     void runStockReport("SPY");
-    // Initial report should run once; subsequent deep-mode flips are reflected on next manual refresh.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [runStockReport]);
 
   const signals = warRoom.signals.data?.signals ?? [];
   const ruleMarketState = classifyMarket(warRoom.overview.data, signals);
@@ -1340,11 +1463,11 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
               href="/market"
               className="rounded-lg border border-border2 px-3 py-2 text-sm text-muted-foreground transition hover:border-gold/40 hover:text-gold"
             >
-              {isDashboard ? "市场总览" : "返回旧版"}
+              {isDashboard ? "原始市场总览" : "返回原始总览"}
             </Link>
             <button
               type="button"
-              onClick={() => void loadWarRoom()}
+              onClick={() => void loadWarRoom({ force: true })}
               title="立即刷新市场总览"
               className="inline-flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/10 px-3 py-2 text-sm text-gold transition hover:bg-gold/15"
             >
@@ -1686,7 +1809,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
               <div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <WalletCards className="h-4 w-4 text-gold" />
-                  期权选择框架
+                  期权合约筛选器
                 </div>
                 <p className="mt-1 max-w-3xl text-[11px] leading-5 text-muted">
                   {optionsInsights?.framework_summary ?? OPTION_FRAMEWORK_INTRO}
@@ -1801,7 +1924,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
           <Card className="p-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <BarChart3 className="h-4 w-4 text-green" />
-              新闻、资金与异动
+              个股新闻与期权异动
             </div>
             <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
               <div className="space-y-2">

@@ -102,6 +102,32 @@ export interface MvpMarketInsightsContract {
   cached?: boolean;
 }
 
+export interface MacroCalendarInsightEventContract {
+  date?: string | null;
+  country?: string | null;
+  event: string;
+  title_zh: string;
+  impact?: string | null;
+  impact_zh?: string | null;
+  estimate?: string | number | null;
+  previous?: string | number | null;
+  actual?: string | number | null;
+  why_it_matters_zh: string;
+  trading_impact_zh: string;
+  watch_zh: string;
+}
+
+export interface MacroCalendarInsightsContract {
+  from: string;
+  to: string;
+  country: string;
+  engine: "llm" | "rules";
+  generated_at_utc: string;
+  market_read_zh: string;
+  watch_plan: string[];
+  events: MacroCalendarInsightEventContract[];
+}
+
 export interface StockOverviewContract {
   symbol: string;
   priceSeries: Array<{ date: string; close: number | null }>;

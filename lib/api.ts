@@ -13,6 +13,7 @@ import type {
   FeedEnvelopeContract,
   KolDirectoryContract,
   MarketOverviewContract,
+  MacroCalendarInsightsContract,
   MvpMarketInsightsContract,
   StockOptionsInsightsContract,
   PushSettingsContract,
@@ -126,6 +127,10 @@ export const api = {
     brief: () => fetchJSON<AgentBriefContract>("/api/agent/brief"),
     signalsFeed: () => fetchJSON<SignalsFeedEnvelopeContract>("/api/signals/feed"),
     mvpMarketInsights: () => fetchJSON<MvpMarketInsightsContract>("/api/mvp/market-insights"),
+    mvpMacroCalendarInsights: (from: string, to: string, country = "US") => {
+      const params = new URLSearchParams({ from_date: from, to_date: to, country });
+      return fetchJSON<MacroCalendarInsightsContract>(`/api/mvp/macro-calendar-insights?${params}`);
+    },
     stockOptionsInsights: (payload: {
       symbol: string;
       direction: "bull" | "bear";
