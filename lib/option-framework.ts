@@ -28,3 +28,6 @@ export const OPTION_FRAMEWORK_INTRO =
 
 export const OPTION_TABLE_LEGEND =
   "量/持仓 = 当日成交量 / 未平仓合约数（Open Interest），反映今日交易活跃度与存量持仓，非历史累计统计。";
+
+export const PLAYBOOK_SCREENER_FOOTNOTE =
+  "阿吉解读参考内训教材：策略选择、Expected Move 风险尺、流动性与 IV Rank；不构成投资建议。";

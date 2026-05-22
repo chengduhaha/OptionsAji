@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { fetchPlaybookHints } from "@/lib/playbook-hints";
 import { expectedMoveBucketHint, expectedMoveBucketLabel } from "@/lib/option-framework";
 import type { StockOverviewContract } from "@/lib/contracts";
 
@@ -31,6 +32,18 @@ export default function ExpectedMoveDetailModal({
   strategyIdeas: StrategyIdea[];
   onClose: () => void;
 }) {
+  const [playbookHints, setPlaybookHints] = useState<string[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchPlaybookHints("expected_move").then((bullets) => {
+      if (!cancelled) setPlaybookHints(bullets);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -125,6 +138,17 @@ export default function ExpectedMoveDetailModal({
             </p>
           </section>
         )}
+
+        {playbookHints.length > 0 ? (
+          <section className="mt-3 rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
+            <h3 className="text-[11px] uppercase tracking-wider text-muted">教材要点</h3>
+            <ul className="mt-2 list-disc space-y-1 pl-4 text-xs leading-5 text-muted-foreground">
+              {playbookHints.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         {interpretation ? (
           <section className="mt-3 rounded-lg border border-gold/20 bg-gold/5 px-3 py-2">

@@ -43,6 +43,7 @@ import ExpectedMoveDetailModal, {
 import {
   OPTION_FRAMEWORK_INTRO,
   OPTION_TABLE_LEGEND,
+  PLAYBOOK_SCREENER_FOOTNOTE,
   expectedMoveBucketHint,
   expectedMoveBucketLabel,
 } from "@/lib/option-framework";
@@ -1457,12 +1458,14 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
             <Pill tone={deepMode ? "green" : "muted"}>
               {deepMode ? "深度数据已启用" : "公开简版"}
             </Pill>
-            <Link
-              href="/market"
-              className="rounded-lg border border-border2 px-3 py-2 text-sm text-muted-foreground transition hover:border-gold/40 hover:text-gold"
-            >
-              {isDashboard ? "原始市场总览" : "返回原始总览"}
-            </Link>
+            {!isDashboard ? (
+              <Link
+                href="/market"
+                className="rounded-lg border border-border2 px-3 py-2 text-sm text-muted-foreground transition hover:border-gold/40 hover:text-gold"
+              >
+                返回原始总览
+              </Link>
+            ) : null}
             <button
               type="button"
               onClick={() => void loadWarRoom({ force: true })}
@@ -1835,6 +1838,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
             <p className="mt-2 text-[10px] leading-5 text-muted">
               {optionsInsights?.contracts_note ?? OPTION_TABLE_LEGEND}
             </p>
+            <p className="mt-1 text-[10px] leading-5 text-muted">{PLAYBOOK_SCREENER_FOOTNOTE}</p>
 
             <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-[1fr_220px]">
               <div className="overflow-hidden rounded-lg border border-border2">
@@ -1935,6 +1939,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
             </div>
             <p className="mt-1 text-[10px] text-muted leading-relaxed">
               最近成交时间来自 Massive 期权快照（约 15 分钟延迟），为合约最后一笔成交，非逐笔大单流水。
+              异动侦破可参考内训教材「期权异动五步法」。
             </p>
             <div className="mt-4 space-y-2">
               {unusualItems.length > 0 ? (
