@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Clock3,
   Gauge,
+  GitBranch,
   LineChart as LineChartIcon,
   Loader2,
   LockKeyhole,
@@ -33,6 +34,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import GexChart from "@/components/gex/GexChart";
+import GexTrendChart, { type HistRow } from "@/components/gex/GexTrendChart";
 import { interpretPCR, interpretVix } from "@/components/shared/DataLabel";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -61,6 +64,7 @@ import {
   normalizeRegimeCode,
   regimeMeta,
 } from "@/lib/market-regime";
+import { buildGammaStructureRead } from "@/lib/gex-decision";
 import type {
   AnalystPriceTargetContract,
   FeedEnvelopeContract,
@@ -99,6 +103,8 @@ type StockReport = {
   priceTarget: AsyncSlot<AnalystPriceTargetContract>;
   smart: AsyncSlot<SmartVsRetailContract>;
   chain: AsyncSlot<JsonRecord>;
+  gex: AsyncSlot<JsonRecord>;
+  gexHistory: AsyncSlot<JsonRecord>;
   unusual: AsyncSlot<JsonRecord>;
   strategy: AsyncSlot<JsonRecord>;
   optionsInsights: AsyncSlot<StockOptionsInsightsContract>;
@@ -322,6 +328,16 @@ type OptionCandidate = {
   delta: number | null;
   volume: number | null;
   openInterest: number | null;
+};
+
+type GexStrikeRow = {
+  strike: number;
+  callGex: number;
+  putGex: number;
+  net: number;
+  gamma: number;
+  oi: number;
+  iv: number;
 };
 
 const QUICK_SYMBOLS = ["SPY", "QQQ", "NVDA", "TSLA", "AAPL", "AMD"];
@@ -934,6 +950,59 @@ function normalizeOptionActivity(payload: JsonRecord | null): JsonRecord[] {
     .slice(0, 8);
 }
 
+function normalizeGexStrikes(payload: JsonRecord | null): GexStrikeRow[] {
+  if (!payload) return [];
+  return asArray(payload.strikes)
+    .map(asRecord)
+    .map((row): GexStrikeRow | null => {
+      const strike = num(row.strike);
+      const callGex = num(row.callGex);
+      const putGex = num(row.putGex);
+      if (strike === null || callGex === null || putGex === null) return null;
+      return {
+        strike,
+        callGex,
+        putGex,
+        net: num(row.net) ?? callGex - putGex,
+        gamma: num(row.gamma) ?? 0,
+        oi: num(row.oi) ?? 0,
+        iv: num(row.iv) ?? 0,
+      };
+    })
+    .filter((row): row is GexStrikeRow => row !== null)
+    .sort((a, b) => a.strike - b.strike);
+}
+
+function mergeGexHistory(payload: JsonRecord | null): HistRow[] {
+  if (!payload) return [];
+  const byDay: Record<string, HistRow> = {};
+  for (const row of asArray(payload.gexSeries).map(asRecord)) {
+    const date = text(row.date).slice(0, 10);
+    if (!date) continue;
+    byDay[date] = {
+      date,
+      net: num(row.netGex) ?? undefined,
+      flip: num(row.gammaFlip) ?? undefined,
+      close: byDay[date]?.close,
+    };
+  }
+  for (const row of asArray(payload.priceCloses).map(asRecord)) {
+    const date = text(row.date).slice(0, 10);
+    if (!date) continue;
+    const prev = byDay[date];
+    byDay[date] = {
+      date,
+      net: prev?.net,
+      flip: prev?.flip,
+      close: num(row.close) ?? undefined,
+    };
+  }
+  return Object.keys(byDay)
+    .sort()
+    .map((key) => byDay[key]!)
+    .slice(-90);
+}
+
 function buildTreasuryRead(latest: JsonRecord) {
   const oneMonth = num(latest.month1 ?? latest["1M"]);
   const twoYear = num(latest.year2 ?? latest["2Y"]);
@@ -1166,6 +1235,8 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
   const [reportLoading, setReportLoading] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
   const [selectedExpectedMove, setSelectedExpectedMove] = useState<ExpectedMoveRow | null>(null);
+  const [gammaChartOpen, setGammaChartOpen] = useState(false);
+  const [gammaTrendOpen, setGammaTrendOpen] = useState(false);
   const initialReportLoadedRef = useRef(Boolean(initialReportCache));
 
   useEffect(() => {
@@ -1253,11 +1324,15 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
       return;
     }
     setReportLoading(true);
-    const [overview, priceTarget, smart, chain, unusual, strategy] = await Promise.all([
+    setGammaChartOpen(false);
+    setGammaTrendOpen(false);
+    const [overview, priceTarget, smart, chain, gex, gexHistory, unusual, strategy] = await Promise.all([
       settle<StockOverviewContract>(() => api.stock.overview(sym)),
       settle<AnalystPriceTargetContract>(() => api.analyst.priceTarget(sym)),
       settle<SmartVsRetailContract>(() => api.social.smartVsRetail(sym)),
       settle<JsonRecord>(() => api.options.chain(sym) as Promise<JsonRecord>),
+      settle<JsonRecord>(() => fetchJson(`/api/stock/${encodeURIComponent(sym)}/gex`)),
+      settle<JsonRecord>(() => fetchJson(`/api/stock/${encodeURIComponent(sym)}/gex/history`)),
       settle<JsonRecord>(() =>
         fetchJson(`/api/stock/${encodeURIComponent(sym)}/unusual-v2?page_size=20&min_score=20`),
       ),
@@ -1283,7 +1358,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
         market_regime_label: currentMarketRegime?.label ?? null,
       }),
     );
-    const nextReport = { overview, priceTarget, smart, chain, unusual, strategy, optionsInsights };
+    const nextReport = { overview, priceTarget, smart, chain, gex, gexHistory, unusual, strategy, optionsInsights };
     cachedStockReports.set(reportCacheKey(sym, direction, regimeCode), {
       data: nextReport,
       cachedAt: Date.now(),
@@ -1356,6 +1431,10 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
     .slice(-66)
     .map((row) => ({ date: row.date.slice(5), close: row.close ?? null }));
   const optionCandidates = normalizeOptionCandidates(report?.chain.data ?? null, direction);
+  const gexProfile = report?.gex.data ?? null;
+  const gexError = report?.gex.error ?? null;
+  const gexStrikes = normalizeGexStrikes(gexProfile);
+  const gexHistoryRows = mergeGexHistory(report?.gexHistory.data ?? null);
   const strategyIdeas = asArray(report?.strategy.data?.ideas).map(asRecord).slice(0, 3);
   const optionsInsights = report?.optionsInsights.data;
   const expectedMoveReads = new Map(
@@ -1364,6 +1443,17 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
   const priceTarget = report?.priceTarget.data;
   const ptAvg = priceTarget?.summary?.lastMonthAvgPriceTarget ?? priceTarget?.consensus?.priceTarget ?? null;
   const spot = num(stockOverview?.bar?.price);
+  const gexSpot = num(gexProfile?.underlyingPrice) ?? spot;
+  const gammaRead = buildGammaStructureRead({
+    symbol,
+    spot: gexSpot,
+    netGex: num(gexProfile?.netGex),
+    gammaFlip: num(gexProfile?.gammaFlip),
+    callWall: num(gexProfile?.callWall),
+    putWall: num(gexProfile?.putWall),
+    maxPain: num(gexProfile?.maxPain),
+    regime: text(gexProfile?.regime),
+  });
   const upside = spot !== null && ptAvg ? ((ptAvg - spot) / spot) * 100 : null;
   const mvpTradePlan = asArray(warRoom.mvp.data?.trade_plan)
     .map((item) => String(item).trim())
@@ -1741,6 +1831,108 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                 <div className="flex h-full items-center justify-center text-sm text-muted">K 线数据载入中</div>
               )}
             </div>
+          </Card>
+
+          <Card className="p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <GitBranch className="h-4 w-4 text-gold" />
+                  Gamma 结构定位
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Pill tone={gammaRead.tone}>{gammaRead.regimeLabel}</Pill>
+                  <Pill tone={gammaRead.structureBias === "波动放大" ? "red" : gammaRead.structureBias === "震荡吸附" ? "green" : "muted"}>
+                    {gammaRead.structureBias}
+                  </Pill>
+                  {gexSpot !== null ? <Pill tone="blue">现价 {money(gexSpot)}</Pill> : null}
+                </div>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">{gammaRead.summary}</p>
+              </div>
+              {reportLoading ? <Loader2 className="h-5 w-5 animate-spin text-gold" /> : null}
+            </div>
+
+            {gexError ? (
+              <div className="mt-3 rounded-lg border border-red/20 bg-red/10 px-3 py-2 text-xs text-red">
+                Gamma 结构暂不可用：{friendlyApiError(gexError, "gex")}
+              </div>
+            ) : null}
+
+            <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-5">
+              <Metric
+                label="Net GEX"
+                value={num(gexProfile?.netGex) !== null ? `${num(gexProfile?.netGex)! >= 0 ? "+" : ""}${num(gexProfile?.netGex)!.toFixed(2)}B` : "—"}
+                sub="对冲环境"
+              />
+              <Metric label="Gamma Flip" value={money(gexProfile?.gammaFlip)} sub="波动分界" />
+              <Metric label="Call Wall" value={money(gexProfile?.callWall)} sub="上方压力" />
+              <Metric label="Put Wall" value={money(gexProfile?.putWall)} sub="下方支撑" />
+              <Metric label="Max Pain" value={money(gexProfile?.maxPain)} sub="到期吸附" />
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-[1fr_0.8fr]">
+              <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-3">
+                <div className="text-[10px] font-medium uppercase tracking-wider text-muted">操作含义</div>
+                <div className="mt-2 space-y-2">
+                  {gammaRead.actions.map((line) => (
+                    <div key={line} className="flex gap-2 text-sm leading-6 text-muted-foreground">
+                      <span className="text-gold">·</span>
+                      <span>{line}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-3">
+                <div className="text-[10px] font-medium uppercase tracking-wider text-muted">风险边界</div>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{gammaRead.risk}</p>
+                <div className="mt-3 grid grid-cols-2 gap-2 text-[10px] text-muted">
+                  <span>距 Flip {pct(gammaRead.distances.flipPct)}</span>
+                  <span>距 Call Wall {pct(gammaRead.distances.callWallPct)}</span>
+                  <span>距 Put Wall {pct(gammaRead.distances.putWallPct)}</span>
+                  <span>距 Max Pain {pct(gammaRead.distances.maxPainPct)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setGammaChartOpen((open) => !open)}
+                className="rounded-lg border border-border2 px-3 py-2 text-xs text-muted-foreground transition hover:border-gold/40 hover:text-gold disabled:opacity-50"
+                disabled={gexStrikes.length === 0}
+              >
+                {gammaChartOpen ? "收起 Gamma 分布" : "展开 Gamma 分布"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setGammaTrendOpen((open) => !open)}
+                className="rounded-lg border border-border2 px-3 py-2 text-xs text-muted-foreground transition hover:border-gold/40 hover:text-gold disabled:opacity-50"
+                disabled={gexHistoryRows.length === 0}
+              >
+                {gammaTrendOpen ? "收起趋势" : "查看趋势"}
+              </button>
+            </div>
+
+            {gammaChartOpen ? (
+              <div className="mt-4 rounded-lg border border-border2 bg-white/[0.02] p-3">
+                {gexStrikes.length > 0 && gexSpot !== null ? (
+                  <GexChart
+                    ticker={symbol}
+                    strikes={gexStrikes}
+                    price={gexSpot}
+                    gammaFlip={num(gexProfile?.gammaFlip) ?? undefined}
+                  />
+                ) : (
+                  <EmptyLine text="暂无 Gamma 分布数据" />
+                )}
+              </div>
+            ) : null}
+
+            {gammaTrendOpen ? (
+              <div className="mt-4 rounded-lg border border-border2 bg-white/[0.02] p-3">
+                <GexTrendChart merged={gexHistoryRows} symbol={symbol} />
+              </div>
+            ) : null}
           </Card>
 
           <Card className="p-4">
