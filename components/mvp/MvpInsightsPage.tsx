@@ -15,7 +15,6 @@ import {
   Newspaper,
   RefreshCw,
   Search,
-  ShieldAlert,
   Sparkles,
   Target,
   TrendingDown,
@@ -409,16 +408,6 @@ function money(value: unknown, digits = 2): string {
   const n = num(value);
   if (n === null) return "—";
   return `$${n.toFixed(digits)}`;
-}
-
-function compactMoney(value: unknown): string {
-  const n = num(value);
-  if (n === null) return "—";
-  const abs = Math.abs(n);
-  if (abs >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(2)}B`;
-  if (abs >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
-  if (abs >= 1_000) return `$${(n / 1_000).toFixed(1)}K`;
-  return `$${n.toFixed(0)}`;
 }
 
 function zhTime(value: unknown): string {
@@ -1091,34 +1080,6 @@ function pickActionBias(direction: Direction, report: StockReport | null) {
   };
 }
 
-function buildChecklist(direction: Direction, report: StockReport | null): string[] {
-  const overview = report?.overview.data ?? null;
-  const price = num(overview?.bar?.price);
-  const moves = overview?.expectedMoves ?? [];
-  const nearestMove = moves[0];
-  const ivRank = num(overview?.keyStats?.ivRank);
-  const gex = asRecord(report?.chain.data);
-  const chainCount = asArray(gex.contracts).length || asArray(gex.calls).length + asArray(gex.puts).length;
-
-  return [
-    price !== null
-      ? `正股先围绕 ${money(price)} 做区间判断，不在开盘第一根大波动里追价。`
-      : "正股价格缺失时，只保留观察，不做期权筛选。",
-    nearestMove
-      ? `用最近一期 Expected Move 作为日内风险尺：${nearestMove.bucket} 约 ±${nearestMove.pct.toFixed(2)}%。`
-      : "如果 Expected Move 缺失，用小仓位和更远止损替代精确点位。",
-    ivRank !== null && ivRank > 60
-      ? "IV Rank 偏高，买方期权优先考虑价差或等待 IV 回落。"
-      : "IV 未明显偏高时，可比较 ATM 与轻度 OTM 的权利金效率。",
-    chainCount > 0
-      ? "期权只看有成交量和 OI 的合约，避开价差过宽的远月/深虚值。"
-      : "期权链不可用时，不输出具体行权价，只给正股分析。",
-    direction === "neutral"
-      ? "中性场景先等突破/跌破，不急于选择 call 或 put。"
-      : "方向场景必须先定义失效条件，再比较正股和期权表达成本。",
-  ];
-}
-
 function reportErrors(
   slots: Array<{ slot: AsyncSlot<unknown>; key: string }>,
 ): string[] {
@@ -1395,21 +1356,6 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
     .slice(-66)
     .map((row) => ({ date: row.date.slice(5), close: row.close ?? null }));
   const optionCandidates = normalizeOptionCandidates(report?.chain.data ?? null, direction);
-  const checklist = buildChecklist(direction, report);
-  const reportErrorList = report
-    ? reportErrors([
-        { slot: report.overview, key: "overview" },
-        { slot: report.priceTarget, key: "priceTarget" },
-        { slot: report.smart, key: "smart" },
-        { slot: report.chain, key: "chain" },
-        { slot: report.unusual, key: "unusual" },
-        { slot: report.strategy, key: "strategy" },
-      ])
-    : [];
-
-  const strictUnusualItems = asArray(report?.unusual.data?.items).map(asRecord).slice(0, 5);
-  const hotOptionItems = normalizeOptionActivity(report?.chain.data ?? null).slice(0, 5);
-  const unusualItems = strictUnusualItems.length > 0 ? strictUnusualItems : hotOptionItems;
   const strategyIdeas = asArray(report?.strategy.data?.ideas).map(asRecord).slice(0, 3);
   const optionsInsights = report?.optionsInsights.data;
   const expectedMoveReads = new Map(
@@ -1458,14 +1404,6 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
             <Pill tone={deepMode ? "green" : "muted"}>
               {deepMode ? "深度数据已启用" : "公开简版"}
             </Pill>
-            {!isDashboard ? (
-              <Link
-                href="/market"
-                className="rounded-lg border border-border2 px-3 py-2 text-sm text-muted-foreground transition hover:border-gold/40 hover:text-gold"
-              >
-                返回原始总览
-              </Link>
-            ) : null}
             <button
               type="button"
               onClick={() => void loadWarRoom({ force: true })}
@@ -1911,71 +1849,6 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
           </Card>
         </section>
 
-        <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_1fr]">
-          <Card className="p-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <ShieldAlert className="h-4 w-4 text-red" />
-              风控清单
-            </div>
-            <div className="mt-4 space-y-3">
-              {checklist.map((item) => (
-                <div key={item} className="flex items-start gap-2 text-sm leading-6 text-muted-foreground">
-                  <Clock3 className="mt-1 h-4 w-4 shrink-0 text-gold" />
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
-            {reportErrorList.length > 0 ? (
-              <div className="mt-4 rounded-lg border border-red/20 bg-red/10 px-3 py-2 text-xs text-red">
-                {reportErrorList.slice(0, 3).join(" · ")}
-              </div>
-            ) : null}
-          </Card>
-
-          <Card className="p-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <BarChart3 className="h-4 w-4 text-green" />
-              期权异动
-            </div>
-            <p className="mt-1 text-[10px] text-muted leading-relaxed">
-              最近成交时间来自 Massive 期权快照（约 15 分钟延迟），为合约最后一笔成交，非逐笔大单流水。
-              异动侦破可参考内训教材「期权异动五步法」。
-            </p>
-            <div className="mt-4 space-y-2">
-              {unusualItems.length > 0 ? (
-                unusualItems.map((item, index) => {
-                  const side = text(item.type ?? item.contract_type).toLowerCase().includes("put") ? "PUT" : "CALL";
-                  const lastTradeRaw = item.lastTradeAt ?? item.last_trade_at;
-                  const lastTradeLabel =
-                    lastTradeRaw != null && String(lastTradeRaw).trim()
-                      ? zhTime(lastTradeRaw)
-                      : "—";
-                  return (
-                    <div key={`${side}-${String(item.strike ?? item.strike_price)}-${index}`} className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className={side === "CALL" ? "text-green" : "text-red"}>
-                          {side} {String(item.strike ?? item.strike_price ?? "—")}
-                        </span>
-                        <span className="font-mono text-gold">
-                          {item.score != null ? `Score ${String(item.score)}` : `Vol/OI ${String(item.volOiRatio ?? "—")}`}
-                        </span>
-                      </div>
-                      <div className="mt-1 text-[10px] text-muted">
-                        {item.source === "hot_chain" ? "热门成交" : "异动评分"} · Flow {compactMoney(item.estimatedFlowUsd)} · Vol {String(item.volume ?? item.day_volume ?? "—")}
-                      </div>
-                      <div className="mt-0.5 text-[10px] text-muted">
-                        最近成交 · {lastTradeLabel}
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <EmptyLine text="暂无期权异动" />
-              )}
-            </div>
-          </Card>
-        </section>
-
         {selectedEvent ? (
           <EventDetailModal
             detail={selectedEvent.detail}
@@ -2003,7 +1876,6 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
           <div className="flex items-center gap-3">
             <Link href="/macro" className="hover:text-gold">宏观</Link>
             <Link href="/stock/SPY/overview" className="hover:text-gold">个股深挖</Link>
-            <Link href="/options/unusual" className="hover:text-gold">期权异动</Link>
           </div>
         </footer>
       </div>
