@@ -973,10 +973,9 @@ function normalizeGexStrikes(payload: JsonRecord | null): GexStrikeRow[] {
     .sort((a, b) => a.strike - b.strike);
 }
 
-function mergeGexHistory(payload: JsonRecord | null): HistRow[] {
-  if (!payload) return [];
+function mergeGexHistory(payload: JsonRecord | null, profile: JsonRecord | null): HistRow[] {
   const byDay: Record<string, HistRow> = {};
-  for (const row of asArray(payload.gexSeries).map(asRecord)) {
+  for (const row of asArray(payload?.gexSeries).map(asRecord)) {
     const date = text(row.date).slice(0, 10);
     if (!date) continue;
     byDay[date] = {
@@ -986,7 +985,7 @@ function mergeGexHistory(payload: JsonRecord | null): HistRow[] {
       close: byDay[date]?.close,
     };
   }
-  for (const row of asArray(payload.priceCloses).map(asRecord)) {
+  for (const row of asArray(payload?.priceCloses).map(asRecord)) {
     const date = text(row.date).slice(0, 10);
     if (!date) continue;
     const prev = byDay[date];
@@ -995,6 +994,17 @@ function mergeGexHistory(payload: JsonRecord | null): HistRow[] {
       net: prev?.net,
       flip: prev?.flip,
       close: num(row.close) ?? undefined,
+    };
+  }
+  const currentNet = num(profile?.netGex);
+  if (currentNet !== null) {
+    const date = text(profile?.timestamp).slice(0, 10) || new Date().toISOString().slice(0, 10);
+    const prev = byDay[date];
+    byDay[date] = {
+      date,
+      net: currentNet,
+      flip: num(profile?.gammaFlip) ?? prev?.flip,
+      close: num(profile?.underlyingPrice) ?? prev?.close,
     };
   }
   return Object.keys(byDay)
@@ -1326,18 +1336,18 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
     setReportLoading(true);
     setGammaChartOpen(false);
     setGammaTrendOpen(false);
-    const [overview, priceTarget, smart, chain, gex, gexHistory, unusual, strategy] = await Promise.all([
+    const [overview, priceTarget, smart, chain, gex, unusual, strategy] = await Promise.all([
       settle<StockOverviewContract>(() => api.stock.overview(sym)),
       settle<AnalystPriceTargetContract>(() => api.analyst.priceTarget(sym)),
       settle<SmartVsRetailContract>(() => api.social.smartVsRetail(sym)),
       settle<JsonRecord>(() => api.options.chain(sym) as Promise<JsonRecord>),
       settle<JsonRecord>(() => fetchJson(`/api/stock/${encodeURIComponent(sym)}/gex`)),
-      settle<JsonRecord>(() => fetchJson(`/api/stock/${encodeURIComponent(sym)}/gex/history`)),
       settle<JsonRecord>(() =>
         fetchJson(`/api/stock/${encodeURIComponent(sym)}/unusual-v2?page_size=20&min_score=20`),
       ),
       settle<JsonRecord>(() => api.stock.strategyIdeas(sym) as Promise<JsonRecord>),
     ]);
+    const gexHistory = await settle<JsonRecord>(() => fetchJson(`/api/stock/${encodeURIComponent(sym)}/gex/history`));
     const overviewData = overview.data;
     const chainData = chain.data;
     const candidates = normalizeOptionCandidates(chainData, direction);
@@ -1434,7 +1444,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
   const gexProfile = report?.gex.data ?? null;
   const gexError = report?.gex.error ?? null;
   const gexStrikes = normalizeGexStrikes(gexProfile);
-  const gexHistoryRows = mergeGexHistory(report?.gexHistory.data ?? null);
+  const gexHistoryRows = mergeGexHistory(report?.gexHistory.data ?? null, report?.gex.data ?? null);
   const strategyIdeas = asArray(report?.strategy.data?.ideas).map(asRecord).slice(0, 3);
   const optionsInsights = report?.optionsInsights.data;
   const expectedMoveReads = new Map(

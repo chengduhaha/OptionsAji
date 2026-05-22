@@ -23,6 +23,7 @@ export default function GexTrendChart(props: {
   symbol: string;
 }) {
   const { merged, symbol } = props;
+  const sparse = merged.length <= 2;
   if (!merged.length) {
     return (
       <div className="text-muted text-[12px] py-8 text-center leading-relaxed">
@@ -56,7 +57,7 @@ export default function GexTrendChart(props: {
               dataKey="net"
               name="Net GEX (Bn)"
               stroke="#00D4AA"
-              dot={false}
+              dot={sparse ? { r: 2.5 } : false}
               strokeWidth={1.8}
               connectNulls
             />
@@ -66,7 +67,7 @@ export default function GexTrendChart(props: {
               dataKey="close"
               name="Underlying"
               stroke="#D4AF37"
-              dot={false}
+              dot={sparse ? { r: 2.5 } : false}
               strokeWidth={1.2}
               connectNulls
             />
@@ -93,7 +94,7 @@ export default function GexTrendChart(props: {
               dataKey="flip"
               name="Gamma flip"
               stroke="#FF6B6B"
-              dot={false}
+              dot={sparse ? { r: 2.5 } : false}
               strokeWidth={1.7}
               connectNulls
             />

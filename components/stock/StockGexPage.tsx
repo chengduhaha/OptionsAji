@@ -44,9 +44,8 @@ export default function StockGexPage({ symbol }: { symbol: string }) {
   const [refreshing, setRefreshing] = useState(false);
 
   const mergeRows = useMemo((): HistRow[] => {
-    if (!hist) return [];
     const byDay: Record<string, HistRow> = {};
-    for (const g of hist.gexSeries ?? []) {
+    for (const g of hist?.gexSeries ?? []) {
       const d = (g.date ?? "").slice(0, 10);
       if (!d) continue;
       byDay[d] = {
@@ -56,7 +55,7 @@ export default function StockGexPage({ symbol }: { symbol: string }) {
         close: byDay[d]?.close,
       };
     }
-    for (const c of hist.priceCloses ?? []) {
+    for (const c of hist?.priceCloses ?? []) {
       const d = c.date.slice(0, 10);
       const prev = byDay[d];
       byDay[d] = {
@@ -66,10 +65,20 @@ export default function StockGexPage({ symbol }: { symbol: string }) {
         close: c.close,
       };
     }
+    if (profile && typeof profile.netGex === "number") {
+      const d = (profile.timestamp || new Date().toISOString()).slice(0, 10);
+      const prev = byDay[d];
+      byDay[d] = {
+        date: d,
+        net: profile.netGex,
+        flip: typeof profile.gammaFlip === "number" ? profile.gammaFlip : prev?.flip,
+        close: typeof profile.underlyingPrice === "number" ? profile.underlyingPrice : prev?.close,
+      };
+    }
     return Object.keys(byDay)
       .sort()
       .map((k) => byDay[k]!);
-  }, [hist]);
+  }, [hist, profile]);
 
   const fetchProfile = useCallback(async () => {
     setLoading(true);
@@ -101,8 +110,9 @@ export default function StockGexPage({ symbol }: { symbol: string }) {
   }, [symbol]);
 
   useEffect(() => {
-    void fetchProfile();
-    void fetchHist();
+    void fetchProfile().finally(() => {
+      void fetchHist();
+    });
   }, [fetchProfile, fetchHist]);
 
   const d = profile;
@@ -126,9 +136,9 @@ export default function StockGexPage({ symbol }: { symbol: string }) {
           type="button"
           onClick={() => {
             setRefreshing(true);
-            Promise.all([fetchProfile(), fetchHist()]).finally(() =>
-              setTimeout(() => setRefreshing(false), 400),
-            );
+            fetchProfile()
+              .finally(() => fetchHist())
+              .finally(() => setTimeout(() => setRefreshing(false), 400));
           }}
           className="p-1.5 rounded-[6px] border border-border2"
         >

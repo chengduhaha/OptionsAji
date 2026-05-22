@@ -48,9 +48,8 @@ export default function GexPage() {
   const [hist, setHist] = useState<GexHistApi | null>(null);
 
   const merged = useMemo((): HistRow[] => {
-    if (!hist) return [];
     const byDay: Record<string, HistRow> = {};
-    for (const g of hist.gexSeries ?? []) {
+    for (const g of hist?.gexSeries ?? []) {
       const dk = (g.date ?? "").slice(0, 10);
       if (!dk) continue;
       byDay[dk] = {
@@ -60,17 +59,27 @@ export default function GexPage() {
         close: byDay[dk]?.close,
       };
     }
-    for (const c of hist.priceCloses ?? []) {
+    for (const c of hist?.priceCloses ?? []) {
       const dk = c.date.slice(0, 10);
       const prev = byDay[dk];
       byDay[dk] = { date: dk, net: prev?.net, flip: prev?.flip, close: c.close };
     }
+    if (profile && typeof profile.netGex === "number") {
+      const dk = (profile.timestamp || new Date().toISOString()).slice(0, 10);
+      const prev = byDay[dk];
+      byDay[dk] = {
+        date: dk,
+        net: profile.netGex,
+        flip: typeof profile.gammaFlip === "number" ? profile.gammaFlip : prev?.flip,
+        close: typeof profile.underlyingPrice === "number" ? profile.underlyingPrice : prev?.close,
+      };
+    }
     return Object.keys(byDay)
       .sort()
       .map((k) => byDay[k]!);
-  }, [hist]);
+  }, [hist, profile]);
 
-  const fetchProfile = async (sym: string) => {
+  const fetchProfile = useCallback(async (sym: string) => {
     try {
       const res = await fetch(`/api/gex/${encodeURIComponent(sym)}`, {
         headers: { "X-API-Key": API_KEY },
@@ -81,7 +90,7 @@ export default function GexPage() {
     } catch {
       setProfile(null);
     }
-  };
+  }, []);
 
   const fetchHist = useCallback(async (sym: string) => {
     try {
@@ -97,18 +106,16 @@ export default function GexPage() {
   }, []);
 
   useEffect(() => {
-    void fetchHist(ticker);
-  }, [ticker, fetchHist]);
-
-  useEffect(() => {
-    void fetchProfile(ticker);
-  }, [ticker]);
+    void fetchProfile(ticker).finally(() => {
+      void fetchHist(ticker);
+    });
+  }, [ticker, fetchProfile, fetchHist]);
 
   const refresh = () => {
     setRefreshing(true);
-    Promise.all([fetchProfile(ticker), fetchHist(ticker)]).finally(() =>
-      setTimeout(() => setRefreshing(false), 600),
-    );
+    fetchProfile(ticker)
+      .finally(() => fetchHist(ticker))
+      .finally(() => setTimeout(() => setRefreshing(false), 600));
   };
 
   const d = profile;
