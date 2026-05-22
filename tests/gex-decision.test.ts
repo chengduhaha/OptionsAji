@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildGammaStructureRead } from "../lib/gex-decision";
+import { buildGammaStructureRead, selectGammaStructureSpot } from "../lib/gex-decision";
 
 test("positive gamma above flip warns against chasing calls near call wall", () => {
   const read = buildGammaStructureRead({
@@ -37,4 +37,12 @@ test("negative gamma below flip highlights volatility expansion and put validati
   assert.equal(read.structureBias, "波动放大");
   assert.match(read.summary, /Gamma Flip/);
   assert.ok(read.actions.some((line) => line.includes("Put") && line.includes("跌破")));
+});
+
+test("selectGammaStructureSpot prefers overview spot when GEX spot is stale", () => {
+  assert.equal(selectGammaStructureSpot({ overviewSpot: 120.93, gexSpot: 100 }), 120.93);
+});
+
+test("selectGammaStructureSpot keeps GEX spot when it is close to overview", () => {
+  assert.equal(selectGammaStructureSpot({ overviewSpot: 120.93, gexSpot: 121 }), 121);
 });

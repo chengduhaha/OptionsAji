@@ -44,6 +44,18 @@ function fmtPct(value: number | null): string {
   return `${value >= 0 ? "+" : ""}${value.toFixed(1)}%`;
 }
 
+export function selectGammaStructureSpot(input: {
+  overviewSpot: number | null | undefined;
+  gexSpot: number | null | undefined;
+}): number | null {
+  const overviewSpot = finite(input.overviewSpot);
+  const gexSpot = finite(input.gexSpot);
+  if (overviewSpot === null) return gexSpot;
+  if (gexSpot === null) return overviewSpot;
+  const divergencePct = Math.abs((gexSpot - overviewSpot) / overviewSpot) * 100;
+  return divergencePct > 5 ? overviewSpot : gexSpot;
+}
+
 export function buildGammaStructureRead(input: GammaStructureInput): GammaStructureRead {
   const spot = finite(input.spot);
   const netGex = finite(input.netGex);

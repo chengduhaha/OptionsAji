@@ -64,7 +64,7 @@ import {
   normalizeRegimeCode,
   regimeMeta,
 } from "@/lib/market-regime";
-import { buildGammaStructureRead } from "@/lib/gex-decision";
+import { buildGammaStructureRead, selectGammaStructureSpot } from "@/lib/gex-decision";
 import type {
   AnalystPriceTargetContract,
   FeedEnvelopeContract,
@@ -1453,7 +1453,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
   const priceTarget = report?.priceTarget.data;
   const ptAvg = priceTarget?.summary?.lastMonthAvgPriceTarget ?? priceTarget?.consensus?.priceTarget ?? null;
   const spot = num(stockOverview?.bar?.price);
-  const gexSpot = num(gexProfile?.underlyingPrice) ?? spot;
+  const gexSpot = selectGammaStructureSpot({ overviewSpot: spot, gexSpot: num(gexProfile?.underlyingPrice) });
   const gammaRead = buildGammaStructureRead({
     symbol,
     spot: gexSpot,
