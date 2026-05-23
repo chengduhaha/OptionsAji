@@ -12,7 +12,6 @@ import {
   GitBranch,
   LineChart as LineChartIcon,
   Loader2,
-  LockKeyhole,
   Newspaper,
   RefreshCw,
   Search,
@@ -38,11 +37,12 @@ import GexChart from "@/components/gex/GexChart";
 import GexTrendChart, { type HistRow } from "@/components/gex/GexTrendChart";
 import { interpretPCR, interpretVix } from "@/components/shared/DataLabel";
 import { api } from "@/lib/api";
-import {
-  OPTIONS_AJI_ACCESS_KEY_LS,
-  buildMvpAccessHeaders,
-  ensureMvpDeviceId,
-} from "@/lib/access-key";
+import { buildMvpAccessHeaders } from "@/lib/access-key";
+import { AccessKeyModal } from "@/components/access-key/AccessKeyModal";
+import { AccessKeyPaywall } from "@/components/access-key/AccessKeyPaywall";
+import { useAccessKey } from "@/hooks/useAccessKey";
+import { useAuth } from "@/lib/auth-context";
+import { useRouter } from "next/navigation";
 import ExpectedMoveDetailModal, {
   type ExpectedMoveRow,
 } from "@/components/mvp/ExpectedMoveDetailModal";
@@ -277,7 +277,7 @@ function EventDetailModal({
 
         {detail.summary ? (
           <section className="mt-4">
-            <h3 className="text-[11px] uppercase tracking-wider text-muted">AI 摘要</h3>
+            <h3 className="text-[11px] uppercase tracking-wider text-muted">摘要</h3>
             <p className="mt-2 text-sm leading-6 text-muted-foreground whitespace-pre-wrap">{detail.summary}</p>
           </section>
         ) : null}
@@ -1234,16 +1234,21 @@ export type MvpInsightsPageProps = {
 
 export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsPageProps) {
   const isDashboard = variant === "dashboard";
+  const { user, ready, token } = useAuth();
+  const router = useRouter();
+  const {
+    hasAccessKey,
+    isEntitled,
+    saveKey,
+  } = useAccessKey(token);
+  const [accessKeyModalOpen, setAccessKeyModalOpen] = useState(false);
   const RootTag = isDashboard ? "div" : "main";
   const rootClassName = isDashboard
     ? "h-full overflow-y-auto bg-background text-foreground"
     : "min-h-screen bg-background text-foreground";
-  const initialWarRoomCache = null as ReturnType<typeof getFreshWarRoomCache>;
+  const initialWarRoomCache = isEntitled ? getFreshWarRoomCache() : null;
   const initialRegimeCode = initialWarRoomCache?.data.marketInsights.data?.regime?.code ?? null;
-  const initialReportCache = getFreshReportCache("SPY", "bull", initialRegimeCode);
-  const [accessKey, setAccessKey] = useState("");
-  const [accessKeyDraft, setAccessKeyDraft] = useState("");
-  const [accessKeyMsg, setAccessKeyMsg] = useState<string | null>(null);
+  const initialReportCache = isEntitled ? getFreshReportCache("SPY", "bull", initialRegimeCode) : null;
   const [warRoom, setWarRoom] = useState<WarRoomData>(initialWarRoomCache?.data ?? EMPTY_WAR_ROOM);
   const [warLoading, setWarLoading] = useState(!initialWarRoomCache);
   const [warRoomUpdatedAt, setWarRoomUpdatedAt] = useState<string | null>(initialWarRoomCache?.updatedAt ?? null);
@@ -1258,38 +1263,24 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
   const initialReportLoadedRef = useRef(Boolean(initialReportCache));
 
   useEffect(() => {
-    try {
-      ensureMvpDeviceId(window.localStorage);
-      const saved = window.localStorage.getItem(OPTIONS_AJI_ACCESS_KEY_LS) || "";
-      setAccessKey(saved);
-      setAccessKeyDraft(saved);
-    } catch {
-      setAccessKey("");
-      setAccessKeyDraft("");
-    }
-  }, []);
+    if (variant !== "standalone") return;
+    if (!ready) return;
+    if (!user) router.replace("/login?next=/mvp");
+  }, [variant, ready, user, router]);
 
-  const hasAccessKey = accessKey.trim().length >= 8;
-  const deepMode = hasAccessKey;
-
-  const saveAccessKey = () => {
-    const next = accessKeyDraft.trim();
-    try {
-      if (next) {
-        ensureMvpDeviceId(window.localStorage);
-        window.localStorage.setItem(OPTIONS_AJI_ACCESS_KEY_LS, next);
-      } else {
-        window.localStorage.removeItem(OPTIONS_AJI_ACCESS_KEY_LS);
-      }
-    } catch {
-      /* ignore */
+  useEffect(() => {
+    if (!ready) return;
+    if (variant === "standalone" && !user) return;
+    if (!hasAccessKey) {
+      setAccessKeyModalOpen(true);
     }
-    setAccessKey(next);
-    setAccessKeyMsg(next ? "Access Key 已保存，本机浏览器已绑定设备 ID。" : "Access Key 已清空。");
-    cachedWarRoom = null;
-  };
+  }, [ready, variant, user, hasAccessKey]);
 
   const loadWarRoom = useCallback(async (opts?: { silent?: boolean; force?: boolean }) => {
+    if (!isEntitled) {
+      if (!opts?.silent) setWarLoading(false);
+      return;
+    }
     if (hasAccessKey && !opts?.force) {
       const cached = getFreshWarRoomCache();
       if (cached) {
@@ -1302,21 +1293,10 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
     if (!opts?.silent) setWarLoading(true);
     const today = beijingDateString(0);
     const tomorrow = beijingDateString(1);
-    const keyRequired = "请输入 Access Key 后启用阿吉深度数据。";
     const tasks = [
-      [
-        "mvp",
-        hasAccessKey
-          ? settle<JsonRecord>(() => fetchJson(`/api/mvp/war-room?hours=${DISCORD_EVENT_HOURS}`))
-          : Promise.resolve({ data: null, error: keyRequired } as AsyncSlot<JsonRecord>),
-      ],
+      ["mvp", settle<JsonRecord>(() => fetchJson(`/api/mvp/war-room?hours=${DISCORD_EVENT_HOURS}`))],
       ["overview", settle<MarketOverviewContract>(() => api.market.overview())],
-      [
-        "marketInsights",
-        hasAccessKey
-          ? settle<MvpMarketInsightsContract>(() => api.market.mvpMarketInsights())
-          : Promise.resolve({ data: null, error: keyRequired } as AsyncSlot<MvpMarketInsightsContract>),
-      ],
+      ["marketInsights", settle<MvpMarketInsightsContract>(() => api.market.mvpMarketInsights())],
       ["brief", settle<{ brief?: string }>(() => api.market.brief() as Promise<{ brief?: string }>)],
       ["macro", settle<JsonRecord>(() => api.macro.calendar(today, tomorrow, "US") as Promise<JsonRecord>)],
       ["treasury", settle<JsonRecord>(() => api.macro.treasury(30) as Promise<JsonRecord>)],
@@ -1329,16 +1309,14 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
       ],
       ["signals", settle<SignalsFeedEnvelopeContract>(() => api.market.signalsFeed())],
     ] as const;
-    let latestWarRoom = hasAccessKey ? cachedWarRoom?.data ?? EMPTY_WAR_ROOM : EMPTY_WAR_ROOM;
+    let latestWarRoom = cachedWarRoom?.data ?? EMPTY_WAR_ROOM;
     let loadingCleared = Boolean(opts?.silent);
     const applySlot = (key: keyof WarRoomData, slot: AsyncSlot<unknown>) => {
       latestWarRoom = { ...latestWarRoom, [key]: slot } as WarRoomData;
       const mvpGenerated = text(latestWarRoom.mvp.data?.generated_at_utc);
       const insightsGenerated = text(latestWarRoom.marketInsights.data?.generated_at_utc);
       const updatedAt = insightsGenerated || mvpGenerated || new Date().toISOString();
-      if (hasAccessKey) {
-        cachedWarRoom = { data: latestWarRoom, updatedAt, cachedAt: Date.now() };
-      }
+      cachedWarRoom = { data: latestWarRoom, updatedAt, cachedAt: Date.now() };
       setWarRoom(latestWarRoom);
       setWarRoomUpdatedAt(updatedAt);
       if (!loadingCleared) {
@@ -1353,19 +1331,21 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
       }),
     );
     if (!opts?.silent) setWarLoading(false);
-  }, [hasAccessKey]);
+  }, [hasAccessKey, isEntitled]);
 
   useEffect(() => {
+    if (!isEntitled) return;
     void loadWarRoom();
     const timer = window.setInterval(() => {
       void loadWarRoom({ silent: true });
     }, WAR_ROOM_REFRESH_MS);
     return () => window.clearInterval(timer);
-  }, [loadWarRoom]);
+  }, [loadWarRoom, isEntitled]);
 
   const currentMarketRegime = warRoom.marketInsights.data?.regime ?? null;
 
   const runStockReport = useCallback(async (nextSymbol?: string) => {
+    if (!isEntitled) return;
     const sym = (nextSymbol || symbol).trim().toUpperCase();
     if (!sym) return;
     setSymbol(sym);
@@ -1398,21 +1378,19 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
     const hotOpts = normalizeOptionActivity(chainData).slice(0, 5);
     const unusualForInsight = strictUnusual.length > 0 ? strictUnusual : hotOpts;
     const insightDirection: "bull" | "bear" = direction === "bear" ? "bear" : "bull";
-    const optionsInsights = hasAccessKey
-      ? await settle<StockOptionsInsightsContract>(() =>
-          api.market.stockOptionsInsights({
-            symbol: sym,
-            direction: insightDirection,
-            spot: num(overviewData?.bar?.price),
-            iv_rank: num(overviewData?.keyStats?.ivRank),
-            expected_moves: overviewData?.expectedMoves ?? [],
-            contracts: contractsForInsights(candidates),
-            unusual_items: unusualForInsight,
-            market_regime_code: currentMarketRegime?.code ?? null,
-            market_regime_label: currentMarketRegime?.label ?? null,
-          }),
-        )
-      : { data: null, error: "请输入 Access Key 后生成阿吉深度洞察。" };
+    const optionsInsights = await settle<StockOptionsInsightsContract>(() =>
+      api.market.stockOptionsInsights({
+        symbol: sym,
+        direction: insightDirection,
+        spot: num(overviewData?.bar?.price),
+        iv_rank: num(overviewData?.keyStats?.ivRank),
+        expected_moves: overviewData?.expectedMoves ?? [],
+        contracts: contractsForInsights(candidates),
+        unusual_items: unusualForInsight,
+        market_regime_code: currentMarketRegime?.code ?? null,
+        market_regime_label: currentMarketRegime?.label ?? null,
+      }),
+    );
     const nextReport = { overview, priceTarget, smart, chain, gex, gexHistory, unusual, strategy, optionsInsights };
     cachedStockReports.set(reportCacheKey(sym, direction, regimeCode), {
       data: nextReport,
@@ -1420,13 +1398,14 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
     });
     setReport(nextReport);
     setReportLoading(false);
-  }, [symbol, direction, currentMarketRegime, hasAccessKey]);
+  }, [symbol, direction, currentMarketRegime, isEntitled]);
 
   useEffect(() => {
+    if (!isEntitled) return;
     if (initialReportLoadedRef.current) return;
     initialReportLoadedRef.current = true;
     void runStockReport("SPY");
-  }, [runStockReport]);
+  }, [runStockReport, isEntitled]);
 
   const signals = warRoom.signals.data?.signals ?? [];
   const ruleMarketState = classifyMarket(warRoom.overview.data, signals);
@@ -1546,9 +1525,6 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
             </h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Pill tone={deepMode ? "green" : "muted"}>
-              {deepMode ? "深度数据已启用" : "公开简版"}
-            </Pill>
             <button
               type="button"
               onClick={() => void loadWarRoom({ force: true })}
@@ -1561,38 +1537,20 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
           </div>
         </header>
 
-        <section className="rounded-xl border border-glass-border bg-panel/80 px-4 py-3">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <LockKeyhole className={`h-4 w-4 ${hasAccessKey ? "text-green" : "text-gold"}`} />
-                Access Key
-                <Pill tone={hasAccessKey ? "green" : "gold"}>{hasAccessKey ? "已启用" : "需要输入"}</Pill>
-              </div>
-              <p className="mt-1 text-[11px] leading-5 text-muted-foreground">
-                7 天免费 key 或 30 天付费 key 用于启用阿吉深度分析；key 会绑定当前浏览器设备 ID。
-              </p>
-              {accessKeyMsg ? <p className="mt-1 text-[11px] text-green">{accessKeyMsg}</p> : null}
-            </div>
-            <div className="flex w-full flex-col gap-2 sm:flex-row md:w-auto">
-              <input
-                value={accessKeyDraft}
-                onChange={(event) => setAccessKeyDraft(event.target.value)}
-                placeholder="输入 Access Key"
-                className="h-10 min-w-0 rounded-lg border border-border2 bg-background/80 px-3 font-mono text-xs text-foreground outline-none transition focus:border-gold/50 sm:min-w-[300px]"
-                type="password"
-              />
-              <button
-                type="button"
-                onClick={saveAccessKey}
-                className="inline-flex h-10 items-center justify-center rounded-lg border border-gold/30 bg-gold/10 px-4 text-sm font-medium text-gold transition hover:bg-gold/15"
-              >
-                保存
-              </button>
-            </div>
-          </div>
-        </section>
+        <AccessKeyModal
+          open={accessKeyModalOpen}
+          onClose={() => setAccessKeyModalOpen(false)}
+          onSaved={() => {
+            cachedWarRoom = null;
+            void loadWarRoom({ force: true });
+          }}
+          saveKey={saveKey}
+        />
 
+        {!isEntitled ? (
+          <AccessKeyPaywall onOpenModal={() => setAccessKeyModalOpen(true)} />
+        ) : (
+        <>
         <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.2fr_0.8fr]">
           <Card className="p-4">
             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -2033,14 +1991,6 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                   {optionsInsights?.framework_summary ?? OPTION_FRAMEWORK_INTRO}
                 </p>
               </div>
-              {!deepMode ? (
-                <Pill tone="muted">
-                  <LockKeyhole className="mr-1 h-3 w-3" />
-                  简版
-                </Pill>
-              ) : (
-                <Pill tone="green">深度版</Pill>
-              )}
             </div>
 
             {optionsInsights?.combined_insight ? (
@@ -2149,6 +2099,8 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
             onClose={() => setSelectedExpectedMove(null)}
           />
         ) : null}
+        </>
+        )}
 
         <footer className="flex flex-wrap items-center justify-between gap-3 pb-6 text-xs text-muted">
           <span>教育和分析用途，不构成投资建议。</span>

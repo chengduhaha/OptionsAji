@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ExternalLink, Loader2, UserCircle } from "lucide-react";
+import { AccessKeyForm } from "@/components/access-key/AccessKeyForm";
+import { useAccessKey } from "@/hooks/useAccessKey";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import { OPTIONS_AJI_API_KEY_LS, type AlertContract } from "@/lib/contracts";
@@ -10,6 +12,19 @@ import { OPTIONS_AJI_API_KEY_LS, type AlertContract } from "@/lib/contracts";
 export default function ProfilePage() {
   const { user, ready, token, refreshMe, loading: authLoading } = useAuth();
   const canManageIntegrations = user?.role === "admin";
+  const {
+    hasAccessKey,
+    statusLabel,
+    daysRemaining,
+    statusError,
+    statusLoading,
+    saveKey,
+    clearKey,
+    refreshStatus,
+  } = useAccessKey(token);
+  const [accessKeyMsg, setAccessKeyMsg] = useState<string | null>(null);
+  const [accessKeyMsgTone, setAccessKeyMsgTone] = useState<"success" | "error">("success");
+  const [accessKeyBusy, setAccessKeyBusy] = useState(false);
   const [apiKey, setApiKey] = useState("");
   const [wlSymbols, setWlSymbols] = useState<string[]>([]);
   const [alerts, setAlerts] = useState<AlertContract[]>([]);
@@ -220,6 +235,74 @@ export default function ProfilePage() {
           </dl>
         </section>
       )}
+
+      {user ? (
+        <section className="rounded-xl border border-glass-border bg-glass/40 p-4 space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-[13px] font-semibold text-foreground">Access Key（阿吉市场洞察）</h2>
+            <button
+              type="button"
+              onClick={() => void refreshStatus()}
+              disabled={statusLoading}
+              className="text-[11px] text-primary hover:underline disabled:opacity-50"
+            >
+              {statusLoading ? "校验中…" : "刷新状态"}
+            </button>
+          </div>
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px]">
+            <div>
+              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">是否已设置</dt>
+              <dd className="text-foreground">{hasAccessKey ? "是" : "否"}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">状态</dt>
+              <dd className="text-foreground">{hasAccessKey ? statusLabel : "未设置"}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">剩余有效期</dt>
+              <dd className="text-foreground font-mono">
+                {daysRemaining !== null ? `${daysRemaining} 天` : hasAccessKey ? "—" : "—"}
+              </dd>
+            </div>
+          </dl>
+          {statusError ? <p className="text-[12px] text-red">{statusError}</p> : null}
+          <AccessKeyForm
+            busy={accessKeyBusy}
+            message={accessKeyMsg}
+            messageTone={accessKeyMsgTone}
+            submitLabel="保存并校验"
+            onSave={async (raw) => {
+              setAccessKeyBusy(true);
+              setAccessKeyMsg(null);
+              const result = await saveKey(raw);
+              setAccessKeyBusy(false);
+              if (result.ok) {
+                setAccessKeyMsg("Access Key 已启用");
+                setAccessKeyMsgTone("success");
+              } else {
+                setAccessKeyMsg(result.error ?? "校验失败");
+                setAccessKeyMsgTone("error");
+              }
+            }}
+          />
+          {hasAccessKey ? (
+            <button
+              type="button"
+              onClick={() => {
+                clearKey();
+                setAccessKeyMsg("已清除本地 Access Key");
+                setAccessKeyMsgTone("success");
+              }}
+              className="text-[12px] text-muted-foreground hover:text-red"
+            >
+              清除本地 Key
+            </button>
+          ) : null}
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            需要完整浏览权限请联系阿吉获取 Key。Discord：<span className="font-mono text-foreground">ajifinance</span>
+          </p>
+        </section>
+      ) : null}
 
       {canManageIntegrations ? (
         <>

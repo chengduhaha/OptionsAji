@@ -25,6 +25,7 @@ import {
   Zap,
   Activity,
   Shield,
+  KeyRound,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { useMemo, useState } from "react";
@@ -99,6 +100,8 @@ function NavItem({
             ? pathname === "/profile" || pathname.startsWith("/profile/")
             : item.id === "admin_users"
             ? pathname.startsWith("/admin/users")
+            : item.id === "admin_access_keys"
+            ? pathname.startsWith("/admin/access-keys")
             : item.id === "admin_menu"
             ? pathname.startsWith("/admin/menu")
             : pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -234,6 +237,15 @@ export default function Sidebar() {
                           label: "用户管理",
                           href: "/admin/users",
                           icon: Shield,
+                        }}
+                        pathname={pathname}
+                      />
+                      <NavItem
+                        item={{
+                          id: "admin_access_keys",
+                          label: "Access Key",
+                          href: "/admin/access-keys",
+                          icon: KeyRound,
                         }}
                         pathname={pathname}
                       />
