@@ -50,6 +50,12 @@ function buildForwardHeaders(req: Request, initHeaders?: HeadersInit): Headers {
   if (requestId) hdrs.set("X-Request-Id", requestId);
   const authorization = req.headers.get("authorization");
   if (authorization) hdrs.set("Authorization", authorization);
+  const accessKey = req.headers.get("x-access-key");
+  if (accessKey) hdrs.set("X-Access-Key", accessKey);
+  const deviceId = req.headers.get("x-device-id");
+  if (deviceId) hdrs.set("X-Device-Id", deviceId);
+  const userEmail = req.headers.get("x-user-email");
+  if (userEmail) hdrs.set("X-User-Email", userEmail);
   const contentType = req.headers.get("content-type");
   if (contentType && !hdrs.has("Content-Type")) hdrs.set("Content-Type", contentType);
 

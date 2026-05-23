@@ -30,6 +30,7 @@ import type {
   WatchlistGetContract,
   WatchlistRemoveContract,
 } from "@/lib/contracts";
+import { buildMvpAccessHeaders } from "@/lib/access-key";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE || "";
 
@@ -69,9 +70,11 @@ function parseApiError(payload: JsonObject | null): string | null {
 }
 
 async function fetchJSON<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers({ "Content-Type": "application/json" });
+  new Headers(init?.headers).forEach((value, key) => headers.set(key, value));
   const res = await fetch(`${BASE}${path}`, {
-    headers: { "Content-Type": "application/json" },
     ...init,
+    headers,
   });
   if (!res.ok) {
     const payload = (await res.json().catch(() => null)) as JsonObject | null;
@@ -126,10 +129,15 @@ export const api = {
     aiSummary: () => fetchJSON("/api/market/ai-summary"),
     brief: () => fetchJSON<AgentBriefContract>("/api/agent/brief"),
     signalsFeed: () => fetchJSON<SignalsFeedEnvelopeContract>("/api/signals/feed"),
-    mvpMarketInsights: () => fetchJSON<MvpMarketInsightsContract>("/api/mvp/market-insights"),
+    mvpMarketInsights: () =>
+      fetchJSON<MvpMarketInsightsContract>("/api/mvp/market-insights", {
+        headers: buildMvpAccessHeaders(),
+      }),
     mvpMacroCalendarInsights: (from: string, to: string, country = "US") => {
       const params = new URLSearchParams({ from_date: from, to_date: to, country });
-      return fetchJSON<MacroCalendarInsightsContract>(`/api/mvp/macro-calendar-insights?${params}`);
+      return fetchJSON<MacroCalendarInsightsContract>(`/api/mvp/macro-calendar-insights?${params}`, {
+        headers: buildMvpAccessHeaders(),
+      });
     },
     stockOptionsInsights: (payload: {
       symbol: string;
@@ -144,6 +152,7 @@ export const api = {
     }) =>
       fetchJSON<StockOptionsInsightsContract>("/api/mvp/stock-options-insights", {
         method: "POST",
+        headers: buildMvpAccessHeaders(),
         body: JSON.stringify(payload),
       }),
   },

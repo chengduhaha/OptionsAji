@@ -1,3 +1,5 @@
+import { buildMvpAccessHeaders } from "@/lib/access-key";
+
 export const PLAYBOOK_HINTS_FALLBACK: Record<string, string[]> = {
   expected_move: [
     "Expected Move = ATM Call mid + ATM Put mid（跨式）÷ 现价，得到隐含波动幅度。",
@@ -21,6 +23,7 @@ export async function fetchPlaybookHints(topic: string): Promise<string[]> {
   try {
     const res = await fetch(`/api/mvp/playbook-hints?topic=${encodeURIComponent(key)}`, {
       cache: "no-store",
+      headers: buildMvpAccessHeaders(),
     });
     if (!res.ok) return PLAYBOOK_HINTS_FALLBACK[key] ?? PLAYBOOK_HINTS_FALLBACK.screener;
     const data = (await res.json()) as { bullets?: string[] };
