@@ -133,11 +133,14 @@ export default function AdminAccessKeysPage() {
               onChange={(e) => setCreateType(e.target.value)}
               className="mt-1 block rounded-lg border border-glass-border bg-background/80 px-2 py-1.5 text-[12px]"
             >
-              <option value="trial">trial</option>
-              <option value="paid">paid</option>
-              <option value="internal">internal</option>
+              <option value="trial">trial — 试用（默认 7 天，首次使用后计时）</option>
+              <option value="paid">paid — 付费（默认 30 天，首次使用后计时）</option>
+              <option value="internal">internal — 内部/客服（一般不发给外部用户）</option>
             </select>
           </label>
+          <p className="w-full text-[11px] text-muted-foreground leading-relaxed">
+            类型仅用于管理区分；有效期以「有效天数」为准，从用户首次成功使用 Key 时开始计算。
+          </p>
           <label className="text-[11px] text-muted">
             有效天数
             <input

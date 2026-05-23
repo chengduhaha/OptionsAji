@@ -10,7 +10,7 @@ import { api } from "@/lib/api";
 import { OPTIONS_AJI_API_KEY_LS, type AlertContract } from "@/lib/contracts";
 
 export default function ProfilePage() {
-  const { user, ready, token, refreshMe, loading: authLoading } = useAuth();
+  const { user, ready, token, refreshMe, loading: authLoading, isAdmin } = useAuth();
   const canManageIntegrations = user?.role === "admin";
   const {
     hasAccessKey,
@@ -21,7 +21,7 @@ export default function ProfilePage() {
     saveKey,
     clearKey,
     refreshStatus,
-  } = useAccessKey(token);
+  } = useAccessKey(token, { isAdmin });
   const [accessKeyMsg, setAccessKeyMsg] = useState<string | null>(null);
   const [accessKeyMsgTone, setAccessKeyMsgTone] = useState<"success" | "error">("success");
   const [accessKeyBusy, setAccessKeyBusy] = useState(false);
@@ -249,10 +249,15 @@ export default function ProfilePage() {
               {statusLoading ? "校验中…" : "刷新状态"}
             </button>
           </div>
+          {isAdmin ? (
+            <p className="text-[12px] text-green leading-relaxed">
+              管理员账号可直接浏览阿吉市场洞察全部内容，无需 Access Key。
+            </p>
+          ) : null}
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px]">
             <div>
               <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">是否已设置</dt>
-              <dd className="text-foreground">{hasAccessKey ? "是" : "否"}</dd>
+              <dd className="text-foreground">{isAdmin ? "免 Key（管理员）" : hasAccessKey ? "是" : "否"}</dd>
             </div>
             <div>
               <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">状态</dt>

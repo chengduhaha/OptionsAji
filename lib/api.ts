@@ -30,7 +30,7 @@ import type {
   WatchlistGetContract,
   WatchlistRemoveContract,
 } from "@/lib/contracts";
-import { buildMvpAccessHeaders } from "@/lib/access-key";
+import { buildMvpRequestHeaders } from "@/lib/access-key";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE || "";
 
@@ -129,14 +129,19 @@ export const api = {
     aiSummary: () => fetchJSON("/api/market/ai-summary"),
     brief: () => fetchJSON<AgentBriefContract>("/api/agent/brief"),
     signalsFeed: () => fetchJSON<SignalsFeedEnvelopeContract>("/api/signals/feed"),
-    mvpMarketInsights: () =>
+    mvpMarketInsights: (authToken?: string | null) =>
       fetchJSON<MvpMarketInsightsContract>("/api/mvp/market-insights", {
-        headers: buildMvpAccessHeaders(),
+        headers: buildMvpRequestHeaders(undefined, authToken),
       }),
-    mvpMacroCalendarInsights: (from: string, to: string, country = "US") => {
+    mvpMacroCalendarInsights: (
+      from: string,
+      to: string,
+      country = "US",
+      authToken?: string | null,
+    ) => {
       const params = new URLSearchParams({ from_date: from, to_date: to, country });
       return fetchJSON<MacroCalendarInsightsContract>(`/api/mvp/macro-calendar-insights?${params}`, {
-        headers: buildMvpAccessHeaders(),
+        headers: buildMvpRequestHeaders(undefined, authToken),
       });
     },
     stockOptionsInsights: (payload: {
@@ -149,10 +154,10 @@ export const api = {
       unusual_items?: Array<Record<string, unknown>>;
       market_regime_code?: string | null;
       market_regime_label?: string | null;
-    }) =>
+    }, authToken?: string | null) =>
       fetchJSON<StockOptionsInsightsContract>("/api/mvp/stock-options-insights", {
         method: "POST",
-        headers: buildMvpAccessHeaders(),
+        headers: buildMvpRequestHeaders(undefined, authToken),
         body: JSON.stringify(payload),
       }),
   },

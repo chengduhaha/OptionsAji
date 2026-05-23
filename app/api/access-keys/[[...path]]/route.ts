@@ -18,7 +18,7 @@ async function forward(req: NextRequest, segments: string[]): Promise<Response> 
 
   const subpath = segments.length ? segments.join("/") : "";
   const incoming = new URL(req.url);
-  const targetUrl = `${base.replace(/\/$/, "")}/api/access-keys/${subpath}${incoming.search}`;
+  const targetUrl = `${base.replace(/\/$/, "")}/api/access-keys${subpath ? `/${subpath}` : ""}${incoming.search}`;
 
   const headers = new Headers();
   headers.set("Accept", "application/json");

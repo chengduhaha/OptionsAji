@@ -10,7 +10,8 @@ import {
   statusLabelZh,
 } from "@/lib/access-key-client";
 
-export function useAccessKey(token?: string | null) {
+export function useAccessKey(token?: string | null, options?: { isAdmin?: boolean }) {
+  const isAdmin = options?.isAdmin ?? false;
   const [accessKey, setAccessKey] = useState("");
   const [statusData, setStatusData] = useState<AccessKeyStatusData | null>(null);
   const [lifecycle, setLifecycle] = useState<AccessKeyLifecycleStatus>("unknown");
@@ -23,9 +24,10 @@ export function useAccessKey(token?: string | null) {
 
   const hasAccessKey = accessKey.trim().length >= 8;
   const isEntitled =
-    hasAccessKey &&
-    (lifecycle === "active" || lifecycle === "pending") &&
-    statusData?.valid !== false;
+    isAdmin ||
+    (hasAccessKey &&
+      (lifecycle === "active" || lifecycle === "pending") &&
+      statusData?.valid !== false);
 
   const refreshStatus = useCallback(
     async (overrideKey?: string) => {
@@ -98,6 +100,7 @@ export function useAccessKey(token?: string | null) {
   return {
     accessKey,
     hasAccessKey,
+    isAdmin,
     isEntitled,
     statusData,
     lifecycle,

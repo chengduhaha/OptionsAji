@@ -37,7 +37,7 @@ import GexChart from "@/components/gex/GexChart";
 import GexTrendChart, { type HistRow } from "@/components/gex/GexTrendChart";
 import { interpretPCR, interpretVix } from "@/components/shared/DataLabel";
 import { api } from "@/lib/api";
-import { buildMvpAccessHeaders } from "@/lib/access-key";
+import { buildMvpRequestHeaders } from "@/lib/access-key";
 import { AccessKeyModal } from "@/components/access-key/AccessKeyModal";
 import { AccessKeyPaywall } from "@/components/access-key/AccessKeyPaywall";
 import { useAccessKey } from "@/hooks/useAccessKey";
@@ -509,10 +509,10 @@ async function settle<T>(fn: () => Promise<T>): Promise<AsyncSlot<T>> {
   }
 }
 
-async function fetchJson(path: string): Promise<JsonRecord> {
+async function fetchJson(path: string, authToken?: string | null): Promise<JsonRecord> {
   const res = await fetch(path, {
     cache: "no-store",
-    headers: path.startsWith("/api/mvp") ? buildMvpAccessHeaders() : undefined,
+    headers: path.startsWith("/api/mvp") ? buildMvpRequestHeaders(undefined, authToken) : undefined,
   });
   if (!res.ok) throw new Error(`API ${path} failed: ${res.status}`);
   return (await res.json()) as JsonRecord;
@@ -1234,13 +1234,13 @@ export type MvpInsightsPageProps = {
 
 export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsPageProps) {
   const isDashboard = variant === "dashboard";
-  const { user, ready, token } = useAuth();
+  const { user, ready, token, isAdmin } = useAuth();
   const router = useRouter();
   const {
     hasAccessKey,
     isEntitled,
     saveKey,
-  } = useAccessKey(token);
+  } = useAccessKey(token, { isAdmin });
   const [accessKeyModalOpen, setAccessKeyModalOpen] = useState(false);
   const RootTag = isDashboard ? "div" : "main";
   const rootClassName = isDashboard
@@ -1271,10 +1271,10 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
   useEffect(() => {
     if (!ready) return;
     if (variant === "standalone" && !user) return;
-    if (!hasAccessKey) {
+    if (!isAdmin && !hasAccessKey) {
       setAccessKeyModalOpen(true);
     }
-  }, [ready, variant, user, hasAccessKey]);
+  }, [ready, variant, user, hasAccessKey, isAdmin]);
 
   const loadWarRoom = useCallback(async (opts?: { silent?: boolean; force?: boolean }) => {
     if (!isEntitled) {
@@ -1294,9 +1294,9 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
     const today = beijingDateString(0);
     const tomorrow = beijingDateString(1);
     const tasks = [
-      ["mvp", settle<JsonRecord>(() => fetchJson(`/api/mvp/war-room?hours=${DISCORD_EVENT_HOURS}`))],
+      ["mvp", settle<JsonRecord>(() => fetchJson(`/api/mvp/war-room?hours=${DISCORD_EVENT_HOURS}`, token))],
       ["overview", settle<MarketOverviewContract>(() => api.market.overview())],
-      ["marketInsights", settle<MvpMarketInsightsContract>(() => api.market.mvpMarketInsights())],
+      ["marketInsights", settle<MvpMarketInsightsContract>(() => api.market.mvpMarketInsights(token))],
       ["brief", settle<{ brief?: string }>(() => api.market.brief() as Promise<{ brief?: string }>)],
       ["macro", settle<JsonRecord>(() => api.macro.calendar(today, tomorrow, "US") as Promise<JsonRecord>)],
       ["treasury", settle<JsonRecord>(() => api.macro.treasury(30) as Promise<JsonRecord>)],
@@ -1331,7 +1331,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
       }),
     );
     if (!opts?.silent) setWarLoading(false);
-  }, [hasAccessKey, isEntitled]);
+  }, [hasAccessKey, isEntitled, token]);
 
   useEffect(() => {
     if (!isEntitled) return;
@@ -1364,13 +1364,15 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
       settle<AnalystPriceTargetContract>(() => api.analyst.priceTarget(sym)),
       settle<SmartVsRetailContract>(() => api.social.smartVsRetail(sym)),
       settle<JsonRecord>(() => api.options.chain(sym) as Promise<JsonRecord>),
-      settle<JsonRecord>(() => fetchJson(`/api/stock/${encodeURIComponent(sym)}/gex`)),
+      settle<JsonRecord>(() => fetchJson(`/api/stock/${encodeURIComponent(sym)}/gex`, token)),
       settle<JsonRecord>(() =>
-        fetchJson(`/api/stock/${encodeURIComponent(sym)}/unusual-v2?page_size=20&min_score=20`),
+        fetchJson(`/api/stock/${encodeURIComponent(sym)}/unusual-v2?page_size=20&min_score=20`, token),
       ),
       settle<JsonRecord>(() => api.stock.strategyIdeas(sym) as Promise<JsonRecord>),
     ]);
-    const gexHistory = await settle<JsonRecord>(() => fetchJson(`/api/stock/${encodeURIComponent(sym)}/gex/history`));
+    const gexHistory = await settle<JsonRecord>(() =>
+      fetchJson(`/api/stock/${encodeURIComponent(sym)}/gex/history`, token),
+    );
     const overviewData = overview.data;
     const chainData = chain.data;
     const candidates = normalizeOptionCandidates(chainData, direction);
@@ -1389,7 +1391,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
         unusual_items: unusualForInsight,
         market_regime_code: currentMarketRegime?.code ?? null,
         market_regime_label: currentMarketRegime?.label ?? null,
-      }),
+      }, token),
     );
     const nextReport = { overview, priceTarget, smart, chain, gex, gexHistory, unusual, strategy, optionsInsights };
     cachedStockReports.set(reportCacheKey(sym, direction, regimeCode), {
@@ -1398,7 +1400,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
     });
     setReport(nextReport);
     setReportLoading(false);
-  }, [symbol, direction, currentMarketRegime, isEntitled]);
+  }, [symbol, direction, currentMarketRegime, isEntitled, token]);
 
   useEffect(() => {
     if (!isEntitled) return;

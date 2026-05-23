@@ -31,3 +31,16 @@ export function buildMvpAccessHeaders(storage?: Storage): Record<string, string>
     "X-Device-Id": ensureMvpDeviceId(storage),
   };
 }
+
+/** MVP 请求头：Access Key + 可选 JWT（admin 免 Key 时仅靠 Bearer）。 */
+export function buildMvpRequestHeaders(
+  storage?: Storage,
+  authToken?: string | null,
+): Record<string, string> {
+  const headers: Record<string, string> = { ...buildMvpAccessHeaders(storage) };
+  const token = authToken?.trim();
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  return headers;
+}

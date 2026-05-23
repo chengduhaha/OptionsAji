@@ -44,7 +44,13 @@ export interface AccessKeyAdminRow {
   created_at: string | null;
 }
 
-function parseDetailMessage(payload: unknown): string {
+function parseDetailMessage(payload: unknown, statusCode?: number): string {
+  if (statusCode === 404) {
+    return "接口不存在（404）。请确认前端已部署 access-keys 代理且后端已更新 access-keys API。";
+  }
+  if (statusCode === 503) {
+    return "后端未配置（缺少 OPTIONS_AJI_BACKEND_URL）。";
+  }
   if (!payload || typeof payload !== "object") return "请求失败";
   const obj = payload as Record<string, unknown>;
   const detail = obj.detail;
@@ -188,7 +194,7 @@ export async function adminListAccessKeys(
     cache: "no-store",
   });
   const payload = (await res.json().catch(() => null)) as Record<string, unknown> | null;
-  if (!res.ok) throw new Error(parseDetailMessage(payload));
+  if (!res.ok) throw new Error(parseDetailMessage(payload, res.status));
   const data = payload?.data;
   return Array.isArray(data) ? (data as AccessKeyAdminRow[]) : [];
 }
@@ -203,7 +209,7 @@ export async function adminCreateAccessKey(
     body: JSON.stringify(body),
   });
   const payload = (await res.json().catch(() => null)) as Record<string, unknown> | null;
-  if (!res.ok) throw new Error(parseDetailMessage(payload));
+  if (!res.ok) throw new Error(parseDetailMessage(payload, res.status));
   return {
     raw_key: String(payload?.raw_key ?? ""),
     data: payload?.data as AccessKeyAdminRow,
@@ -221,7 +227,7 @@ export async function adminExtendAccessKey(
     body: JSON.stringify({ days }),
   });
   const payload = (await res.json().catch(() => null)) as Record<string, unknown> | null;
-  if (!res.ok) throw new Error(parseDetailMessage(payload));
+  if (!res.ok) throw new Error(parseDetailMessage(payload, res.status));
   return payload?.data as AccessKeyAdminRow;
 }
 
@@ -232,7 +238,7 @@ export async function adminRevokeAccessKey(token: string, keyPrefix: string): Pr
   });
   if (!res.ok) {
     const payload = (await res.json().catch(() => null)) as Record<string, unknown> | null;
-    throw new Error(parseDetailMessage(payload));
+    throw new Error(parseDetailMessage(payload, res.status));
   }
 }
 
@@ -243,7 +249,7 @@ export async function adminUnbindAccessKeyDevice(token: string, keyPrefix: strin
   });
   if (!res.ok) {
     const payload = (await res.json().catch(() => null)) as Record<string, unknown> | null;
-    throw new Error(parseDetailMessage(payload));
+    throw new Error(parseDetailMessage(payload, res.status));
   }
 }
 
@@ -258,7 +264,7 @@ export async function adminPatchAccessKey(
     body: JSON.stringify(body),
   });
   const payload = (await res.json().catch(() => null)) as Record<string, unknown> | null;
-  if (!res.ok) throw new Error(parseDetailMessage(payload));
+  if (!res.ok) throw new Error(parseDetailMessage(payload, res.status));
   return payload?.data as AccessKeyAdminRow;
 }
 
@@ -269,6 +275,6 @@ export async function adminDeleteAccessKey(token: string, keyPrefix: string): Pr
   });
   if (!res.ok) {
     const payload = (await res.json().catch(() => null)) as Record<string, unknown> | null;
-    throw new Error(parseDetailMessage(payload));
+    throw new Error(parseDetailMessage(payload, res.status));
   }
 }
