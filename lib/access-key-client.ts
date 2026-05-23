@@ -86,6 +86,8 @@ function lifecycleFromHttp(statusCode: number, payload: unknown): AccessKeyLifec
   return "unknown";
 }
 
+export const ACCESS_KEY_STORAGE_EVENT = "optionsaji-access-key-storage";
+
 export function readStoredAccessKey(): string {
   if (typeof window === "undefined") return "";
   try {
@@ -93,6 +95,22 @@ export function readStoredAccessKey(): string {
   } catch {
     return "";
   }
+}
+
+export function notifyAccessKeyStorageChange(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event(ACCESS_KEY_STORAGE_EVENT));
+}
+
+export function subscribeStoredAccessKey(onStoreChange: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  const handler = () => onStoreChange();
+  window.addEventListener("storage", handler);
+  window.addEventListener(ACCESS_KEY_STORAGE_EVENT, handler);
+  return () => {
+    window.removeEventListener("storage", handler);
+    window.removeEventListener(ACCESS_KEY_STORAGE_EVENT, handler);
+  };
 }
 
 export function persistAccessKey(raw: string): void {
@@ -105,6 +123,7 @@ export function persistAccessKey(raw: string): void {
     } else {
       window.localStorage.removeItem(OPTIONS_AJI_ACCESS_KEY_LS);
     }
+    notifyAccessKeyStorageChange();
   } catch {
     /* ignore */
   }

@@ -40,7 +40,9 @@ import { api } from "@/lib/api";
 import { buildMvpRequestHeaders } from "@/lib/access-key";
 import { AccessKeyModal } from "@/components/access-key/AccessKeyModal";
 import { AccessKeyPaywall } from "@/components/access-key/AccessKeyPaywall";
+import { computeAccessKeyModalOpen } from "@/lib/access-key-entitlement";
 import { useAccessKey } from "@/hooks/useAccessKey";
+import { readStoredAccessKey } from "@/lib/access-key-client";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import ExpectedMoveDetailModal, {
@@ -1239,9 +1241,10 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
   const {
     hasAccessKey,
     isEntitled,
+    storageReady,
     saveKey,
   } = useAccessKey(token, { isAdmin });
-  const [accessKeyModalOpen, setAccessKeyModalOpen] = useState(false);
+  const [accessKeyModalDismissed, setAccessKeyModalDismissed] = useState(false);
   const RootTag = isDashboard ? "div" : "main";
   const rootClassName = isDashboard
     ? "h-full overflow-y-auto bg-background text-foreground"
@@ -1269,12 +1272,17 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
   }, [variant, ready, user, router]);
 
   useEffect(() => {
-    if (!ready) return;
-    if (variant === "standalone" && !user) return;
-    if (!isAdmin && !hasAccessKey) {
-      setAccessKeyModalOpen(true);
-    }
-  }, [ready, variant, user, hasAccessKey, isAdmin]);
+    if (hasAccessKey) setAccessKeyModalDismissed(false);
+  }, [hasAccessKey]);
+
+  const accessKeyModalOpen = computeAccessKeyModalOpen({
+    ready,
+    hasUser: Boolean(user),
+    isAdmin,
+    storageReady,
+    accessKey: readStoredAccessKey(),
+    dismissed: accessKeyModalDismissed,
+  });
 
   const loadWarRoom = useCallback(async (opts?: { silent?: boolean; force?: boolean }) => {
     if (!isEntitled) {
@@ -1541,8 +1549,9 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
 
         <AccessKeyModal
           open={accessKeyModalOpen}
-          onClose={() => setAccessKeyModalOpen(false)}
+          onClose={() => setAccessKeyModalDismissed(true)}
           onSaved={() => {
+            setAccessKeyModalDismissed(false);
             cachedWarRoom = null;
             void loadWarRoom({ force: true });
           }}
@@ -1550,7 +1559,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
         />
 
         {!isEntitled ? (
-          <AccessKeyPaywall onOpenModal={() => setAccessKeyModalOpen(true)} />
+          <AccessKeyPaywall onOpenModal={() => setAccessKeyModalDismissed(false)} />
         ) : (
         <>
         <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.2fr_0.8fr]">

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { computeAccessKeyEntitled } from "@/lib/access-key-entitlement";
 import {
   type AccessKeyLifecycleStatus,
   type AccessKeyStatusData,
@@ -8,26 +9,48 @@ import {
   persistAccessKey,
   readStoredAccessKey,
   statusLabelZh,
+  subscribeStoredAccessKey,
 } from "@/lib/access-key-client";
+
+function subscribeClientReady(onStoreChange: () => void): () => void {
+  onStoreChange();
+  return () => {};
+}
+
+function getClientReadySnapshot(): boolean {
+  return true;
+}
+
+function getServerReadySnapshot(): boolean {
+  return false;
+}
 
 export function useAccessKey(token?: string | null, options?: { isAdmin?: boolean }) {
   const isAdmin = options?.isAdmin ?? false;
-  const [accessKey, setAccessKey] = useState("");
+  const storageReady = useSyncExternalStore(
+    subscribeClientReady,
+    getClientReadySnapshot,
+    getServerReadySnapshot,
+  );
+  const accessKey = useSyncExternalStore(
+    subscribeStoredAccessKey,
+    readStoredAccessKey,
+    () => "",
+  );
   const [statusData, setStatusData] = useState<AccessKeyStatusData | null>(null);
   const [lifecycle, setLifecycle] = useState<AccessKeyLifecycleStatus>("unknown");
   const [statusError, setStatusError] = useState<string | null>(null);
   const [statusLoading, setStatusLoading] = useState(false);
 
-  useEffect(() => {
-    setAccessKey(readStoredAccessKey());
-  }, []);
-
-  const hasAccessKey = accessKey.trim().length >= 8;
-  const isEntitled =
-    isAdmin ||
-    (hasAccessKey &&
-      (lifecycle === "active" || lifecycle === "pending") &&
-      statusData?.valid !== false);
+  const hasAccessKey = storageReady && accessKey.trim().length >= 8;
+  const isEntitled = computeAccessKeyEntitled({
+    isAdmin,
+    storageReady,
+    accessKey,
+    lifecycle,
+    statusLoading,
+    statusValid: statusData?.valid,
+  });
 
   const refreshStatus = useCallback(
     async (overrideKey?: string) => {
@@ -60,25 +83,27 @@ export function useAccessKey(token?: string | null, options?: { isAdmin?: boolea
   );
 
   useEffect(() => {
+    if (!storageReady) return;
     if (!hasAccessKey) {
       setStatusData(null);
       setLifecycle("invalid");
       return;
     }
+    setLifecycle("unknown");
     void refreshStatus();
-  }, [hasAccessKey, accessKey, token, refreshStatus]);
+  }, [hasAccessKey, accessKey, token, refreshStatus, storageReady]);
 
   const saveKey = useCallback(
     async (raw: string) => {
       const next = raw.trim();
       persistAccessKey(next);
-      setAccessKey(next);
       if (next.length < 8) {
         setStatusData(null);
         setLifecycle("invalid");
         setStatusError("Access Key 至少需要 8 个字符");
         return { ok: false as const, error: "Access Key 至少需要 8 个字符" };
       }
+      setLifecycle("unknown");
       const result = await refreshStatus(next);
       if (result.ok) {
         setStatusError(null);
@@ -91,7 +116,6 @@ export function useAccessKey(token?: string | null, options?: { isAdmin?: boolea
 
   const clearKey = useCallback(() => {
     persistAccessKey("");
-    setAccessKey("");
     setStatusData(null);
     setLifecycle("invalid");
     setStatusError(null);
@@ -100,6 +124,7 @@ export function useAccessKey(token?: string | null, options?: { isAdmin?: boolea
   return {
     accessKey,
     hasAccessKey,
+    storageReady,
     isAdmin,
     isEntitled,
     statusData,
