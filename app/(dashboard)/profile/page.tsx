@@ -9,6 +9,7 @@ import { OPTIONS_AJI_API_KEY_LS, type AlertContract } from "@/lib/contracts";
 
 export default function ProfilePage() {
   const { user, ready, token, refreshMe, loading: authLoading } = useAuth();
+  const canManageIntegrations = user?.role === "admin";
   const [apiKey, setApiKey] = useState("");
   const [wlSymbols, setWlSymbols] = useState<string[]>([]);
   const [alerts, setAlerts] = useState<AlertContract[]>([]);
@@ -31,6 +32,11 @@ export default function ProfilePage() {
   }, []);
 
   const loadIntegration = useCallback(async () => {
+    if (!canManageIntegrations) {
+      setWlSymbols([]);
+      setAlerts([]);
+      return;
+    }
     const key = apiKey.trim();
     if (key.length < 8) {
       setWlSymbols([]);
@@ -50,7 +56,7 @@ export default function ProfilePage() {
     } finally {
       setWlBusy(false);
     }
-  }, [apiKey]);
+  }, [apiKey, canManageIntegrations]);
 
   useEffect(() => {
     void loadIntegration();
@@ -153,14 +159,14 @@ export default function ProfilePage() {
           个人中心
         </h1>
         <p className="text-[12px] text-muted-foreground">
-          自选与提醒绑定 Integration API Key；账户信息来自 JWT。未登录仅显示部分能力。
+          账户信息来自当前登录会话；部分集成管理能力仅管理员可见。
         </p>
       </header>
 
       {!user ? (
         <section className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-4 space-y-3 text-[13px]">
           <p className="text-foreground/95 leading-relaxed">
-            登录后可查看邮箱与角色等账户摘要；您仍可在下方用 API Key 管理自选与提醒。
+            登录后可查看账户摘要。
           </p>
           <div className="flex flex-wrap gap-3">
             <Link
@@ -201,10 +207,12 @@ export default function ProfilePage() {
               <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">显示名</dt>
               <dd className="text-foreground">{user.display_name ?? "—"}</dd>
             </div>
-            <div>
-              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">角色</dt>
-              <dd className="text-foreground">{user.role}</dd>
-            </div>
+            {canManageIntegrations ? (
+              <div>
+                <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">角色</dt>
+                <dd className="text-foreground">{user.role}</dd>
+              </div>
+            ) : null}
             <div>
               <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">邮箱验证</dt>
               <dd className="text-foreground">{user.email_verified ? "已验证" : "未验证"}</dd>
@@ -213,30 +221,32 @@ export default function ProfilePage() {
         </section>
       )}
 
-      <section className="rounded-xl border border-glass-border bg-glass/40 p-4 space-y-3">
-        <h2 className="text-[13px] font-semibold text-foreground">Integration API Key</h2>
-        <p className="text-[11px] text-muted-foreground leading-relaxed">
-          用于自选、提醒与推送设置；与「设置」页共用{" "}
-          <span className="font-mono text-foreground/90">{OPTIONS_AJI_API_KEY_LS}</span>{" "}
-          本地存储。
-        </p>
-        <input
-          value={apiKey}
-          onChange={(e) => persistKey(e.target.value)}
-          placeholder="至少 8 位"
-          className="w-full rounded-lg border border-glass-border bg-background/80 px-3 py-2 text-[13px] font-mono"
-        />
-        <button
-          type="button"
-          onClick={() => void loadIntegration()}
-          disabled={wlBusy}
-          className="text-[12px] px-3 py-1.5 rounded-lg border border-primary/30 text-primary hover:bg-primary/10 disabled:opacity-50"
-        >
-          重新加载自选 / 提醒
-        </button>
-      </section>
+      {canManageIntegrations ? (
+        <>
+          <section className="rounded-xl border border-glass-border bg-glass/40 p-4 space-y-3">
+            <h2 className="text-[13px] font-semibold text-foreground">Integration API Key</h2>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              用于自选、提醒与推送设置；与「设置」页共用{" "}
+              <span className="font-mono text-foreground/90">{OPTIONS_AJI_API_KEY_LS}</span>{" "}
+              本地存储。
+            </p>
+            <input
+              value={apiKey}
+              onChange={(e) => persistKey(e.target.value)}
+              placeholder="至少 8 位"
+              className="w-full rounded-lg border border-glass-border bg-background/80 px-3 py-2 text-[13px] font-mono"
+            />
+            <button
+              type="button"
+              onClick={() => void loadIntegration()}
+              disabled={wlBusy}
+              className="text-[12px] px-3 py-1.5 rounded-lg border border-primary/30 text-primary hover:bg-primary/10 disabled:opacity-50"
+            >
+              重新加载自选 / 提醒
+            </button>
+          </section>
 
-      <section className="rounded-xl border border-glass-border bg-glass/40 p-4 space-y-3">
+          <section className="rounded-xl border border-glass-border bg-glass/40 p-4 space-y-3">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-[13px] font-semibold text-foreground">自选列表</h2>
           {wlBusy ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /> : null}
@@ -283,9 +293,9 @@ export default function ProfilePage() {
             ))}
           </ul>
         )}
-      </section>
+          </section>
 
-      <section className="rounded-xl border border-glass-border bg-glass/40 p-4 space-y-3">
+          <section className="rounded-xl border border-glass-border bg-glass/40 p-4 space-y-3">
         <h2 className="text-[13px] font-semibold text-foreground">提醒</h2>
         {alertsMsg ? (
           <p
@@ -346,9 +356,9 @@ export default function ProfilePage() {
             ))}
           </ul>
         )}
-      </section>
+          </section>
 
-      <section className="rounded-xl border border-glass-border bg-glass/40 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <section className="rounded-xl border border-glass-border bg-glass/40 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 className="text-[13px] font-semibold text-foreground">更多</h2>
           <p className="text-[11px] text-muted-foreground mt-1">
@@ -363,7 +373,9 @@ export default function ProfilePage() {
           前往设置 / 集成
           <ExternalLink className="w-3.5 h-3.5 opacity-80" />
         </Link>
-      </section>
+          </section>
+        </>
+      ) : null}
     </div>
   );
 }
