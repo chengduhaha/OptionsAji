@@ -118,6 +118,7 @@ export default function AdminUsersPage() {
                 <th className="text-left px-3 py-2 font-semibold">邮箱</th>
                 <th className="text-left px-3 py-2 font-semibold">显示名</th>
                 <th className="text-left px-3 py-2 font-semibold">角色</th>
+                <th className="text-left px-3 py-2 font-semibold">Access Key</th>
                 <th className="text-left px-3 py-2 font-semibold">注册时间</th>
                 <th className="text-left px-3 py-2 font-semibold">操作</th>
               </tr>
@@ -139,6 +140,30 @@ export default function AdminUsersPage() {
                     >
                       {r.role}
                     </span>
+                  </td>
+                  <td className="px-3 py-2">
+                    {r.access_keys && r.access_keys.total > 0 ? (
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="rounded border border-green/30 bg-green/10 px-1.5 py-0.5 text-[10px] text-green">
+                            active {r.access_keys.active}
+                          </span>
+                          {r.access_keys.revoked > 0 ? (
+                            <span className="rounded border border-red/30 bg-red/10 px-1.5 py-0.5 text-[10px] text-red">
+                              revoked {r.access_keys.revoked}
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="font-mono text-[10px] text-muted">
+                          {r.access_keys.latest_key_prefix ?? "—"}
+                          {r.access_keys.latest_days_remaining !== null
+                            ? ` · 剩 ${r.access_keys.latest_days_remaining} 天`
+                            : ""}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-muted">未绑定</span>
+                    )}
                   </td>
                   <td className="px-3 py-2 font-mono text-[11px] text-muted">
                     {r.created_at ? new Date(r.created_at).toLocaleString() : "—"}

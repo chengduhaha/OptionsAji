@@ -67,8 +67,22 @@ export function defaultNavVisibility(): Record<string, boolean> {
   return out;
 }
 
+const SAFE_REGULAR_INITIAL_VISIBLE = new Set<NavMenuId>([
+  "aji_insights",
+  "profile",
+]);
+
+export function initialNavVisibilityForRole(role?: string | null): Record<string, boolean> {
+  if (role === "admin") return defaultNavVisibility();
+  const out: Record<string, boolean> = {};
+  for (const id of KNOWN_NAV_IDS) out[id] = SAFE_REGULAR_INITIAL_VISIBLE.has(id);
+  return out;
+}
+
 /** Resolve pathname to a single menu id (first match). */
-export function pathnameToMenuId(pathname: string): NavMenuId | "admin_users" | "admin_menu" | null {
+export function pathnameToMenuId(
+  pathname: string,
+): NavMenuId | "admin_users" | "admin_menu" | "admin_access_keys" | "admin_llm_usage" | null {
   const p = pathname.split("?")[0] ?? "/";
   if (p === "/" || p === "/mvp") return "aji_insights";
   if (p === "/market" || p.startsWith("/market/")) return "dash";
@@ -91,6 +105,8 @@ export function pathnameToMenuId(pathname: string): NavMenuId | "admin_users" | 
   if (p.startsWith("/inspector")) return "ontology_inspector";
   if (p.startsWith("/admin/users")) return "admin_users";
   if (p.startsWith("/admin/menu")) return "admin_menu";
+  if (p.startsWith("/admin/access-keys")) return "admin_access_keys";
+  if (p.startsWith("/admin/llm-usage")) return "admin_llm_usage";
   return null;
 }
 
@@ -102,6 +118,11 @@ export function isPathAllowed(
   if (isAdmin) return true;
   const menuId = pathnameToMenuId(pathname);
   if (menuId === null) return true;
-  if (menuId === "admin_users" || menuId === "admin_menu") return false;
+  if (
+    menuId === "admin_users" ||
+    menuId === "admin_menu" ||
+    menuId === "admin_access_keys" ||
+    menuId === "admin_llm_usage"
+  ) return false;
   return visibility[menuId] !== false;
 }

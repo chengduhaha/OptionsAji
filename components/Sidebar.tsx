@@ -26,6 +26,7 @@ import {
   Activity,
   Shield,
   KeyRound,
+  WalletCards,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { useMemo, useState } from "react";
@@ -102,6 +103,8 @@ function NavItem({
             ? pathname.startsWith("/admin/users")
             : item.id === "admin_access_keys"
             ? pathname.startsWith("/admin/access-keys")
+            : item.id === "admin_llm_usage"
+            ? pathname.startsWith("/admin/llm-usage")
             : item.id === "admin_menu"
             ? pathname.startsWith("/admin/menu")
             : pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -249,6 +252,15 @@ export default function Sidebar() {
                         }}
                         pathname={pathname}
                       />
+                      <NavItem
+                        item={{
+                          id: "admin_llm_usage",
+                          label: "Token 监控",
+                          href: "/admin/llm-usage",
+                          icon: WalletCards,
+                        }}
+                        pathname={pathname}
+                      />
                     </>
                   ) : null}
                 </div>
@@ -266,7 +278,7 @@ export default function Sidebar() {
             <div className="text-[11px] font-mono text-foreground truncate" title={user.email}>
               {user.email}
             </div>
-            <div className="text-[10px] text-muted">角色 · {user.role}</div>
+            {isAdmin ? <div className="text-[10px] text-muted">角色 · {user.role}</div> : null}
             <button
               type="button"
               onClick={handleLogout}

@@ -115,6 +115,9 @@ export default function AdminAccessKeysPage() {
           <Link href="/admin/users" className="text-[12px] text-primary hover:underline">
             用户管理
           </Link>
+          <Link href="/admin/llm-usage" className="text-[12px] text-primary hover:underline">
+            Token 监控
+          </Link>
         </div>
       </header>
 
@@ -203,6 +206,7 @@ export default function AdminAccessKeysPage() {
                   <th className="text-left px-3 py-2">激活</th>
                   <th className="text-left px-3 py-2">剩余天</th>
                   <th className="text-left px-3 py-2">绑定</th>
+                  <th className="text-left px-3 py-2">用户ID</th>
                   <th className="text-left px-3 py-2">用量</th>
                   <th className="text-left px-3 py-2">备注</th>
                   <th className="text-left px-3 py-2">操作</th>
@@ -218,6 +222,9 @@ export default function AdminAccessKeysPage() {
                     <td className="px-3 py-2 font-mono">{row.days_remaining ?? "—"}</td>
                     <td className="px-3 py-2 max-w-[140px] truncate" title={row.bound_email ?? row.bound_device_id ?? ""}>
                       {row.bound_email ?? row.bound_device_id ?? "—"}
+                    </td>
+                    <td className="px-3 py-2 max-w-[120px] truncate font-mono" title={row.bound_user_id ?? ""}>
+                      {row.bound_user_id ?? "—"}
                     </td>
                     <td className="px-3 py-2 font-mono">{row.usage_count}</td>
                     <td className="px-3 py-2 max-w-[120px] truncate" title={row.note}>

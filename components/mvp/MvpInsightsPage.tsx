@@ -12,6 +12,7 @@ import {
   GitBranch,
   LineChart as LineChartIcon,
   Loader2,
+  Maximize2,
   Newspaper,
   RefreshCw,
   Search,
@@ -1261,8 +1262,9 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
   const [reportLoading, setReportLoading] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
   const [selectedExpectedMove, setSelectedExpectedMove] = useState<ExpectedMoveRow | null>(null);
-  const [gammaChartOpen, setGammaChartOpen] = useState(false);
-  const [gammaTrendOpen, setGammaTrendOpen] = useState(false);
+  const [gammaChartOpen, setGammaChartOpen] = useState(true);
+  const [gammaTrendOpen, setGammaTrendOpen] = useState(true);
+  const [gammaModal, setGammaModal] = useState<"distribution" | "trend" | null>(null);
   const initialReportLoadedRef = useRef(Boolean(initialReportCache));
 
   useEffect(() => {
@@ -1365,22 +1367,21 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
       return;
     }
     setReportLoading(true);
-    setGammaChartOpen(false);
-    setGammaTrendOpen(false);
-    const [overview, priceTarget, smart, chain, gex, unusual, strategy] = await Promise.all([
+    setGammaChartOpen(true);
+    setGammaTrendOpen(true);
+    setGammaModal(null);
+    const [overview, priceTarget, smart, chain, gex, gexHistory, unusual, strategy] = await Promise.all([
       settle<StockOverviewContract>(() => api.stock.overview(sym)),
       settle<AnalystPriceTargetContract>(() => api.analyst.priceTarget(sym)),
       settle<SmartVsRetailContract>(() => api.social.smartVsRetail(sym)),
       settle<JsonRecord>(() => api.options.chain(sym) as Promise<JsonRecord>),
       settle<JsonRecord>(() => fetchJson(`/api/stock/${encodeURIComponent(sym)}/gex`, token)),
+      settle<JsonRecord>(() => fetchJson(`/api/stock/${encodeURIComponent(sym)}/gex/history`, token)),
       settle<JsonRecord>(() =>
         fetchJson(`/api/stock/${encodeURIComponent(sym)}/unusual-v2?page_size=20&min_score=20`, token),
       ),
       settle<JsonRecord>(() => api.stock.strategyIdeas(sym) as Promise<JsonRecord>),
     ]);
-    const gexHistory = await settle<JsonRecord>(() =>
-      fetchJson(`/api/stock/${encodeURIComponent(sym)}/gex/history`, token),
-    );
     const overviewData = overview.data;
     const chainData = chain.data;
     const candidates = normalizeOptionCandidates(chainData, direction);
@@ -1961,11 +1962,29 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
               </button>
               <button
                 type="button"
+                onClick={() => setGammaModal("distribution")}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border2 px-3 py-2 text-xs text-muted-foreground transition hover:border-gold/40 hover:text-gold disabled:opacity-50"
+                disabled={gexStrikes.length === 0 || gexSpot === null}
+              >
+                <Maximize2 className="h-3.5 w-3.5" />
+                放大分布
+              </button>
+              <button
+                type="button"
                 onClick={() => setGammaTrendOpen((open) => !open)}
                 className="rounded-lg border border-border2 px-3 py-2 text-xs text-muted-foreground transition hover:border-gold/40 hover:text-gold disabled:opacity-50"
                 disabled={gexHistoryRows.length === 0}
               >
                 {gammaTrendOpen ? "收起趋势" : "查看趋势"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setGammaModal("trend")}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border2 px-3 py-2 text-xs text-muted-foreground transition hover:border-gold/40 hover:text-gold disabled:opacity-50"
+                disabled={gexHistoryRows.length === 0}
+              >
+                <Maximize2 className="h-3.5 w-3.5" />
+                放大趋势
               </button>
             </div>
 
@@ -1990,6 +2009,55 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
               </div>
             ) : null}
           </Card>
+
+          {gammaModal ? (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+              role="presentation"
+              onClick={() => setGammaModal(null)}
+            >
+              <div
+                className="w-full max-w-6xl rounded-xl border border-border2 bg-background p-4 shadow-2xl"
+                role="dialog"
+                aria-modal="true"
+                aria-label={gammaModal === "distribution" ? "Gamma 分布放大图" : "Gamma 趋势放大图"}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-semibold text-foreground">
+                      {symbol} {gammaModal === "distribution" ? "Gamma 分布" : "Gamma 趋势"}
+                    </div>
+                    <div className="text-[11px] text-muted">点击背景或右上角关闭</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setGammaModal(null)}
+                    className="rounded-lg border border-border2 p-2 text-muted-foreground transition hover:border-gold/40 hover:text-gold"
+                    aria-label="关闭"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="max-h-[78vh] overflow-auto rounded-lg border border-border2 bg-white/[0.02] p-3">
+                  {gammaModal === "distribution" ? (
+                    gexStrikes.length > 0 && gexSpot !== null ? (
+                      <GexChart
+                        ticker={symbol}
+                        strikes={gexStrikes}
+                        price={gexSpot}
+                        gammaFlip={num(gexProfile?.gammaFlip) ?? undefined}
+                      />
+                    ) : (
+                      <EmptyLine text="暂无 Gamma 分布数据" />
+                    )
+                  ) : (
+                    <GexTrendChart merged={gexHistoryRows} symbol={symbol} />
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           <Card className="p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">

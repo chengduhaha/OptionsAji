@@ -330,6 +330,17 @@ export interface AuthUserContract {
   role: string;
   created_at: string | null;
   email_verified: boolean;
+  access_keys?: {
+    total: number;
+    active: number;
+    revoked: number;
+    latest_key_prefix: string | null;
+    latest_key_type: string | null;
+    latest_status: string | null;
+    latest_days_remaining: number | null;
+    latest_expires_at: string | null;
+    latest_last_used_at: string | null;
+  };
 }
 
 export interface AuthTokenContract {

@@ -9,7 +9,11 @@ import {
   useState,
 } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { defaultNavVisibility, type NavMenuId } from "@/lib/nav-visibility";
+import {
+  defaultNavVisibility,
+  initialNavVisibilityForRole,
+  type NavMenuId,
+} from "@/lib/nav-visibility";
 
 type NavVisibilityPayload = {
   visibility: Record<string, boolean>;
@@ -28,11 +32,18 @@ const NavVisibilityContext = createContext<NavVisibilityContextValue | null>(nul
 
 export function NavVisibilityProvider({ children }: { children: React.ReactNode }) {
   const { token, ready, user } = useAuth();
-  const [visibility, setVisibility] = useState<Record<string, boolean>>(defaultNavVisibility);
+  const [visibility, setVisibility] = useState<Record<string, boolean>>(() =>
+    initialNavVisibilityForRole(null),
+  );
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
     if (!token || !user) {
+      setVisibility(initialNavVisibilityForRole(null));
+      setLoading(false);
+      return;
+    }
+    if (user.role === "admin") {
       setVisibility(defaultNavVisibility());
       setLoading(false);
       return;
@@ -44,13 +55,13 @@ export function NavVisibilityProvider({ children }: { children: React.ReactNode 
         cache: "no-store",
       });
       if (!res.ok) {
-        setVisibility(defaultNavVisibility());
+        setVisibility(initialNavVisibilityForRole(user.role));
         return;
       }
       const data = (await res.json()) as NavVisibilityPayload;
       setVisibility({ ...defaultNavVisibility(), ...data.visibility });
     } catch {
-      setVisibility(defaultNavVisibility());
+      setVisibility(initialNavVisibilityForRole(user.role));
     } finally {
       setLoading(false);
     }
@@ -63,12 +74,16 @@ export function NavVisibilityProvider({ children }: { children: React.ReactNode 
 
   const value = useMemo<NavVisibilityContextValue>(
     () => ({
-      visibility,
+      visibility: loading && user?.role !== "admin" ? initialNavVisibilityForRole(user?.role) : visibility,
       loading,
       refresh,
-      isVisible: (menuId) => visibility[menuId] !== false,
+      isVisible: (menuId) => {
+        const effective =
+          loading && user?.role !== "admin" ? initialNavVisibilityForRole(user?.role) : visibility;
+        return effective[menuId] !== false;
+      },
     }),
-    [visibility, loading, refresh],
+    [visibility, loading, refresh, user],
   );
 
   return (
