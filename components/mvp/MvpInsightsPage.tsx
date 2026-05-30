@@ -106,6 +106,7 @@ type WarRoomData = {
 };
 
 type StockReport = {
+  quote: AsyncSlot<JsonRecord>;
   overview: AsyncSlot<StockOverviewContract>;
   priceTarget: AsyncSlot<AnalystPriceTargetContract>;
   smart: AsyncSlot<SmartVsRetailContract>;
@@ -1360,22 +1361,23 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
     if (!sym) return;
     setSymbol(sym);
     const regimeCode = currentMarketRegime?.code ?? null;
-    const cached = getFreshReportCache(sym, direction, regimeCode);
-    if (cached) {
-      setReport(cached.data);
-      setReportLoading(false);
-      return;
-    }
     setReportLoading(true);
     setGammaChartOpen(true);
     setGammaTrendOpen(true);
     setGammaModal(null);
-    const [overview, priceTarget, smart, chain, gex, gexHistory, unusual, strategy] = await Promise.all([
+    const [quote, overview, priceTarget, smart, chain, gex, gexHistory, unusual, strategy] = await Promise.all([
+      settle<JsonRecord>(() => fetchJson(`/api/cross-market/quote/${encodeURIComponent(sym)}`, token)),
       settle<StockOverviewContract>(() => api.stock.overview(sym)),
       settle<AnalystPriceTargetContract>(() => api.analyst.priceTarget(sym)),
       settle<SmartVsRetailContract>(() => api.social.smartVsRetail(sym)),
-      settle<JsonRecord>(() => api.options.chain(sym) as Promise<JsonRecord>),
-      settle<JsonRecord>(() => fetchJson(`/api/stock/${encodeURIComponent(sym)}/gex`, token)),
+      settle<JsonRecord>(() =>
+        api.options.chain(sym, undefined, undefined, {
+          realtime: true,
+          limit: 400,
+          strikeWindowPct: 0.2,
+        }) as Promise<JsonRecord>,
+      ),
+      settle<JsonRecord>(() => api.options.gex(sym, { realtime: true, limit: 500, strikeWindowPct: 0.2 }) as Promise<JsonRecord>),
       settle<JsonRecord>(() => fetchJson(`/api/stock/${encodeURIComponent(sym)}/gex/history`, token)),
       settle<JsonRecord>(() =>
         fetchJson(`/api/stock/${encodeURIComponent(sym)}/unusual-v2?page_size=20&min_score=20`, token),
@@ -1383,6 +1385,8 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
       settle<JsonRecord>(() => api.stock.strategyIdeas(sym) as Promise<JsonRecord>),
     ]);
     const overviewData = overview.data;
+    const realtimeSpot = num(quote.data?.price);
+    const reportSpot = realtimeSpot ?? num(overviewData?.bar?.price);
     const chainData = chain.data;
     const candidates = normalizeOptionCandidates(chainData, direction);
     const strictUnusual = asArray(unusual.data?.items).map(asRecord).slice(0, 5);
@@ -1393,7 +1397,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
       api.market.stockOptionsInsights({
         symbol: sym,
         direction: insightDirection,
-        spot: num(overviewData?.bar?.price),
+        spot: reportSpot,
         iv_rank: num(overviewData?.keyStats?.ivRank),
         expected_moves: overviewData?.expectedMoves ?? [],
         contracts: contractsForInsights(candidates),
@@ -1402,7 +1406,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
         market_regime_label: currentMarketRegime?.label ?? null,
       }, token),
     );
-    const nextReport = { overview, priceTarget, smart, chain, gex, gexHistory, unusual, strategy, optionsInsights };
+    const nextReport = { quote, overview, priceTarget, smart, chain, gex, gexHistory, unusual, strategy, optionsInsights };
     cachedStockReports.set(reportCacheKey(sym, direction, regimeCode), {
       data: nextReport,
       cachedAt: Date.now(),
@@ -1472,6 +1476,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
 
   const stockBias = pickActionBias(direction, report);
   const stockOverview = report?.overview.data ?? null;
+  const realtimeQuote = report?.quote.data ?? null;
   const priceSeries = (stockOverview?.priceSeries ?? [])
     .slice(-66)
     .map((row) => ({ date: row.date.slice(5), close: row.close ?? null }));
@@ -1487,7 +1492,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
   );
   const priceTarget = report?.priceTarget.data;
   const ptAvg = priceTarget?.summary?.lastMonthAvgPriceTarget ?? priceTarget?.consensus?.priceTarget ?? null;
-  const spot = num(stockOverview?.bar?.price);
+  const spot = num(realtimeQuote?.price) ?? num(stockOverview?.bar?.price);
   const gexSpot = selectGammaStructureSpot({ overviewSpot: spot, gexSpot: num(gexProfile?.underlyingPrice) });
   const gammaRead = buildGammaStructureRead({
     symbol,

@@ -163,14 +163,28 @@ export const api = {
   },
 
   options: {
-    chain: (symbol: string, expiry?: string, type?: string) => {
+    chain: (
+      symbol: string,
+      expiry?: string,
+      type?: string,
+      opts?: { realtime?: boolean; limit?: number; strikeWindowPct?: number },
+    ) => {
       const params = new URLSearchParams();
       if (expiry) params.set("expiration_date", expiry);
       if (type) params.set("contract_type", type);
+      if (opts?.realtime) params.set("realtime", "true");
+      if (opts?.limit) params.set("limit", String(opts.limit));
+      if (opts?.strikeWindowPct) params.set("strike_window_pct", String(opts.strikeWindowPct));
       return fetchJSON(`/api/options/chain/${symbol}?${params}`);
     },
     expirations: (symbol: string) => fetchJSON(`/api/options/expirations/${symbol}`),
-    gex: (symbol: string) => fetchJSON(`/api/options/gex/${symbol}`),
+    gex: (symbol: string, opts?: { realtime?: boolean; limit?: number; strikeWindowPct?: number }) => {
+      const params = new URLSearchParams();
+      if (opts?.realtime) params.set("realtime", "true");
+      if (opts?.limit) params.set("limit", String(opts.limit));
+      if (opts?.strikeWindowPct) params.set("strike_window_pct", String(opts.strikeWindowPct));
+      return fetchJSON(`/api/options/gex/${symbol}?${params}`);
+    },
     unusual: (volOiMin?: number, volumeMin?: number) => {
       const params = new URLSearchParams();
       if (volOiMin) params.set("vol_oi_min", String(volOiMin));
