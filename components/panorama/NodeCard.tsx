@@ -13,6 +13,7 @@ type CardData = {
   moatTier?: string | null;
   sparkline: Array<{ x: number; value: number }>;
   compact?: boolean;
+  focus?: boolean;
   dimmed?: boolean;
   highlighted?: boolean;
   onSelectNode?: (node: GraphNode) => void;
@@ -62,7 +63,7 @@ function SparklineSvg({
 }
 
 function NodeCardComponent({ data, selected }: NodeProps) {
-  const { node, moatTier, sparkline, compact, dimmed, highlighted, onSelectNode } = data as CardData;
+  const { node, moatTier, sparkline, compact, focus, dimmed, highlighted, onSelectNode } = data as CardData;
   const isMoat = moatTier === "exclusive" || moatTier === "dominant";
   const isSegment = node.type === "segment";
   const title = node.ticker || node.label;
@@ -80,6 +81,7 @@ function NodeCardComponent({ data, selected }: NodeProps) {
           isSegment && "border-purple/35 bg-purple/15",
           highlighted && "border-primary/70",
           dimmed && "opacity-25 grayscale",
+          focus && "border-primary/80 shadow-[0_0_52px_rgba(240,180,41,0.28)] ring-1 ring-primary/50",
           isMoat && "shadow-[0_0_34px_rgba(240,180,41,0.36)] ring-1 ring-gold/45",
         )}
         style={{ boxShadow: isMoat ? undefined : `0 0 22px ${accent}30` }}
@@ -107,8 +109,9 @@ function NodeCardComponent({ data, selected }: NodeProps) {
         selected && "border-primary/70",
         highlighted && "border-primary/60 shadow-primary/10",
         dimmed && "opacity-25 grayscale",
+        focus && "border-primary/65 shadow-[0_0_46px_rgba(240,180,41,0.24)] ring-1 ring-primary/40",
         isSegment ? SEGMENT_COLORS[node.label] ?? "border-purple/30 bg-purple/10" : "border-white/10",
-        isMoat && "shadow-[0_0_28px_rgba(240,180,41,0.28)] ring-1 ring-gold/40",
+        isMoat && "shadow-[0_0_38px_rgba(240,180,41,0.36)] ring-1 ring-gold/50",
       )}
     >
       <Handle type="target" position={Position.Left} className="!h-2 !w-2 !border-cyan !bg-background" />

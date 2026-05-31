@@ -273,6 +273,7 @@ export function graphToFlow(
         moatTier: nodeMoatTier(node.id, graphEdges),
         sparkline: sparklineForNode(node),
         compact: options?.compact,
+        focus: node.id === focus?.id,
         dimmed: Boolean(spotlightNodeId && !spotlightNodeIds.has(node.id)),
         highlighted: Boolean(spotlightNodeId && spotlightNodeIds.has(node.id)),
         onSelectNode,

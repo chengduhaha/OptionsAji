@@ -8,6 +8,7 @@ import {
   Controls,
   ReactFlow,
   ReactFlowProvider,
+  ViewportPortal,
   useOnViewportChange,
   type Edge,
   type Node,
@@ -20,6 +21,7 @@ import { graphToFlow } from "./graph-utils";
 import { Minimap } from "./Minimap";
 import { NodeCard } from "./NodeCard";
 import { NodeDetailDrawer } from "./NodeDetailDrawer";
+import { SegmentConstellationLayer } from "./SegmentConstellationLayer";
 import { useForceLayout } from "./useForceLayout";
 
 const NODE_TYPES = { companyCard: NodeCard };
@@ -128,6 +130,11 @@ function GraphCanvasInner({
         className="panorama-flow"
       >
         <Background variant={BackgroundVariant.Dots} color="rgba(120,160,255,0.18)" gap={34} size={1.4} />
+        {perspective === "company" ? (
+          <ViewportPortal>
+            <SegmentConstellationLayer nodes={nodes} edges={edges} />
+          </ViewportPortal>
+        ) : null}
         <Controls className="!bottom-4 !right-4 !top-auto !rounded-lg !border !border-white/10 !bg-background/80 !shadow-xl" />
         <Minimap />
       </ReactFlow>
