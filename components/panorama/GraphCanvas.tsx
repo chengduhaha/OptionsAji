@@ -8,6 +8,7 @@ import {
   Controls,
   ReactFlow,
   ReactFlowProvider,
+  useOnViewportChange,
   type Edge,
 } from "@xyflow/react";
 import { useEffect, useMemo, useState } from "react";
@@ -42,6 +43,14 @@ function GraphCanvasInner({
 }) {
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<GraphEdge | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const compact = zoom < 0.58;
+
+  useOnViewportChange({
+    onChange: ({ zoom: nextZoom }) => {
+      setZoom(nextZoom);
+    },
+  });
 
   const flow = useMemo(
     () =>
@@ -49,8 +58,8 @@ function GraphCanvasInner({
         setSelectedNode(node);
         setSelectedEdge(null);
         onExpandNode?.(node);
-      }),
-    [graph, layout, onExpandNode],
+      }, { compact }),
+    [compact, graph, layout, onExpandNode],
   );
 
   const {

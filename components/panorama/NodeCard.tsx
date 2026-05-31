@@ -2,7 +2,7 @@
 
 import type { NodeProps } from "@xyflow/react";
 import { Handle, Position } from "@xyflow/react";
-import { Line, LineChart, ResponsiveContainer } from "recharts";
+import { memo } from "react";
 
 import { cn } from "@/lib/utils";
 import type { GraphNode } from "@/lib/supplyGraph";
@@ -12,6 +12,7 @@ type CardData = {
   node: GraphNode;
   moatTier?: string | null;
   sparkline: Array<{ x: number; value: number }>;
+  compact?: boolean;
   onSelectNode?: (node: GraphNode) => void;
 };
 
@@ -21,11 +22,76 @@ const SEGMENT_COLORS: Record<string, string> = {
   "Space 分部": "border-blue/40 bg-blue/10",
 };
 
-export function NodeCard({ data, selected }: NodeProps) {
-  const { node, moatTier, sparkline, onSelectNode } = data as CardData;
+function SparklineSvg({
+  data,
+  color,
+}: {
+  data: Array<{ x: number; value: number }>;
+  color: string;
+}) {
+  if (data.length < 2) return null;
+  const values = data.map((point) => point.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = Math.max(1, max - min);
+  const width = 172;
+  const height = 32;
+  const points = data
+    .map((point, index) => {
+      const x = (index / (data.length - 1)) * width;
+      const y = height - ((point.value - min) / range) * (height - 5) - 2.5;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} className="h-8 w-full overflow-visible" aria-hidden="true">
+      <polyline
+        points={points}
+        fill="none"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}
+
+function NodeCardComponent({ data, selected }: NodeProps) {
+  const { node, moatTier, sparkline, compact, onSelectNode } = data as CardData;
   const isMoat = moatTier === "exclusive" || moatTier === "dominant";
   const isSegment = node.type === "segment";
   const title = node.ticker || node.label;
+  const accent = isMoat ? "#f0b429" : isSegment ? "#a855f7" : "#22d3ee";
+
+  if (compact) {
+    return (
+      <button
+        type="button"
+        onClick={() => onSelectNode?.(node)}
+        title={node.label}
+        className={cn(
+          "group relative flex h-[52px] min-w-[72px] items-center justify-center rounded-full border bg-background/80 px-3 shadow-xl backdrop-blur-md transition",
+          selected ? "border-primary/80" : "border-white/10",
+          isSegment && "border-purple/35 bg-purple/15",
+          isMoat && "shadow-[0_0_34px_rgba(240,180,41,0.36)] ring-1 ring-gold/45",
+        )}
+        style={{ boxShadow: isMoat ? undefined : `0 0 22px ${accent}30` }}
+      >
+        <Handle type="target" position={Position.Left} className="!h-1.5 !w-1.5 !border-cyan !bg-background" />
+        <Handle type="source" position={Position.Right} className="!h-1.5 !w-1.5 !border-gold !bg-background" />
+        <span
+          className="absolute inset-1 rounded-full opacity-45 blur-md transition group-hover:opacity-70"
+          style={{ backgroundColor: accent }}
+        />
+        <span className="relative max-w-[88px] truncate font-mono text-[11px] font-semibold text-foreground">
+          {node.ticker || title.slice(0, 8)}
+        </span>
+      </button>
+    );
+  }
 
   return (
     <button
@@ -66,11 +132,7 @@ export function NodeCard({ data, selected }: NodeProps) {
         </div>
       </div>
       <div className="mt-2 h-8">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={sparkline}>
-            <Line type="monotone" dataKey="value" stroke={isMoat ? "#f0b429" : "#22d3ee"} strokeWidth={1.8} dot={false} />
-          </LineChart>
-        </ResponsiveContainer>
+        <SparklineSvg data={sparkline} color={accent} />
       </div>
       {moatTier ? (
         <div className="mt-2 flex items-center justify-between text-[10px]">
@@ -82,3 +144,4 @@ export function NodeCard({ data, selected }: NodeProps) {
   );
 }
 
+export const NodeCard = memo(NodeCardComponent);

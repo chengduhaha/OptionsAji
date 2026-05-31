@@ -168,6 +168,7 @@ export function graphToFlow(
   graphEdges: GraphEdge[],
   layout: "layered" | "radial" | "force",
   onSelectNode?: (node: GraphNode) => void,
+  options?: { compact?: boolean },
 ): { nodes: Node[]; edges: Edge[] } {
   const focus = graphNodes[0];
   const segments = graphNodes.filter((node) => node.type === "segment");
@@ -258,6 +259,7 @@ export function graphToFlow(
         node,
         moatTier: nodeMoatTier(node.id, graphEdges),
         sparkline: sparklineForNode(node),
+        compact: options?.compact,
         onSelectNode,
       },
     })),
