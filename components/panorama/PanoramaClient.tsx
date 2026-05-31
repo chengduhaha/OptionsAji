@@ -138,7 +138,8 @@ export function PanoramaClient() {
   }, [businessSegment, expandedGraph, perspective]);
 
   const handleExpandNode = useCallback(
-    async (node: { id: string }) => {
+    async (node: { id: string; type?: string }) => {
+      if (node.id.startsWith("product:") || node.type === "product") return;
       if (expandedNodeIds.includes(node.id) || expandingNodeId === node.id) return;
       setExpandingNodeId(node.id);
       try {

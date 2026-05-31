@@ -61,9 +61,8 @@ function GraphCanvasInner({
       graphToFlow(graph?.nodes ?? [], graph?.edges ?? [], layout, (node) => {
         setSelectedNode(node);
         setSelectedEdge(null);
-        onExpandNode?.(node);
       }, { compact, spotlightNodeId }),
-    [compact, graph, layout, onExpandNode, spotlightNodeId],
+    [compact, graph, layout, spotlightNodeId],
   );
 
   const {
