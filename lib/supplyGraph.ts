@@ -163,6 +163,26 @@ export async function fetchGraphTimeline(focus: string, depth: number): Promise<
   return data.meta?.dates ?? [];
 }
 
+export type GraphInsightResponse = {
+  insight: string;
+  cache?: string;
+  error?: string;
+};
+
+export async function fetchGraphInsight(payload: Record<string, unknown>): Promise<GraphInsightResponse> {
+  const res = await fetch("/api/graph/insight", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await readJson<{ meta?: GraphInsightResponse }>(res);
+  const meta = data.meta;
+  if (!meta?.insight) {
+    throw new Error(meta?.error || "未返回解读内容");
+  }
+  return { insight: meta.insight, cache: meta.cache, error: meta.error };
+}
+
 export async function saveGraphView(
   payload: {
     slug: string;

@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useAuth } from "@/lib/auth-context";
-import type { GraphView, SupplyGraphResponse } from "@/lib/supplyGraph";
+import type { GraphNode, GraphView, SupplyGraphResponse } from "@/lib/supplyGraph";
 import { fetchGraphBootstrap, fetchGraphNode, saveGraphView } from "@/lib/supplyGraph";
 import { useSupplyGraphStore } from "@/lib/supplyGraphStore";
 import { DepthSlider } from "./DepthSlider";
@@ -15,6 +15,7 @@ import { IndustryGraphCanvas } from "./IndustryGraphCanvas";
 import { LayoutSwitcher } from "./LayoutSwitcher";
 import { PerspectiveTabs } from "./PerspectiveTabs";
 import { RelationLegend } from "./RelationLegend";
+import { PanoramaInsightPanel } from "./PanoramaInsightPanel";
 import { TimelineReplay } from "./TimelineReplay";
 import {
   filterGraphByBusinessSegment,
@@ -59,8 +60,11 @@ export function PanoramaClient() {
   const [saving, setSaving] = useState(false);
   const [expandingNodeId, setExpandingNodeId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
+  const [focusNodeRequest, setFocusNodeRequest] = useState<{ nodeId: string; key: number } | null>(null);
   const graphRef = useRef<SupplyGraphResponse | null>(null);
   const loadSeqRef = useRef(0);
+  const focusRequestKeyRef = useRef(0);
 
   useEffect(() => {
     graphRef.current = graph;
@@ -136,6 +140,33 @@ export function PanoramaClient() {
     const shaped = perspective === "product" ? toProductGraph(filtered.nodes, filtered.edges) : filtered;
     return { ...expandedGraph.graph, nodes: shaped.nodes, edges: shaped.edges };
   }, [businessSegment, expandedGraph, perspective]);
+
+  const graphRevision = useMemo(
+    () =>
+      [
+        focus,
+        perspective,
+        depth,
+        businessSegment,
+        moatTier,
+        asOfDate,
+        relTypes.join(","),
+        visibleGraph?.nodes.length ?? 0,
+        visibleGraph?.edges.length ?? 0,
+      ].join("|"),
+    [asOfDate, businessSegment, depth, focus, moatTier, perspective, relTypes, visibleGraph],
+  );
+
+  useEffect(() => {
+    setSelectedNode(null);
+  }, [graphRevision]);
+
+  const handleFocusNode = useCallback((nodeId: string) => {
+    focusRequestKeyRef.current += 1;
+    setFocusNodeRequest({ nodeId, key: focusRequestKeyRef.current });
+    const node = visibleGraph?.nodes.find((row) => row.id === nodeId) ?? null;
+    if (node) setSelectedNode(node);
+  }, [visibleGraph?.nodes]);
 
   const handleExpandNode = useCallback(
     async (node: { id: string; type?: string }) => {
@@ -258,21 +289,35 @@ export function PanoramaClient() {
         </div>
       ) : null}
 
-      <div className="min-h-0 flex-1">
-        {perspective === "industry" ? (
-          <IndustryGraphCanvas key={`industry-${graph?.meta?.focusNodeId ?? focus}`} graph={visibleGraph} loading={loading} />
-        ) : (
-          <GraphCanvas
-            key={`${perspective}-${graph?.meta?.focusNodeId ?? focus}-${visibleGraph?.nodes.length ?? 0}`}
-            graph={visibleGraph}
-            perspective={perspective}
-            layout={layout}
-            loading={loading}
-            expandedNodeIds={expandedNodeIds}
-            expandingNodeId={expandingNodeId}
-            onExpandNode={(node) => void handleExpandNode(node)}
-          />
-        )}
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="min-h-[480px]">
+          {perspective === "industry" ? (
+            <IndustryGraphCanvas key={`industry-${graph?.meta?.focusNodeId ?? focus}`} graph={visibleGraph} loading={loading} />
+          ) : (
+            <GraphCanvas
+              key={`${perspective}-${graph?.meta?.focusNodeId ?? focus}-${visibleGraph?.nodes.length ?? 0}`}
+              graph={visibleGraph}
+              perspective={perspective}
+              layout={layout}
+              loading={loading}
+              expandedNodeIds={expandedNodeIds}
+              expandingNodeId={expandingNodeId}
+              onExpandNode={(node) => void handleExpandNode(node)}
+              onSelectedNodeChange={setSelectedNode}
+              focusNodeRequest={focusNodeRequest}
+            />
+          )}
+        </div>
+        <PanoramaInsightPanel
+          graph={visibleGraph}
+          focus={focus}
+          perspective={perspective}
+          depth={depth}
+          loading={loading}
+          selectedNode={selectedNode}
+          onFocusNode={handleFocusNode}
+          graphRevision={graphRevision}
+        />
       </div>
     </div>
   );

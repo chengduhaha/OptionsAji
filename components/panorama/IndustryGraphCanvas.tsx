@@ -19,6 +19,7 @@ type G6GraphInstance = {
   destroy: () => void;
   resize?: (width: number, height: number) => void;
   render: () => Promise<void>;
+  zoomTo?: (level: number, animation?: { duration?: number }) => void;
   on: (event: string, handler: (event: unknown) => void) => void;
   getNodeData: (id: string) => { data?: G6NodeData };
 };
@@ -111,9 +112,9 @@ export function IndustryGraphCanvas({
         data,
         layout: {
           type: "d3-force",
-          link: { distance: 130, strength: 0.45 },
-          manyBody: { strength: -280 },
-          collide: { radius: 58 },
+          link: { distance: 100, strength: 0.45 },
+          manyBody: { strength: -220 },
+          collide: { radius: 52 },
           center: { x: width / 2, y: height / 2 },
           iterations: 260,
         },
@@ -166,6 +167,7 @@ export function IndustryGraphCanvas({
         if (item?.node) setSelectedNode(item.node);
       });
       await g6.render();
+      g6.zoomTo?.(1.2, { duration: 200 });
       graphRef.current = g6;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "行业图谱渲染失败";

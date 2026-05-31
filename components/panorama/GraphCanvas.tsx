@@ -6,14 +6,17 @@ import {
   Background,
   BackgroundVariant,
   Controls,
+  Panel,
   ReactFlow,
   ReactFlowProvider,
   ViewportPortal,
   useOnViewportChange,
+  useReactFlow,
   type Edge,
   type Node,
 } from "@xyflow/react";
-import { useEffect, useMemo, useState } from "react";
+import { Crosshair } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { GraphEdge, GraphNode, SupplyGraphResponse } from "@/lib/supplyGraph";
 import { FloatingEdge } from "./FloatingEdge";
@@ -35,6 +38,8 @@ function GraphCanvasInner({
   expandedNodeIds = [],
   expandingNodeId,
   onExpandNode,
+  onSelectedNodeChange,
+  focusNodeRequest,
 }: {
   graph: SupplyGraphResponse | null;
   perspective?: string;
@@ -43,12 +48,22 @@ function GraphCanvasInner({
   expandedNodeIds?: string[];
   expandingNodeId?: string | null;
   onExpandNode?: (node: GraphNode) => void;
+  onSelectedNodeChange?: (node: GraphNode | null) => void;
+  focusNodeRequest?: { nodeId: string; key: number } | null;
 }) {
+  const { fitView, getViewport, setViewport } = useReactFlow();
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<GraphEdge | null>(null);
   const [spotlightNodeId, setSpotlightNodeId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
-  const compact = zoom < 0.58;
+  const compact = zoom < 0.42;
+
+  const focusNodeId = useMemo(() => {
+    if (!graph?.nodes.length) return null;
+    const metaFocus = graph.meta?.focusNodeId;
+    if (typeof metaFocus === "string") return metaFocus;
+    return graph.nodes[0]?.id ?? null;
+  }, [graph]);
 
   useOnViewportChange({
     onChange: ({ zoom: nextZoom }) => {
@@ -56,13 +71,22 @@ function GraphCanvasInner({
     },
   });
 
+  const applyBoostedFit = useCallback(() => {
+    fitView({ padding: 0.08, maxZoom: 1.75, duration: 280 });
+    window.setTimeout(() => {
+      const vp = getViewport();
+      setViewport({ ...vp, zoom: Math.min(1.75, vp.zoom * 1.25) }, { duration: 200 });
+    }, 300);
+  }, [fitView, getViewport, setViewport]);
+
   const flow = useMemo(
     () =>
       graphToFlow(graph?.nodes ?? [], graph?.edges ?? [], layout, (node) => {
         setSelectedNode(node);
         setSelectedEdge(null);
+        onSelectedNodeChange?.(node);
       }, { compact, spotlightNodeId }),
-    [compact, graph, layout, spotlightNodeId],
+    [compact, graph, layout, onSelectedNodeChange, spotlightNodeId],
   );
 
   const {
@@ -76,15 +100,53 @@ function GraphCanvasInner({
     onNodeDoubleClick,
   } = useForceLayout(flow.nodes, flow.edges, layout === "force");
 
-  // Remount React Flow so fitView re-centres when topology or layout changes.
   const [fitKey, setFitKey] = useState(0);
   useEffect(() => {
     setFitKey((k) => k + 1);
   }, [graph, layout]);
 
+  useEffect(() => {
+    if (loading || !graph?.nodes.length) return;
+    const timer = window.setTimeout(() => applyBoostedFit(), 120);
+    return () => window.clearTimeout(timer);
+  }, [applyBoostedFit, fitKey, graph, loading]);
+
+  useEffect(() => {
+    if (!focusNodeRequest?.nodeId) return;
+    const nodeId = focusNodeRequest.nodeId;
+    setSpotlightNodeId(nodeId);
+    const neighborIds = new Set<string>([nodeId]);
+    for (const edge of graph?.edges ?? []) {
+      if (edge.source === nodeId) neighborIds.add(edge.target);
+      if (edge.target === nodeId) neighborIds.add(edge.source);
+    }
+    fitView({
+      nodes: Array.from(neighborIds).map((id) => ({ id })),
+      padding: 0.15,
+      maxZoom: 1.85,
+      duration: 320,
+    });
+  }, [fitView, focusNodeRequest, graph?.edges]);
+
+  const handleFocusEgo = useCallback(() => {
+    if (!focusNodeId) return;
+    const neighborIds = new Set<string>([focusNodeId]);
+    for (const edge of graph?.edges ?? []) {
+      if (edge.source === focusNodeId) neighborIds.add(edge.target);
+      if (edge.target === focusNodeId) neighborIds.add(edge.source);
+    }
+    fitView({
+      nodes: Array.from(neighborIds).map((id) => ({ id })),
+      padding: 0.12,
+      maxZoom: 1.9,
+      duration: 320,
+    });
+  }, [fitView, focusNodeId, graph?.edges]);
+
   function handleEdgeClick(_: React.MouseEvent, edge: Edge) {
     setSelectedEdge((edge.data?.edge as GraphEdge) ?? null);
     setSelectedNode(null);
+    onSelectedNodeChange?.(null);
   }
 
   function handleNodeMouseEnter(_: React.MouseEvent, node: Node) {
@@ -121,9 +183,9 @@ function GraphCanvasInner({
         onNodeMouseEnter={handleNodeMouseEnter}
         onNodeMouseLeave={handleNodeMouseLeave}
         fitView
-        fitViewOptions={{ padding: 0.25, maxZoom: 1.1 }}
+        fitViewOptions={{ padding: 0.08, maxZoom: 1.75 }}
         minZoom={0.15}
-        maxZoom={1.6}
+        maxZoom={1.85}
         nodesDraggable
         elevateNodesOnSelect
         proOptions={{ hideAttribution: true }}
@@ -135,6 +197,16 @@ function GraphCanvasInner({
             <SegmentConstellationLayer nodes={nodes} edges={edges} />
           </ViewportPortal>
         ) : null}
+        <Panel position="top-left" className="!m-3">
+          <button
+            type="button"
+            onClick={handleFocusEgo}
+            className="flex items-center gap-1.5 rounded-lg border border-cyan/30 bg-background/90 px-2.5 py-1.5 text-[11px] font-medium text-cyan shadow-lg backdrop-blur-md hover:bg-cyan/10"
+          >
+            <Crosshair className="h-3.5 w-3.5" />
+            聚焦视野
+          </button>
+        </Panel>
         <Controls className="!bottom-4 !right-4 !top-auto !rounded-lg !border !border-white/10 !bg-background/80 !shadow-xl" />
         <Minimap />
       </ReactFlow>
@@ -147,6 +219,7 @@ function GraphCanvasInner({
         onClose={() => {
           setSelectedNode(null);
           setSelectedEdge(null);
+          onSelectedNodeChange?.(null);
         }}
       />
     </section>
@@ -161,6 +234,8 @@ export function GraphCanvas(props: {
   expandedNodeIds?: string[];
   expandingNodeId?: string | null;
   onExpandNode?: (node: GraphNode) => void;
+  onSelectedNodeChange?: (node: GraphNode | null) => void;
+  focusNodeRequest?: { nodeId: string; key: number } | null;
 }) {
   return (
     <ReactFlowProvider>

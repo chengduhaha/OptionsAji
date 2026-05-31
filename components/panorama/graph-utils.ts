@@ -198,15 +198,15 @@ export function graphToFlow(
     const segCount = Math.max(1, segments.length);
     segments.forEach((segment, index) => {
       const angle = -Math.PI / 2 + (Math.PI * 2 * index) / segCount;
-      const sx = center.x + Math.cos(angle) * 360;
-      const sy = center.y + Math.sin(angle) * 360;
+      const sx = center.x + Math.cos(angle) * 280;
+      const sy = center.y + Math.sin(angle) * 280;
       positioned.set(segment.id, { x: sx, y: sy });
       const group = supplierGroups.get(segment.id) ?? [];
       const spread = Math.min(Math.PI * 1.1, 0.5 + group.length * 0.16);
       group.forEach((node, inner) => {
         const frac = group.length > 1 ? inner / (group.length - 1) : 0.5;
         const a = angle - spread / 2 + spread * frac;
-        const r = 660 + (inner % 2) * 90;
+        const r = 420 + (inner % 2) * 60;
         positioned.set(node.id, {
           x: center.x + Math.cos(a) * r,
           y: center.y + Math.sin(a) * r,
@@ -218,7 +218,7 @@ export function graphToFlow(
       .filter((node) => !positioned.has(node.id))
       .forEach((node) => {
         const a = (Math.PI * 2 * orphan++) / 8;
-        positioned.set(node.id, { x: Math.cos(a) * 780, y: Math.sin(a) * 780 });
+        positioned.set(node.id, { x: Math.cos(a) * 520, y: Math.sin(a) * 520 });
       });
   } else if (layout === "radial") {
     const center = { x: 520, y: 300 };

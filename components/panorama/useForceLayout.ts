@@ -108,7 +108,7 @@ export function useForceLayout(
     const sim = forceSimulation<SimNode, SimLink>(simNodes)
       .force(
         "charge",
-        forceManyBody<SimNode>().strength(-1650).distanceMax(1100),
+        forceManyBody<SimNode>().strength(-1200).distanceMax(900),
       )
       .force(
         "link",
