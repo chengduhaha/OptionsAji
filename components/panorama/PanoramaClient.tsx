@@ -260,9 +260,10 @@ export function PanoramaClient() {
 
       <div className="min-h-0 flex-1">
         {perspective === "industry" ? (
-          <IndustryGraphCanvas graph={visibleGraph} loading={loading} />
+          <IndustryGraphCanvas key={`industry-${graph?.meta?.focusNodeId ?? focus}`} graph={visibleGraph} loading={loading} />
         ) : (
           <GraphCanvas
+            key={`${perspective}-${graph?.meta?.focusNodeId ?? focus}-${visibleGraph?.nodes.length ?? 0}`}
             graph={visibleGraph}
             perspective={perspective}
             layout={layout}
