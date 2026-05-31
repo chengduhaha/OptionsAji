@@ -231,6 +231,28 @@
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
   }
+
+  .panorama-flow .react-flow__pane {
+    cursor: grab;
+  }
+
+  .panorama-flow .react-flow__pane:active {
+    cursor: grabbing;
+  }
+
+  .panorama-flow .react-flow__controls-button {
+    background: rgba(15, 28, 48, 0.9);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: #f0f4f8;
+  }
+
+  .panorama-flow .react-flow__controls-button:hover {
+    background: rgba(240, 180, 41, 0.14);
+  }
+
+  .panorama-flow .react-flow__edge-textbg {
+    rx: 6;
+  }
 }
 
 /* Animations */

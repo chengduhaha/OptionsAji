@@ -9,6 +9,7 @@ export const KNOWN_NAV_IDS = [
   "ai",
   "learn",
   "macro",
+  "supply_graph",
   "settings",
   "profile",
   "divergence",
@@ -49,6 +50,7 @@ export const NAV_ITEM_LABELS: Record<NavMenuId, string> = {
   ai: "AI 分析师",
   learn: "期权学院",
   macro: "宏观经济",
+  supply_graph: "产业星图",
   settings: "设置",
   profile: "个人中心",
   divergence: "散户背离扫描",
@@ -93,6 +95,7 @@ export function pathnameToMenuId(
   if (p === "/ai" || p.startsWith("/ai/")) return "ai";
   if (p === "/learn" || p.startsWith("/learn/")) return "learn";
   if (p === "/macro" || p.startsWith("/macro/")) return "macro";
+  if (p === "/panorama" || p.startsWith("/panorama/")) return "supply_graph";
   if (p === "/settings" || p.startsWith("/settings/")) return "settings";
   if (p === "/profile" || p.startsWith("/profile/")) return "profile";
   if (p === "/dark-pool" || p.startsWith("/dark-pool/")) return "darkpool";
