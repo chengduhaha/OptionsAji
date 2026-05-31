@@ -98,7 +98,8 @@ export function graphVisibleByExpansion(
 ): { nodes: GraphNode[]; edges: GraphEdge[]; hiddenCount: number } {
   const focus = graphNodes[0];
   if (!focus) return { nodes: [], edges: [], hiddenCount: 0 };
-  const expanded = new Set<string>([focus.id, ...expandedNodeIds]);
+  const defaultExpandedSegments = graphNodes.filter((node) => node.type === "segment").map((node) => node.id);
+  const expanded = new Set<string>([focus.id, ...defaultExpandedSegments, ...expandedNodeIds]);
   const keptNodeIds = new Set<string>([focus.id]);
   const keptEdges: GraphEdge[] = [];
   for (const edge of graphEdges) {
