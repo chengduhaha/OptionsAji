@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 const LAYOUTS = [
   { id: "layered", label: "层级", icon: GitBranch },
   { id: "radial", label: "环形", icon: Orbit },
-  { id: "force", label: "散点", icon: Shuffle },
+  { id: "force", label: "星图", icon: Shuffle },
 ] as const;
 
 export function LayoutSwitcher({

@@ -30,7 +30,7 @@ export const useSupplyGraphStore = create<SupplyGraphState>((set) => ({
   businessSegment: "",
   moatTier: "",
   asOfDate: "",
-  layout: "layered",
+  layout: "force",
   setPerspective: (perspective) => set({ perspective }),
   setFocus: (focus) => set({ focus: focus.trim().toUpperCase() || "SPCX" }),
   setDepth: (depth) => set({ depth: Math.max(1, Math.min(4, Math.round(depth))) }),

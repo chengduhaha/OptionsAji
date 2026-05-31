@@ -1,4 +1,4 @@
-import type { Edge, Node } from "@xyflow/react";
+import { MarkerType, type Edge, type Node } from "@xyflow/react";
 
 import type { GraphEdge, GraphNode } from "@/lib/supplyGraph";
 
@@ -147,33 +147,67 @@ export function graphToFlow(
   const positioned = new Map<string, { x: number; y: number }>();
   if (focus) positioned.set(focus.id, { x: 40, y: 260 });
 
-  if (layout === "radial") {
+  if (layout === "force") {
+    // Radial seed: focus at centre, segments evenly around it, each segment's
+    // suppliers fanned out beyond their segment. The live d3-force sim
+    // (useForceLayout) then relaxes this into a non-overlapping star-field,
+    // and these positions double as soft anchors that keep it orderly.
+    const center = { x: 0, y: 0 };
+    if (focus) positioned.set(focus.id, center);
+    const segCount = Math.max(1, segments.length);
+    segments.forEach((segment, index) => {
+      const angle = -Math.PI / 2 + (Math.PI * 2 * index) / segCount;
+      const sx = center.x + Math.cos(angle) * 360;
+      const sy = center.y + Math.sin(angle) * 360;
+      positioned.set(segment.id, { x: sx, y: sy });
+      const group = supplierGroups.get(segment.id) ?? [];
+      const spread = Math.min(Math.PI * 1.1, 0.5 + group.length * 0.16);
+      group.forEach((node, inner) => {
+        const frac = group.length > 1 ? inner / (group.length - 1) : 0.5;
+        const a = angle - spread / 2 + spread * frac;
+        const r = 660 + (inner % 2) * 90;
+        positioned.set(node.id, {
+          x: center.x + Math.cos(a) * r,
+          y: center.y + Math.sin(a) * r,
+        });
+      });
+    });
+    let orphan = 0;
+    suppliers
+      .filter((node) => !positioned.has(node.id))
+      .forEach((node) => {
+        const a = (Math.PI * 2 * orphan++) / 8;
+        positioned.set(node.id, { x: Math.cos(a) * 780, y: Math.sin(a) * 780 });
+      });
+  } else if (layout === "radial") {
     const center = { x: 520, y: 300 };
     if (focus) positioned.set(focus.id, center);
     const others = graphNodes.filter((node) => node.id !== focus?.id);
     others.forEach((node, index) => {
       const angle = (Math.PI * 2 * index) / Math.max(1, others.length);
-      const radius = node.type === "segment" ? 230 : 380;
+      const radius = node.type === "segment" ? 260 : 470;
       positioned.set(node.id, { x: center.x + Math.cos(angle) * radius, y: center.y + Math.sin(angle) * radius });
     });
   } else {
-    segments.forEach((segment, index) => {
-      const y = 110 + index * 210;
-      positioned.set(segment.id, { x: 380, y });
+    // Layered: segments stacked, suppliers in a roomy multi-column grid so
+    // large groups no longer pile on top of each other.
+    let cursorY = 80;
+    segments.forEach((segment) => {
       const group = supplierGroups.get(segment.id) ?? [];
+      const rows = Math.max(1, Math.ceil(group.length / 3));
+      const blockH = rows * 150;
+      const segY = cursorY + blockH / 2 - 75;
+      positioned.set(segment.id, { x: 360, y: segY });
       group.forEach((node, inner) => {
-        positioned.set(node.id, { x: 720 + (inner % 2) * 260, y: y - 70 + Math.floor(inner / 2) * 74 });
+        const col = inner % 3;
+        const row = Math.floor(inner / 3);
+        positioned.set(node.id, { x: 720 + col * 250, y: cursorY + row * 150 });
       });
+      cursorY += blockH + 90;
     });
     suppliers
       .filter((node) => !positioned.has(node.id))
-      .forEach((node, index) => positioned.set(node.id, { x: 650 + index * 210, y: 520 }));
-    if (layout === "force") {
-      for (const [id, pos] of positioned) {
-        const offset = Array.from(id).reduce((acc, char) => acc + char.charCodeAt(0), 0) % 90;
-        positioned.set(id, { x: pos.x + offset - 45, y: pos.y + (offset % 50) - 25 });
-      }
-    }
+      .forEach((node, index) => positioned.set(node.id, { x: 720 + (index % 3) * 250, y: cursorY + Math.floor(index / 3) * 150 }));
   }
 
   return {
@@ -190,19 +224,25 @@ export function graphToFlow(
     })),
     edges: graphEdges.map((edge) => {
       const meta = RELATION_META[edge.relType] ?? RELATION_META.thematic_link;
+      const highlight = edge.moatTier === "exclusive";
+      // Force/radial fields use floating edges (border-to-border straight lines);
+      // the layered tree keeps orthogonal smoothstep routing.
+      const floating = layout === "force" || layout === "radial";
       return {
         id: edge.id,
         source: edge.source,
         target: edge.target,
         label: edge.label ?? meta.label,
-        type: "smoothstep",
-        animated: edge.moatTier === "exclusive",
-        data: { edge },
+        type: floating ? "floating" : "smoothstep",
+        animated: !floating && highlight,
+        markerEnd: { type: MarkerType.ArrowClosed, color: meta.color, width: 16, height: 16 },
+        data: { edge, animated: highlight },
         labelStyle: { fill: "#e2e8f0", fontSize: 11, fontWeight: 600 },
         labelBgStyle: { fill: "rgba(5, 10, 20, 0.82)", fillOpacity: 0.9 },
         style: {
           stroke: meta.color,
           strokeWidth: Math.max(1.5, (edge.weight ?? 0.6) * 3),
+          opacity: edge.relType === "thematic_link" ? 0.5 : 0.9,
         },
       };
     }),

@@ -253,6 +253,24 @@
   .panorama-flow .react-flow__edge-textbg {
     rx: 6;
   }
+
+  /* Smooth node glide as the force sim ticks; dragging stays 1:1. */
+  .panorama-flow .react-flow__node {
+    transition: transform 0.08s linear;
+  }
+  .panorama-flow .react-flow__node.dragging {
+    transition: none;
+  }
+
+  /* Flowing dashes on monopoly ("exclusive") supply links. */
+  .panorama-edge-flow {
+    stroke-dasharray: 7 5;
+    animation: panoramaDash 0.55s linear infinite;
+  }
+}
+
+@keyframes panoramaDash {
+  to { stroke-dashoffset: -24; }
 }
 
 /* Animations */
