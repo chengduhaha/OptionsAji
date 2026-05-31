@@ -168,7 +168,7 @@ export function graphToFlow(
   graphEdges: GraphEdge[],
   layout: "layered" | "radial" | "force",
   onSelectNode?: (node: GraphNode) => void,
-  options?: { compact?: boolean },
+  options?: { compact?: boolean; spotlightNodeId?: string | null },
 ): { nodes: Node[]; edges: Edge[] } {
   const focus = graphNodes[0];
   const segments = graphNodes.filter((node) => node.type === "segment");
@@ -250,6 +250,19 @@ export function graphToFlow(
       .forEach((node, index) => positioned.set(node.id, { x: 720 + (index % 3) * 250, y: cursorY + Math.floor(index / 3) * 150 }));
   }
 
+  const spotlightNodeId = options?.spotlightNodeId ?? null;
+  const spotlightEdgeIds = new Set<string>();
+  const spotlightNodeIds = new Set<string>();
+  if (spotlightNodeId) {
+    spotlightNodeIds.add(spotlightNodeId);
+    for (const edge of graphEdges) {
+      if (edge.source !== spotlightNodeId && edge.target !== spotlightNodeId) continue;
+      spotlightEdgeIds.add(edge.id);
+      spotlightNodeIds.add(edge.source);
+      spotlightNodeIds.add(edge.target);
+    }
+  }
+
   return {
     nodes: graphNodes.map((node) => ({
       id: node.id,
@@ -260,12 +273,16 @@ export function graphToFlow(
         moatTier: nodeMoatTier(node.id, graphEdges),
         sparkline: sparklineForNode(node),
         compact: options?.compact,
+        dimmed: Boolean(spotlightNodeId && !spotlightNodeIds.has(node.id)),
+        highlighted: Boolean(spotlightNodeId && spotlightNodeIds.has(node.id)),
         onSelectNode,
       },
     })),
     edges: graphEdges.map((edge) => {
       const meta = RELATION_META[edge.relType] ?? RELATION_META.thematic_link;
       const highlight = edge.moatTier === "exclusive";
+      const spotlighted = Boolean(spotlightNodeId && spotlightEdgeIds.has(edge.id));
+      const dimmed = Boolean(spotlightNodeId && !spotlighted);
       // Force/radial fields use floating edges (border-to-border straight lines);
       // the layered tree keeps orthogonal smoothstep routing.
       const floating = layout === "force" || layout === "radial";
@@ -277,13 +294,19 @@ export function graphToFlow(
         type: floating ? "floating" : "smoothstep",
         animated: !floating && highlight,
         markerEnd: { type: MarkerType.ArrowClosed, color: meta.color, width: 16, height: 16 },
-        data: { edge, animated: highlight },
+        data: {
+          edge,
+          animated: highlight,
+          particleColor: highlight ? "#f0b429" : meta.color,
+          dimmed,
+          spotlighted,
+        },
         labelStyle: { fill: "#e2e8f0", fontSize: 11, fontWeight: 600 },
         labelBgStyle: { fill: "rgba(5, 10, 20, 0.82)", fillOpacity: 0.9 },
         style: {
           stroke: meta.color,
           strokeWidth: Math.max(1.5, (edge.weight ?? 0.6) * 3),
-          opacity: edge.relType === "thematic_link" ? 0.5 : 0.9,
+          opacity: dimmed ? 0.12 : spotlighted ? 1 : edge.relType === "thematic_link" ? 0.5 : 0.9,
         },
       };
     }),

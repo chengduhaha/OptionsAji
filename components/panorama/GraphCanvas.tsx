@@ -10,6 +10,7 @@ import {
   ReactFlowProvider,
   useOnViewportChange,
   type Edge,
+  type Node,
 } from "@xyflow/react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -43,6 +44,7 @@ function GraphCanvasInner({
 }) {
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<GraphEdge | null>(null);
+  const [spotlightNodeId, setSpotlightNodeId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const compact = zoom < 0.58;
 
@@ -58,8 +60,8 @@ function GraphCanvasInner({
         setSelectedNode(node);
         setSelectedEdge(null);
         onExpandNode?.(node);
-      }, { compact }),
-    [compact, graph, layout, onExpandNode],
+      }, { compact, spotlightNodeId }),
+    [compact, graph, layout, onExpandNode, spotlightNodeId],
   );
 
   const {
@@ -84,6 +86,14 @@ function GraphCanvasInner({
     setSelectedNode(null);
   }
 
+  function handleNodeMouseEnter(_: React.MouseEvent, node: Node) {
+    setSpotlightNodeId(node.id);
+  }
+
+  function handleNodeMouseLeave() {
+    setSpotlightNodeId(null);
+  }
+
   return (
     <section className="relative h-full overflow-hidden rounded-xl border border-white/10 bg-[#05070d]">
       {loading ? (
@@ -106,6 +116,8 @@ function GraphCanvasInner({
         onNodeDrag={onNodeDrag}
         onNodeDragStop={onNodeDragStop}
         onNodeDoubleClick={onNodeDoubleClick}
+        onNodeMouseEnter={handleNodeMouseEnter}
+        onNodeMouseLeave={handleNodeMouseLeave}
         fitView
         fitViewOptions={{ padding: 0.25, maxZoom: 1.1 }}
         minZoom={0.15}

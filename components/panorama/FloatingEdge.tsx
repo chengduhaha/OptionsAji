@@ -67,8 +67,17 @@ export function FloatingEdge({
     targetY: ty,
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const animated = (data as any)?.animated;
+  const edgeData = data as {
+    animated?: boolean;
+    particleColor?: string;
+    dimmed?: boolean;
+    spotlighted?: boolean;
+  } | undefined;
+  const animated = edgeData?.animated;
+  const dimmed = edgeData?.dimmed;
+  const particleColor = edgeData?.particleColor ?? "#22d3ee";
+  const showParticle = !dimmed;
+  const particleRadius = animated ? 3.4 : 2.5;
 
   return (
     <>
@@ -79,10 +88,15 @@ export function FloatingEdge({
         style={style}
         className={animated ? "panorama-edge-flow" : undefined}
       />
+      {showParticle ? (
+        <circle r={particleRadius} fill={particleColor} className={animated ? "panorama-edge-particle-exclusive" : "panorama-edge-particle"}>
+          <animateMotion dur={animated ? "1.15s" : "1.9s"} repeatCount="indefinite" path={edgePath} />
+        </circle>
+      ) : null}
       {label ? (
         <EdgeLabelRenderer>
           <div
-            className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border border-white/10 bg-background/85 px-1.5 py-0.5 text-[10px] font-semibold text-foreground/90 shadow-sm backdrop-blur-sm"
+            className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border border-white/10 bg-background/85 px-1.5 py-0.5 text-[10px] font-semibold text-foreground/90 shadow-sm backdrop-blur-sm transition-opacity"
             style={{ transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)` }}
           >
             {label as string}

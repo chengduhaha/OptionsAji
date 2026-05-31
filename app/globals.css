@@ -267,6 +267,16 @@
     stroke-dasharray: 7 5;
     animation: panoramaDash 0.55s linear infinite;
   }
+
+  .panorama-edge-particle {
+    filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.75));
+    opacity: 0.9;
+  }
+
+  .panorama-edge-particle-exclusive {
+    filter: drop-shadow(0 0 8px rgba(240, 180, 41, 0.9));
+    opacity: 0.98;
+  }
 }
 
 @keyframes panoramaDash {
