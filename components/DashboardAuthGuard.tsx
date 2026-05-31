@@ -4,7 +4,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 
-const PUBLIC_DASHBOARD_PREFIXES = ["/profile"];
+const PUBLIC_DASHBOARD_PREFIXES = ["/", "/profile"];
 
 function isPublicDashboardPath(path: string | null): boolean {
   if (!path) return false;

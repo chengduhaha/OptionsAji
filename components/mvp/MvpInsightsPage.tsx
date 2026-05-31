@@ -40,12 +40,11 @@ import { interpretPCR, interpretVix } from "@/components/shared/DataLabel";
 import { api } from "@/lib/api";
 import { buildMvpRequestHeaders } from "@/lib/access-key";
 import { AccessKeyModal } from "@/components/access-key/AccessKeyModal";
-import { AccessKeyPaywall } from "@/components/access-key/AccessKeyPaywall";
-import { computeAccessKeyModalOpen } from "@/lib/access-key-entitlement";
-import { useAccessKey } from "@/hooks/useAccessKey";
-import { readStoredAccessKey } from "@/lib/access-key-client";
+import { LockedContent } from "@/components/gate/LockedContent";
+import { UnlockPromptModal } from "@/components/gate/UnlockPromptModal";
+import { useMvpTier } from "@/hooks/useMvpTier";
+import { unwrapMvpEnvelope, type UnlockReason } from "@/lib/mvp-tier";
 import { useAuth } from "@/lib/auth-context";
-import { useRouter } from "next/navigation";
 import ExpectedMoveDetailModal, {
   type ExpectedMoveRow,
 } from "@/components/mvp/ExpectedMoveDetailModal";
@@ -518,7 +517,11 @@ async function fetchJson(path: string, authToken?: string | null): Promise<JsonR
     headers: path.startsWith("/api/mvp") ? buildMvpRequestHeaders(undefined, authToken) : undefined,
   });
   if (!res.ok) throw new Error(`API ${path} failed: ${res.status}`);
-  return (await res.json()) as JsonRecord;
+  const raw = (await res.json()) as JsonRecord;
+  if (path.startsWith("/api/mvp")) {
+    return unwrapMvpEnvelope(raw).data as JsonRecord;
+  }
+  return raw;
 }
 
 function getArticles(payload: JsonRecord | null): JsonRecord[] {
@@ -1237,22 +1240,21 @@ export type MvpInsightsPageProps = {
 
 export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsPageProps) {
   const isDashboard = variant === "dashboard";
-  const { user, ready, token, isAdmin } = useAuth();
-  const router = useRouter();
-  const {
-    hasAccessKey,
-    isEntitled,
-    storageReady,
-    saveKey,
-  } = useAccessKey(token, { isAdmin });
-  const [accessKeyModalDismissed, setAccessKeyModalDismissed] = useState(false);
+  const { tier, ready, token, isAdmin, isPro, saveKey } = useMvpTier();
+  const nextPath = variant === "standalone" ? "/mvp" : "/";
+  const [accessKeyModalOpen, setAccessKeyModalOpen] = useState(false);
+  const [unlockPrompt, setUnlockPrompt] = useState<{
+    open: boolean;
+    reason: UnlockReason;
+    title?: string;
+  }>({ open: false, reason: "login" });
   const RootTag = isDashboard ? "div" : "main";
   const rootClassName = isDashboard
     ? "h-full overflow-y-auto bg-background text-foreground"
     : "min-h-screen bg-background text-foreground";
-  const initialWarRoomCache = isEntitled ? getFreshWarRoomCache() : null;
+  const initialWarRoomCache = isPro ? getFreshWarRoomCache() : null;
   const initialRegimeCode = initialWarRoomCache?.data.marketInsights.data?.regime?.code ?? null;
-  const initialReportCache = isEntitled ? getFreshReportCache("SPY", "bull", initialRegimeCode) : null;
+  const initialReportCache = isPro ? getFreshReportCache("SPY", "bull", initialRegimeCode) : null;
   const [warRoom, setWarRoom] = useState<WarRoomData>(initialWarRoomCache?.data ?? EMPTY_WAR_ROOM);
   const [warLoading, setWarLoading] = useState(!initialWarRoomCache);
   const [warRoomUpdatedAt, setWarRoomUpdatedAt] = useState<string | null>(initialWarRoomCache?.updatedAt ?? null);
@@ -1267,31 +1269,12 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
   const [gammaModal, setGammaModal] = useState<"distribution" | "trend" | null>(null);
   const initialReportLoadedRef = useRef(Boolean(initialReportCache));
 
-  useEffect(() => {
-    if (variant !== "standalone") return;
-    if (!ready) return;
-    if (!user) router.replace("/login?next=/mvp");
-  }, [variant, ready, user, router]);
-
-  useEffect(() => {
-    if (hasAccessKey) setAccessKeyModalDismissed(false);
-  }, [hasAccessKey]);
-
-  const accessKeyModalOpen = computeAccessKeyModalOpen({
-    ready,
-    hasUser: Boolean(user),
-    isAdmin,
-    storageReady,
-    accessKey: readStoredAccessKey(),
-    dismissed: accessKeyModalDismissed,
-  });
+  const openUnlock = useCallback((reason: UnlockReason, title?: string) => {
+    setUnlockPrompt({ open: true, reason, title });
+  }, []);
 
   const loadWarRoom = useCallback(async (opts?: { silent?: boolean; force?: boolean }) => {
-    if (!isEntitled) {
-      if (!opts?.silent) setWarLoading(false);
-      return;
-    }
-    if (hasAccessKey && !opts?.force) {
+    if (isPro && !opts?.force) {
       const cached = getFreshWarRoomCache();
       if (cached) {
         setWarRoom(cached.data);
@@ -1303,22 +1286,29 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
     if (!opts?.silent) setWarLoading(true);
     const today = beijingDateString(0);
     const tomorrow = beijingDateString(1);
-    const tasks = [
-      ["mvp", settle<JsonRecord>(() => fetchJson(`/api/mvp/war-room?hours=${DISCORD_EVENT_HOURS}`, token))],
+    const authToken = tier === "guest" ? null : token;
+    const baseTasks = [
       ["overview", settle<MarketOverviewContract>(() => api.market.overview())],
-      ["marketInsights", settle<MvpMarketInsightsContract>(() => api.market.mvpMarketInsights(token))],
-      ["brief", settle<{ brief?: string }>(() => api.market.brief() as Promise<{ brief?: string }>)],
-      ["macro", settle<JsonRecord>(() => api.macro.calendar(today, tomorrow, "US") as Promise<JsonRecord>)],
-      ["treasury", settle<JsonRecord>(() => api.macro.treasury(30) as Promise<JsonRecord>)],
-      ["news", settle<JsonRecord>(() => api.news.latest() as Promise<JsonRecord>)],
-      [
-        "feed",
-        settle<FeedEnvelopeContract>(() =>
-          api.feed.unified(80, undefined, { kind: "discord", hours: DISCORD_EVENT_HOURS }),
-        ),
-      ],
       ["signals", settle<SignalsFeedEnvelopeContract>(() => api.market.signalsFeed())],
+      ["mvp", settle<JsonRecord>(() => fetchJson(`/api/mvp/war-room?hours=${DISCORD_EVENT_HOURS}`, authToken))],
     ] as const;
+    const trialTasks =
+      tier === "guest"
+        ? ([] as const)
+        : ([
+            ["marketInsights", settle<MvpMarketInsightsContract>(() => api.market.mvpMarketInsights(authToken))],
+            ["brief", settle<{ brief?: string }>(() => api.market.brief() as Promise<{ brief?: string }>)],
+            ["macro", settle<JsonRecord>(() => api.macro.calendar(today, tomorrow, "US") as Promise<JsonRecord>)],
+            ["treasury", settle<JsonRecord>(() => api.macro.treasury(30) as Promise<JsonRecord>)],
+            ["news", settle<JsonRecord>(() => api.news.latest() as Promise<JsonRecord>)],
+            [
+              "feed",
+              settle<FeedEnvelopeContract>(() =>
+                api.feed.unified(80, undefined, { kind: "discord", hours: DISCORD_EVENT_HOURS }),
+              ),
+            ],
+          ] as const);
+    const tasks = [...baseTasks, ...trialTasks] as const;
     let latestWarRoom = cachedWarRoom?.data ?? EMPTY_WAR_ROOM;
     let loadingCleared = Boolean(opts?.silent);
     const applySlot = (key: keyof WarRoomData, slot: AsyncSlot<unknown>) => {
@@ -1341,21 +1331,28 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
       }),
     );
     if (!opts?.silent) setWarLoading(false);
-  }, [hasAccessKey, isEntitled, token]);
+  }, [isPro, tier, token]);
 
   useEffect(() => {
-    if (!isEntitled) return;
+    if (!ready) return;
     void loadWarRoom();
     const timer = window.setInterval(() => {
       void loadWarRoom({ silent: true });
     }, WAR_ROOM_REFRESH_MS);
     return () => window.clearInterval(timer);
-  }, [loadWarRoom, isEntitled]);
+  }, [loadWarRoom, ready]);
 
   const currentMarketRegime = warRoom.marketInsights.data?.regime ?? null;
 
   const runStockReport = useCallback(async (nextSymbol?: string) => {
-    if (!isEntitled) return;
+    if (tier === "guest") {
+      openUnlock("login", "登录后生成标的深度分析");
+      return;
+    }
+    if (tier !== "pro") {
+      openUnlock("access_key", "Pro 会员可生成完整标的深度分析");
+      return;
+    }
     const sym = (nextSymbol || symbol).trim().toUpperCase();
     if (!sym) return;
     setSymbol(sym);
@@ -1411,14 +1408,14 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
     });
     setReport(nextReport);
     setReportLoading(false);
-  }, [symbol, direction, currentMarketRegime, isEntitled, token]);
+  }, [symbol, direction, currentMarketRegime, tier, token, openUnlock]);
 
   useEffect(() => {
-    if (!isEntitled) return;
+    if (tier !== "pro") return;
     if (initialReportLoadedRef.current) return;
     initialReportLoadedRef.current = true;
     void runStockReport("SPY");
-  }, [runStockReport, isEntitled]);
+  }, [runStockReport, tier]);
 
   const signals = warRoom.signals.data?.signals ?? [];
   const ruleMarketState = classifyMarket(warRoom.overview.data, signals);
@@ -1550,21 +1547,25 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
           </div>
         </header>
 
+        <UnlockPromptModal
+          open={unlockPrompt.open}
+          reason={unlockPrompt.reason}
+          title={unlockPrompt.title}
+          nextPath={nextPath}
+          onClose={() => setUnlockPrompt((s) => ({ ...s, open: false }))}
+          onOpenAccessKey={() => setAccessKeyModalOpen(true)}
+        />
         <AccessKeyModal
           open={accessKeyModalOpen}
-          onClose={() => setAccessKeyModalDismissed(true)}
+          onClose={() => setAccessKeyModalOpen(false)}
           onSaved={() => {
-            setAccessKeyModalDismissed(false);
+            setAccessKeyModalOpen(false);
             cachedWarRoom = null;
             void loadWarRoom({ force: true });
           }}
           saveKey={saveKey}
         />
 
-        {!isEntitled ? (
-          <AccessKeyPaywall onOpenModal={() => setAccessKeyModalDismissed(false)} />
-        ) : (
-        <>
         <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.2fr_0.8fr]">
           <Card className="p-4">
             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -1584,14 +1585,21 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                     <div className={`text-xl font-semibold ${marketState.tone}`}>{marketState.label}</div>
                     <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">{marketState.summary}</p>
                     <p className="mt-2 text-[10px] leading-5 text-muted">{marketState.engineNote}</p>
-                    {aiInsights?.regime.reasoning ? (
-                      <p className="mt-1 text-[11px] leading-5 text-muted-foreground">{aiInsights.regime.reasoning}</p>
-                    ) : null}
-                    <ul className="mt-1.5 space-y-0.5 text-[10px] leading-5 text-muted-foreground">
-                      {marketState.basis.map((line) => (
-                        <li key={line}>· {line}</li>
-                      ))}
-                    </ul>
+                    <LockedContent
+                      required="trial"
+                      currentTier={tier}
+                      title="登录后查看 AI 市场解读"
+                      onUnlock={(reason) => openUnlock(reason, "登录后查看 AI 市场解读")}
+                    >
+                      {aiInsights?.regime.reasoning ? (
+                        <p className="mt-1 text-[11px] leading-5 text-muted-foreground">{aiInsights.regime.reasoning}</p>
+                      ) : null}
+                      <ul className="mt-1.5 space-y-0.5 text-[10px] leading-5 text-muted-foreground">
+                        {marketState.basis.map((line) => (
+                          <li key={line}>· {line}</li>
+                        ))}
+                      </ul>
+                    </LockedContent>
                   </div>
                 </div>
               </div>
@@ -1613,45 +1621,52 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                   <Newspaper className="h-4 w-4 text-blue" />
                   <span>市场关键事件</span>
                 </div>
-                <div className="space-y-2">
-                  {warLoading && events.length === 0 ? (
-                    <EmptyLine text="正在载入盘前关键事件..." />
-                  ) : events.length === 0 ? (
-                    <EmptyLine text="暂无高优先级事件，先观察指数、VIX 与开盘前成交量。" />
-                  ) : (
-                    events.slice(0, 8).map((event) => (
-                      <button
-                        key={event.id}
-                        type="button"
-                        onClick={() => setSelectedEvent(event)}
-                        className="w-full rounded-lg border border-border2 bg-white/[0.02] px-3 py-2 text-left transition hover:border-gold/35 hover:bg-white/[0.04]"
-                      >
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Pill tone={event.impact === "利好" ? "green" : event.impact === "利空" || event.impact === "风险" ? "red" : "muted"}>
-                            {event.impactLabel}
-                          </Pill>
-                          {event.relatedAssets.slice(0, 3).map((sym) => (
-                            <Pill key={`${event.id}-${sym}`} tone="blue">
-                              {sym}
+                <LockedContent
+                  required="trial"
+                  currentTier={tier}
+                  title="登录后查看市场关键事件与阿吉解读"
+                  onUnlock={(reason) => openUnlock(reason, "登录后查看市场关键事件")}
+                >
+                  <div className="space-y-2">
+                    {warLoading && events.length === 0 ? (
+                      <EmptyLine text="正在载入盘前关键事件..." />
+                    ) : events.length === 0 ? (
+                      <EmptyLine text="暂无高优先级事件，先观察指数、VIX 与开盘前成交量。" />
+                    ) : (
+                      events.slice(0, 8).map((event) => (
+                        <button
+                          key={event.id}
+                          type="button"
+                          onClick={() => setSelectedEvent(event)}
+                          className="w-full rounded-lg border border-border2 bg-white/[0.02] px-3 py-2 text-left transition hover:border-gold/35 hover:bg-white/[0.04]"
+                        >
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Pill tone={event.impact === "利好" ? "green" : event.impact === "利空" || event.impact === "风险" ? "red" : "muted"}>
+                              {event.impactLabel}
                             </Pill>
-                          ))}
-                          <span className="ml-auto shrink-0 font-mono text-xs text-gold">{event.time}</span>
-                        </div>
-                        <div className="mt-2 text-sm font-medium text-foreground">{event.title}</div>
-                        {event.impactNote ? (
-                          <p className="mt-1 text-[11px] leading-4 text-gold/85">{event.impactNote}</p>
-                        ) : null}
-                        {event.body ? (
-                          <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{event.body}</p>
-                        ) : null}
-                        {event.watchZh ? (
-                          <p className="mt-1 line-clamp-1 text-[10px] leading-4 text-muted">{event.watchZh}</p>
-                        ) : null}
-                        <p className="mt-1 text-[10px] text-muted">点击查看阿吉解读详情</p>
-                      </button>
-                    ))
-                  )}
-                </div>
+                            {event.relatedAssets.slice(0, 3).map((sym) => (
+                              <Pill key={`${event.id}-${sym}`} tone="blue">
+                                {sym}
+                              </Pill>
+                            ))}
+                            <span className="ml-auto shrink-0 font-mono text-xs text-gold">{event.time}</span>
+                          </div>
+                          <div className="mt-2 text-sm font-medium text-foreground">{event.title}</div>
+                          {event.impactNote ? (
+                            <p className="mt-1 text-[11px] leading-4 text-gold/85">{event.impactNote}</p>
+                          ) : null}
+                          {event.body ? (
+                            <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{event.body}</p>
+                          ) : null}
+                          {event.watchZh ? (
+                            <p className="mt-1 line-clamp-1 text-[10px] leading-4 text-muted">{event.watchZh}</p>
+                          ) : null}
+                          <p className="mt-1 text-[10px] text-muted">点击查看阿吉解读详情</p>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </LockedContent>
               </div>
 
               <div className="space-y-3">
@@ -1684,11 +1699,18 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                       <div className="flex h-full items-center justify-center text-xs text-muted">VIX 历史序列暂不可用</div>
                     )}
                   </div>
-                  {vixChartCaption ? (
-                    <p className="mt-2 text-[11px] leading-5 text-muted-foreground">{vixChartCaption}</p>
-                  ) : warLoading ? (
-                    <p className="mt-2 text-[11px] text-muted">阿吉深度洞察生成中…</p>
-                  ) : null}
+                  <LockedContent
+                    required="trial"
+                    currentTier={tier}
+                    title="登录后查看 VIX 曲线解读"
+                    onUnlock={(reason) => openUnlock(reason, "登录后查看 VIX / P/C 解读")}
+                  >
+                    {vixChartCaption ? (
+                      <p className="mt-2 text-[11px] leading-5 text-muted-foreground">{vixChartCaption}</p>
+                    ) : warLoading ? (
+                      <p className="mt-2 text-[11px] text-muted">阿吉深度洞察生成中…</p>
+                    ) : null}
+                  </LockedContent>
                 </div>
                 <div className="grid grid-cols-1 gap-2">
                   <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
@@ -1704,11 +1726,18 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                         <Pill tone="muted">{overview.volatility.band}</Pill>
                       ) : null}
                     </div>
-                    {vixInterpretation ? (
-                      <p className="mt-2 text-[11px] leading-5 text-muted-foreground">{vixInterpretation}</p>
-                    ) : (
-                      <p className="mt-2 text-[11px] text-muted">VIX 数据缺失</p>
-                    )}
+                    <LockedContent
+                      required="trial"
+                      currentTier={tier}
+                      title="登录后查看 VIX 解读"
+                      onUnlock={(reason) => openUnlock(reason, "登录后查看 VIX 解读")}
+                    >
+                      {vixInterpretation ? (
+                        <p className="mt-2 text-[11px] leading-5 text-muted-foreground">{vixInterpretation}</p>
+                      ) : (
+                        <p className="mt-2 text-[11px] text-muted">VIX 数据缺失</p>
+                      )}
+                    </LockedContent>
                   </div>
                   <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
                     <div className="text-[10px] uppercase tracking-wider text-muted">P/C 成交量比</div>
@@ -1716,11 +1745,18 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                       {pcr !== null ? pcr.toFixed(2) : "—"}
                     </div>
                     <p className="mt-0.5 text-[10px] text-muted">全市场 Put/Call 成交量近似</p>
-                    {pcrInterpretation ? (
-                      <p className="mt-2 text-[11px] leading-5 text-muted-foreground">{pcrInterpretation}</p>
-                    ) : (
-                      <p className="mt-2 text-[11px] text-muted">P/C 数据缺失</p>
-                    )}
+                    <LockedContent
+                      required="trial"
+                      currentTier={tier}
+                      title="登录后查看 P/C 解读"
+                      onUnlock={(reason) => openUnlock(reason, "登录后查看 P/C 解读")}
+                    >
+                      {pcrInterpretation ? (
+                        <p className="mt-2 text-[11px] leading-5 text-muted-foreground">{pcrInterpretation}</p>
+                      ) : (
+                        <p className="mt-2 text-[11px] text-muted">P/C 数据缺失</p>
+                      )}
+                    </LockedContent>
                   </div>
                 </div>
               </div>
@@ -1739,14 +1775,21 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
               <Target className="h-4 w-4 text-green" />
               今日交易计划
             </div>
-            <div className="mt-4 space-y-3">
-              {tradePlan.map((item) => (
-                <div key={item} className="flex items-start gap-2 text-sm leading-6 text-muted-foreground">
-                  <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-green" />
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
+            <LockedContent
+              required="pro"
+              currentTier={tier}
+              title="Pro：今日交易计划"
+              onUnlock={(reason) => openUnlock(reason, "Pro：今日交易计划")}
+            >
+              <div className="mt-4 space-y-3">
+                {tradePlan.map((item) => (
+                  <div key={item} className="flex items-start gap-2 text-sm leading-6 text-muted-foreground">
+                    <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-green" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </LockedContent>
             <div className="mt-5 rounded-lg border border-border2 bg-white/[0.02] p-3">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
                 <span>国债曲线</span>
@@ -1765,20 +1808,33 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
               ) : (
                 <div className="flex h-[120px] items-center justify-center text-xs text-muted">收益率暂不可用</div>
               )}
-              <p className="mt-2 text-xs leading-5 text-muted-foreground">{treasuryRead.summary}</p>
-              {spread10y2y !== null ? (
-                <div className="mt-2 text-[10px] text-muted">
-                  10Y-2Y {spread10y2y.toFixed(2)}%
-                  {spread30y10y !== null
-                    ? ` · 30Y-10Y ${spread30y10y.toFixed(2)}%`
-                    : ""}
-                </div>
-              ) : null}
+              <LockedContent
+                required="trial"
+                currentTier={tier}
+                title="登录后查看国债曲线 AI 解读"
+                onUnlock={(reason) => openUnlock(reason, "登录后查看国债曲线解读")}
+              >
+                <p className="mt-2 text-xs leading-5 text-muted-foreground">{treasuryRead.summary}</p>
+                {spread10y2y !== null ? (
+                  <div className="mt-2 text-[10px] text-muted">
+                    10Y-2Y {spread10y2y.toFixed(2)}%
+                    {spread30y10y !== null
+                      ? ` · 30Y-10Y ${spread30y10y.toFixed(2)}%`
+                      : ""}
+                  </div>
+                ) : null}
+              </LockedContent>
             </div>
           </Card>
         </section>
 
-        <Card className="p-4">
+        <LockedContent
+          required="trial"
+          currentTier={tier}
+          title="登录后使用标的深度分析"
+          onUnlock={(reason) => openUnlock(reason, "登录后使用标的深度分析")}
+        >
+          <Card className="p-4">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_auto]">
             <div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -1843,8 +1899,15 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
               </button>
             </form>
           </div>
-        </Card>
+          </Card>
+        </LockedContent>
 
+        <LockedContent
+          required="pro"
+          currentTier={tier}
+          title="Pro：完整标的深度、Gamma 与期权筛选"
+          onUnlock={(reason) => openUnlock(reason, "Pro：完整标的深度分析")}
+        >
         <section className="grid grid-cols-1 gap-4 xl:grid-cols-[0.95fr_1.05fr]">
           <Card className="p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -2152,6 +2215,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
             </div>
           </Card>
         </section>
+        </LockedContent>
 
         {selectedEvent ? (
           <EventDetailModal
@@ -2169,8 +2233,6 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
             onClose={() => setSelectedExpectedMove(null)}
           />
         ) : null}
-        </>
-        )}
 
         <footer className="flex flex-wrap items-center justify-between gap-3 pb-6 text-xs text-muted">
           <span>教育和分析用途，不构成投资建议。</span>

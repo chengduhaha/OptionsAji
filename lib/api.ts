@@ -31,6 +31,7 @@ import type {
   WatchlistRemoveContract,
 } from "@/lib/contracts";
 import { buildMvpRequestHeaders } from "@/lib/access-key";
+import { unwrapMvpEnvelope } from "@/lib/mvp-tier";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE || "";
 
@@ -129,20 +130,24 @@ export const api = {
     aiSummary: () => fetchJSON("/api/market/ai-summary"),
     brief: () => fetchJSON<AgentBriefContract>("/api/agent/brief"),
     signalsFeed: () => fetchJSON<SignalsFeedEnvelopeContract>("/api/signals/feed"),
-    mvpMarketInsights: (authToken?: string | null) =>
-      fetchJSON<MvpMarketInsightsContract>("/api/mvp/market-insights", {
+    mvpMarketInsights: async (authToken?: string | null) => {
+      const raw = await fetchJSON<Record<string, unknown>>("/api/mvp/market-insights", {
         headers: buildMvpRequestHeaders(undefined, authToken),
-      }),
-    mvpMacroCalendarInsights: (
+      });
+      return unwrapMvpEnvelope(raw).data as unknown as MvpMarketInsightsContract;
+    },
+    mvpMacroCalendarInsights: async (
       from: string,
       to: string,
       country = "US",
       authToken?: string | null,
     ) => {
       const params = new URLSearchParams({ from_date: from, to_date: to, country });
-      return fetchJSON<MacroCalendarInsightsContract>(`/api/mvp/macro-calendar-insights?${params}`, {
-        headers: buildMvpRequestHeaders(undefined, authToken),
-      });
+      const raw = await fetchJSON<Record<string, unknown>>(
+        `/api/mvp/macro-calendar-insights?${params}`,
+        { headers: buildMvpRequestHeaders(undefined, authToken) },
+      );
+      return unwrapMvpEnvelope(raw).data as unknown as MacroCalendarInsightsContract;
     },
     stockOptionsInsights: (payload: {
       symbol: string;
@@ -155,11 +160,14 @@ export const api = {
       market_regime_code?: string | null;
       market_regime_label?: string | null;
     }, authToken?: string | null) =>
-      fetchJSON<StockOptionsInsightsContract>("/api/mvp/stock-options-insights", {
-        method: "POST",
-        headers: buildMvpRequestHeaders(undefined, authToken),
-        body: JSON.stringify(payload),
-      }),
+      (async () => {
+        const raw = await fetchJSON<Record<string, unknown>>("/api/mvp/stock-options-insights", {
+          method: "POST",
+          headers: buildMvpRequestHeaders(undefined, authToken),
+          body: JSON.stringify(payload),
+        });
+        return unwrapMvpEnvelope(raw).data as unknown as StockOptionsInsightsContract;
+      })(),
   },
 
   options: {
