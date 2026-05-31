@@ -76,6 +76,45 @@ export function filterGraphByBusinessSegment(
   };
 }
 
+export function mergeGraphResponses(
+  base: { nodes: GraphNode[]; edges: GraphEdge[]; meta: Record<string, unknown> },
+  patch: { nodes: GraphNode[]; edges: GraphEdge[]; meta?: Record<string, unknown> },
+): { nodes: GraphNode[]; edges: GraphEdge[]; meta: Record<string, unknown> } {
+  const nodes = new Map(base.nodes.map((node) => [node.id, node]));
+  const edges = new Map(base.edges.map((edge) => [edge.id, edge]));
+  for (const node of patch.nodes) nodes.set(node.id, node);
+  for (const edge of patch.edges) edges.set(edge.id, edge);
+  return {
+    nodes: Array.from(nodes.values()),
+    edges: Array.from(edges.values()),
+    meta: { ...base.meta, ...(patch.meta ?? {}) },
+  };
+}
+
+export function graphVisibleByExpansion(
+  graphNodes: GraphNode[],
+  graphEdges: GraphEdge[],
+  expandedNodeIds: string[],
+): { nodes: GraphNode[]; edges: GraphEdge[]; hiddenCount: number } {
+  const focus = graphNodes[0];
+  if (!focus) return { nodes: [], edges: [], hiddenCount: 0 };
+  const expanded = new Set<string>([focus.id, ...expandedNodeIds]);
+  const keptNodeIds = new Set<string>([focus.id]);
+  const keptEdges: GraphEdge[] = [];
+  for (const edge of graphEdges) {
+    if (!expanded.has(edge.source) && !expanded.has(edge.target)) continue;
+    keptEdges.push(edge);
+    keptNodeIds.add(edge.source);
+    keptNodeIds.add(edge.target);
+  }
+  const nodes = graphNodes.filter((node) => keptNodeIds.has(node.id));
+  return {
+    nodes,
+    edges: keptEdges.filter((edge) => keptNodeIds.has(edge.source) && keptNodeIds.has(edge.target)),
+    hiddenCount: Math.max(0, graphNodes.length - nodes.length),
+  };
+}
+
 export function toProductGraph(
   graphNodes: GraphNode[],
   graphEdges: GraphEdge[],

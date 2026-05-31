@@ -2,11 +2,11 @@
 
 import { BookmarkPlus, RefreshCw, Share2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useAuth } from "@/lib/auth-context";
 import type { GraphView, SupplyGraphResponse } from "@/lib/supplyGraph";
-import { fetchGraphTimeline, fetchGraphViews, fetchSupplyGraph, saveGraphView } from "@/lib/supplyGraph";
+import { fetchGraphBootstrap, fetchGraphNode, saveGraphView } from "@/lib/supplyGraph";
 import { useSupplyGraphStore } from "@/lib/supplyGraphStore";
 import { DepthSlider } from "./DepthSlider";
 import { EntitySearch } from "./EntitySearch";
@@ -16,7 +16,13 @@ import { LayoutSwitcher } from "./LayoutSwitcher";
 import { PerspectiveTabs } from "./PerspectiveTabs";
 import { RelationLegend } from "./RelationLegend";
 import { TimelineReplay } from "./TimelineReplay";
-import { filterGraphByBusinessSegment, segmentOptions, toProductGraph } from "./graph-utils";
+import {
+  filterGraphByBusinessSegment,
+  graphVisibleByExpansion,
+  mergeGraphResponses,
+  segmentOptions,
+  toProductGraph,
+} from "./graph-utils";
 
 export function PanoramaClient() {
   const router = useRouter();
@@ -32,6 +38,7 @@ export function PanoramaClient() {
     moatTier,
     asOfDate,
     layout,
+    expandedNodeIds,
     hydrateFromQuery,
     setPerspective,
     setFocus,
@@ -41,13 +48,22 @@ export function PanoramaClient() {
     setMoatTier,
     setAsOfDate,
     setLayout,
+    expandNode,
+    resetExpandedNodes,
   } = useSupplyGraphStore();
   const [graph, setGraph] = useState<SupplyGraphResponse | null>(null);
   const [views, setViews] = useState<GraphView[]>([]);
   const [timelineDates, setTimelineDates] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [expandingNodeId, setExpandingNodeId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const graphRef = useRef<SupplyGraphResponse | null>(null);
+
+  useEffect(() => {
+    graphRef.current = graph;
+  }, [graph]);
 
   useEffect(() => {
     hydrateFromQuery(new URLSearchParams(searchParams.toString()));
@@ -72,23 +88,26 @@ export function PanoramaClient() {
   }, [asOfDate, businessSegment, depth, focus, moatTier, pathname, perspective, relTypes, router]);
 
   const load = useCallback(async () => {
-    setLoading(true);
+    if (graphRef.current) setRefreshing(true);
+    else setLoading(true);
     setError(null);
     try {
-      const [nextGraph, nextViews, nextTimeline] = await Promise.all([
-        fetchSupplyGraph(query),
-        views.length ? Promise.resolve(views) : fetchGraphViews(),
-        fetchGraphTimeline(focus, depth),
-      ]);
+      const boot = await fetchGraphBootstrap(query);
+      const nextGraph = {
+        ...boot.graph,
+        meta: { ...boot.graph.meta, source: boot.source },
+      };
       setGraph(nextGraph);
-      setViews(nextViews);
-      setTimelineDates(nextTimeline);
+      setViews(boot.views);
+      setTimelineDates(boot.timelineDates);
+      resetExpandedNodes();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "图谱加载失败");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  }, [depth, focus, query, views]);
+  }, [query, resetExpandedNodes]);
 
   useEffect(() => {
     void load();
@@ -96,12 +115,37 @@ export function PanoramaClient() {
 
   const focusView = views.find((view) => view.slug === "spacex-2026-supply-chain");
   const segments = useMemo(() => segmentOptions(graph?.nodes ?? []), [graph]);
+  const expandedGraph = useMemo(() => {
+    if (!graph || perspective !== "company") return { graph, hiddenCount: 0 };
+    const visible = graphVisibleByExpansion(graph.nodes, graph.edges, expandedNodeIds);
+    return {
+      graph: { ...graph, nodes: visible.nodes, edges: visible.edges },
+      hiddenCount: visible.hiddenCount,
+    };
+  }, [expandedNodeIds, graph, perspective]);
   const visibleGraph = useMemo(() => {
-    if (!graph) return null;
-    const filtered = filterGraphByBusinessSegment(graph.nodes, graph.edges, businessSegment);
+    if (!expandedGraph.graph) return null;
+    const filtered = filterGraphByBusinessSegment(expandedGraph.graph.nodes, expandedGraph.graph.edges, businessSegment);
     const shaped = perspective === "product" ? toProductGraph(filtered.nodes, filtered.edges) : filtered;
-    return { ...graph, nodes: shaped.nodes, edges: shaped.edges };
-  }, [businessSegment, graph, perspective]);
+    return { ...expandedGraph.graph, nodes: shaped.nodes, edges: shaped.edges };
+  }, [businessSegment, expandedGraph, perspective]);
+
+  const handleExpandNode = useCallback(
+    async (node: { id: string }) => {
+      if (expandedNodeIds.includes(node.id) || expandingNodeId === node.id) return;
+      setExpandingNodeId(node.id);
+      try {
+        const patch = await fetchGraphNode(node.id);
+        setGraph((current) => (current ? mergeGraphResponses(current, patch) : patch));
+        expandNode(node.id);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "展开邻居失败");
+      } finally {
+        setExpandingNodeId(null);
+      }
+    },
+    [expandedNodeIds, expandNode, expandingNodeId],
+  );
 
   async function handleSaveView() {
     const title = window.prompt("策展图名称", `${focus} ${perspective} depth ${depth}`);
@@ -176,7 +220,7 @@ export function PanoramaClient() {
             className="flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-glass px-3 text-[12px] text-muted-foreground hover:text-foreground"
           >
             <RefreshCw className="h-3.5 w-3.5" />
-            刷新
+            {refreshing ? "刷新中" : "刷新"}
           </button>
         </div>
       </header>
@@ -194,8 +238,9 @@ export function PanoramaClient() {
         <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
           <span>节点 {visibleGraph?.nodes.length ?? 0}</span>
           <span>关系 {visibleGraph?.edges.length ?? 0}</span>
+          {expandedGraph.hiddenCount ? <span>未展开 {expandedGraph.hiddenCount}</span> : null}
           <span>As of {String(graph?.meta?.asOf || "N/A")}</span>
-          <span>{graph?.meta?.cache === "hit" ? "Redis 命中" : "实时查询"}</span>
+          <span>{graph?.meta?.source === "snapshot" ? "静态快照" : graph?.meta?.cache === "hit" ? "Redis 命中" : "实时查询"}</span>
         </div>
       </div>
 
@@ -209,7 +254,15 @@ export function PanoramaClient() {
         {perspective === "industry" ? (
           <IndustryGraphCanvas graph={visibleGraph} loading={loading} />
         ) : (
-          <GraphCanvas graph={visibleGraph} perspective={perspective} layout={layout} loading={loading} />
+          <GraphCanvas
+            graph={visibleGraph}
+            perspective={perspective}
+            layout={layout}
+            loading={loading}
+            expandedNodeIds={expandedNodeIds}
+            expandingNodeId={expandingNodeId}
+            onExpandNode={(node) => void handleExpandNode(node)}
+          />
         )}
       </div>
     </div>

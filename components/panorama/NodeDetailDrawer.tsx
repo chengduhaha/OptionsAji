@@ -9,10 +9,16 @@ import { RELATION_META, marketFlag } from "./graph-utils";
 export function NodeDetailDrawer({
   node,
   edge,
+  expanded,
+  expanding,
+  onExpand,
   onClose,
 }: {
   node: GraphNode | null;
   edge: GraphEdge | null;
+  expanded?: boolean;
+  expanding?: boolean;
+  onExpand?: (node: GraphNode) => void;
   onClose: () => void;
 }) {
   if (!node && !edge) return null;
@@ -47,6 +53,14 @@ export function NodeDetailDrawer({
               跳转个股深度
             </Link>
           ) : null}
+          <button
+            type="button"
+            disabled={expanded || expanding}
+            onClick={() => onExpand?.(node)}
+            className="ml-2 inline-flex rounded-lg border border-cyan/25 bg-cyan/10 px-3 py-1.5 text-[12px] font-medium text-cyan hover:bg-cyan/15 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {expanded ? "已展开邻居" : expanding ? "展开中" : "展开邻居"}
+          </button>
           <p className="leading-relaxed text-muted-foreground">{node.nameEn || node.nameZh || node.label}</p>
           <pre className="max-h-48 overflow-auto rounded-lg border border-white/10 bg-background/60 p-3 text-[11px] text-muted-foreground">
             {JSON.stringify(node.metrics ?? {}, null, 2)}

@@ -28,11 +28,17 @@ function GraphCanvasInner({
   perspective = "company",
   layout,
   loading,
+  expandedNodeIds = [],
+  expandingNodeId,
+  onExpandNode,
 }: {
   graph: SupplyGraphResponse | null;
   perspective?: string;
   layout: "layered" | "radial" | "force";
   loading: boolean;
+  expandedNodeIds?: string[];
+  expandingNodeId?: string | null;
+  onExpandNode?: (node: GraphNode) => void;
 }) {
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<GraphEdge | null>(null);
@@ -42,8 +48,9 @@ function GraphCanvasInner({
       graphToFlow(graph?.nodes ?? [], graph?.edges ?? [], layout, (node) => {
         setSelectedNode(node);
         setSelectedEdge(null);
+        onExpandNode?.(node);
       }),
-    [graph, layout],
+    [graph, layout, onExpandNode],
   );
 
   const {
@@ -106,6 +113,9 @@ function GraphCanvasInner({
       <NodeDetailDrawer
         node={selectedNode}
         edge={selectedEdge}
+        expanded={selectedNode ? expandedNodeIds.includes(selectedNode.id) : false}
+        expanding={selectedNode ? expandingNodeId === selectedNode.id : false}
+        onExpand={onExpandNode}
         onClose={() => {
           setSelectedNode(null);
           setSelectedEdge(null);
@@ -120,6 +130,9 @@ export function GraphCanvas(props: {
   perspective?: string;
   layout: "layered" | "radial" | "force";
   loading: boolean;
+  expandedNodeIds?: string[];
+  expandingNodeId?: string | null;
+  onExpandNode?: (node: GraphNode) => void;
 }) {
   return (
     <ReactFlowProvider>

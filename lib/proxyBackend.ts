@@ -69,6 +69,10 @@ function buildForwardHeaders(req: Request, initHeaders?: HeadersInit): Headers {
   return hdrs;
 }
 
+type ProxyBackendInit = RequestInit & {
+  responseCacheControl?: string;
+};
+
 async function fetchWithTimeout(input: string, init: RequestInit): Promise<Response> {
   const timeoutMs = resolveTimeoutMs();
   const controller = new AbortController();
@@ -77,7 +81,7 @@ async function fetchWithTimeout(input: string, init: RequestInit): Promise<Respo
     return await fetch(input, {
       ...init,
       signal: controller.signal,
-      cache: "no-store",
+      cache: init.cache ?? "no-store",
     });
   } finally {
     clearTimeout(timeout);
@@ -104,7 +108,7 @@ function normalizeBackendPath(backendPath: string): string {
 async function proxyJsonThroughBackend(
   target: string,
   req: Request,
-  init?: RequestInit,
+  init?: ProxyBackendInit,
 ): Promise<Response> {
   const hdrs = buildForwardHeaders(req, init?.headers);
   try {
@@ -117,7 +121,7 @@ async function proxyJsonThroughBackend(
       status: upstream.status,
       headers: {
         "Content-Type": upstream.headers.get("content-type") ?? "application/json",
-        "Cache-Control": "no-store",
+        "Cache-Control": init?.responseCacheControl ?? upstream.headers.get("cache-control") ?? "no-store",
       },
     });
   } catch (error: unknown) {
@@ -159,7 +163,7 @@ export function backendMisconfiguredResponse(message: string): Response {
 export async function proxyToBackend(
   req: NextRequest,
   backendPath: string,
-  init?: RequestInit,
+  init?: ProxyBackendInit,
 ): Promise<Response> {
   const base = backendBaseUrl();
   const guard = guardBackendProxy(base);
@@ -178,7 +182,7 @@ export async function proxyToBackend(
  */
 export function proxyBackend(
   backendPath: string,
-  init?: RequestInit,
+  init?: ProxyBackendInit,
 ): (req: Request) => Promise<Response> {
   return (req: Request) => {
     const base = backendBaseUrl();

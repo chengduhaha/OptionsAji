@@ -35,6 +35,13 @@ export type SupplyGraphResponse = {
   meta: Record<string, unknown>;
 };
 
+export type GraphBootstrapResponse = {
+  graph: SupplyGraphResponse;
+  views: GraphView[];
+  timelineDates: string[];
+  source: "snapshot" | "bootstrap";
+};
+
 export type GraphView = {
   id: string;
   slug: string;
@@ -64,7 +71,7 @@ async function readJson<T>(res: Response): Promise<T> {
   return data as T;
 }
 
-export async function fetchSupplyGraph(query: GraphQuery): Promise<SupplyGraphResponse> {
+function graphParams(query: GraphQuery): URLSearchParams {
   const params = new URLSearchParams();
   params.set("focus", query.focus || "SPCX");
   params.set("perspective", query.perspective || "company");
@@ -72,26 +79,86 @@ export async function fetchSupplyGraph(query: GraphQuery): Promise<SupplyGraphRe
   if (query.relTypes.length > 0) params.set("rel_types", query.relTypes.join(","));
   if (query.moatTier) params.set("moat_tier", query.moatTier);
   if (query.asOfDate) params.set("as_of_date", query.asOfDate);
-  const res = await fetch(`/api/graph?${params.toString()}`, { cache: "no-store" });
+  return params;
+}
+
+function metaViews(graph: SupplyGraphResponse): GraphView[] {
+  const views = graph.meta?.views;
+  return Array.isArray(views) ? (views as GraphView[]) : [];
+}
+
+function metaTimelineDates(graph: SupplyGraphResponse): string[] {
+  const dates = graph.meta?.timelineDates;
+  return Array.isArray(dates) ? dates.map(String) : [];
+}
+
+function canUseDefaultSnapshot(query: GraphQuery): boolean {
+  return (
+    (query.focus || "SPCX").toUpperCase() === "SPCX" &&
+    (query.perspective || "company") === "company" &&
+    Number(query.depth || 2) === 2 &&
+    query.relTypes.length === 0 &&
+    !query.moatTier &&
+    !query.asOfDate
+  );
+}
+
+export async function fetchSupplyGraph(query: GraphQuery): Promise<SupplyGraphResponse> {
+  const params = graphParams(query);
+  const res = await fetch(`/api/graph?${params.toString()}`);
+  return readJson<SupplyGraphResponse>(res);
+}
+
+export async function fetchGraphSnapshot(slug: string): Promise<SupplyGraphResponse> {
+  const res = await fetch(`/api/graph/snapshot/${encodeURIComponent(slug)}`);
+  return readJson<SupplyGraphResponse>(res);
+}
+
+export async function fetchGraphBootstrap(query: GraphQuery): Promise<GraphBootstrapResponse> {
+  if (canUseDefaultSnapshot(query)) {
+    try {
+      const graph = await fetchGraphSnapshot("spacex-2026-supply-chain");
+      return {
+        graph,
+        views: graph.meta?.view ? [graph.meta.view as GraphView] : [],
+        timelineDates: graph.meta?.asOf ? [String(graph.meta.asOf)] : [],
+        source: "snapshot",
+      };
+    } catch {
+      // Fall through to bootstrap when the static snapshot has not been generated yet.
+    }
+  }
+  const params = graphParams(query);
+  const graph = await readJson<SupplyGraphResponse>(await fetch(`/api/graph/bootstrap?${params.toString()}`));
+  return {
+    graph,
+    views: metaViews(graph),
+    timelineDates: metaTimelineDates(graph),
+    source: "bootstrap",
+  };
+}
+
+export async function fetchGraphNode(nodeId: string): Promise<SupplyGraphResponse> {
+  const res = await fetch(`/api/graph/node/${encodeURIComponent(nodeId)}`);
   return readJson<SupplyGraphResponse>(res);
 }
 
 export async function searchSupplyGraph(q: string): Promise<GraphNode[]> {
   if (!q.trim()) return [];
-  const res = await fetch(`/api/graph/search?q=${encodeURIComponent(q)}&limit=8`, { cache: "no-store" });
+  const res = await fetch(`/api/graph/search?q=${encodeURIComponent(q)}&limit=8`);
   const data = await readJson<SupplyGraphResponse>(res);
   return data.nodes;
 }
 
 export async function fetchGraphViews(): Promise<GraphView[]> {
-  const res = await fetch("/api/graph/views", { cache: "no-store" });
+  const res = await fetch("/api/graph/views");
   const data = await readJson<{ meta?: { views?: GraphView[] } }>(res);
   return data.meta?.views ?? [];
 }
 
 export async function fetchGraphTimeline(focus: string, depth: number): Promise<string[]> {
   const params = new URLSearchParams({ focus: focus || "SPCX", depth: String(depth || 2) });
-  const res = await fetch(`/api/graph/timeline?${params.toString()}`, { cache: "no-store" });
+  const res = await fetch(`/api/graph/timeline?${params.toString()}`);
   const data = await readJson<{ meta?: { dates?: string[] } }>(res);
   return data.meta?.dates ?? [];
 }

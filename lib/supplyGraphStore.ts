@@ -11,6 +11,7 @@ type SupplyGraphState = {
   moatTier: string;
   asOfDate: string;
   layout: "layered" | "radial" | "force";
+  expandedNodeIds: string[];
   setPerspective: (value: string) => void;
   setFocus: (value: string) => void;
   setDepth: (value: number) => void;
@@ -19,6 +20,8 @@ type SupplyGraphState = {
   setMoatTier: (value: string) => void;
   setAsOfDate: (value: string) => void;
   setLayout: (value: "layered" | "radial" | "force") => void;
+  expandNode: (nodeId: string) => void;
+  resetExpandedNodes: () => void;
   hydrateFromQuery: (params: URLSearchParams) => void;
 };
 
@@ -31,9 +34,10 @@ export const useSupplyGraphStore = create<SupplyGraphState>((set) => ({
   moatTier: "",
   asOfDate: "",
   layout: "force",
-  setPerspective: (perspective) => set({ perspective }),
-  setFocus: (focus) => set({ focus: focus.trim().toUpperCase() || "SPCX" }),
-  setDepth: (depth) => set({ depth: Math.max(1, Math.min(4, Math.round(depth))) }),
+  expandedNodeIds: [],
+  setPerspective: (perspective) => set({ perspective, expandedNodeIds: [] }),
+  setFocus: (focus) => set({ focus: focus.trim().toUpperCase() || "SPCX", expandedNodeIds: [] }),
+  setDepth: (depth) => set({ depth: Math.max(1, Math.min(4, Math.round(depth))), expandedNodeIds: [] }),
   toggleRelType: (value) =>
     set((state) => ({
       relTypes: state.relTypes.includes(value)
@@ -41,9 +45,16 @@ export const useSupplyGraphStore = create<SupplyGraphState>((set) => ({
         : [...state.relTypes, value],
     })),
   setBusinessSegment: (businessSegment) => set({ businessSegment }),
-  setMoatTier: (moatTier) => set({ moatTier }),
-  setAsOfDate: (asOfDate) => set({ asOfDate }),
+  setMoatTier: (moatTier) => set({ moatTier, expandedNodeIds: [] }),
+  setAsOfDate: (asOfDate) => set({ asOfDate, expandedNodeIds: [] }),
   setLayout: (layout) => set({ layout }),
+  expandNode: (nodeId) =>
+    set((state) => ({
+      expandedNodeIds: state.expandedNodeIds.includes(nodeId)
+        ? state.expandedNodeIds
+        : [...state.expandedNodeIds, nodeId],
+    })),
+  resetExpandedNodes: () => set({ expandedNodeIds: [] }),
   hydrateFromQuery: (params) =>
     set({
       focus: params.get("focus")?.toUpperCase() || "SPCX",
@@ -53,5 +64,6 @@ export const useSupplyGraphStore = create<SupplyGraphState>((set) => ({
       businessSegment: params.get("segment") || "",
       moatTier: params.get("moat_tier") || "",
       asOfDate: params.get("as_of_date") || "",
+      expandedNodeIds: [],
     }),
 }));
