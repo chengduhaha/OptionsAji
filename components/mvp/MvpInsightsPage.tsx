@@ -44,7 +44,6 @@ import { LockedContent } from "@/components/gate/LockedContent";
 import { UnlockPromptModal } from "@/components/gate/UnlockPromptModal";
 import { useMvpTier } from "@/hooks/useMvpTier";
 import { unwrapMvpEnvelope, type UnlockReason } from "@/lib/mvp-tier";
-import { useAuth } from "@/lib/auth-context";
 import ExpectedMoveDetailModal, {
   type ExpectedMoveRow,
 } from "@/components/mvp/ExpectedMoveDetailModal";
@@ -1240,7 +1239,7 @@ export type MvpInsightsPageProps = {
 
 export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsPageProps) {
   const isDashboard = variant === "dashboard";
-  const { tier, ready, token, isAdmin, isPro, saveKey } = useMvpTier();
+  const { tier, ready, token, isPro, saveKey } = useMvpTier();
   const nextPath = variant === "standalone" ? "/mvp" : "/";
   const [accessKeyModalOpen, setAccessKeyModalOpen] = useState(false);
   const [unlockPrompt, setUnlockPrompt] = useState<{

@@ -44,6 +44,7 @@ export function unwrapMvpEnvelope(
   if (tier === null) {
     return { tier: null, data: raw };
   }
-  const { tier: _t, ...rest } = raw;
+  const rest = { ...raw };
+  delete rest.tier;
   return { tier, data: rest };
 }
