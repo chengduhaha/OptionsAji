@@ -1,6 +1,10 @@
-import StockEarningsPage from "@/components/stock/StockEarningsPage";
+import { redirect } from "next/navigation";
 
-export default async function Page({ params }: { params: Promise<{ symbol: string }> }) {
+export default async function StockEarningsRedirect({
+  params,
+}: {
+  params: Promise<{ symbol: string }>;
+}) {
   const { symbol } = await params;
-  return <StockEarningsPage symbol={symbol.trim().toUpperCase()} />;
+  redirect(`/stock/${symbol.trim().toUpperCase()}/overview`);
 }

@@ -202,10 +202,9 @@ export const api = {
     quote: (symbol: string) => fetchJSON(`/api/stock/${symbol}/quote`),
     overview: (symbol: string) => fetchJSON<StockOverviewContract>(`/api/stock/${symbol}/overview`),
     profile: (symbol: string) => fetchJSON(`/api/stock/${symbol}/profile`),
-    chain: (symbol: string, expiry?: string) =>
-      fetchJSON(`/api/stock/${symbol}/chain${expiry ? `?expiration=${expiry}` : ""}`),
     volatility: (symbol: string) => fetchJSON(`/api/stock/${symbol}/volatility`),
-    earnings: (symbol: string) => fetchJSON(`/api/stock/${symbol}/earnings-calendar`),
+    earningsCalendar: (symbol: string) =>
+      fetchJSON(`/api/stock/${symbol}/earnings-calendar`),
     financials: (symbol: string, stmt: string, period = "quarter") =>
       fetchJSON(`/api/stock/${symbol}/financials?statement=${stmt}&period=${period}`),
     metrics: (symbol: string) => fetchJSON(`/api/stock/${symbol}/metrics`),
@@ -217,7 +216,6 @@ export const api = {
       return fetchJSON(`/api/stock/${symbol}/history?${params}`);
     },
     unusual: (symbol: string) => fetchJSON(`/api/stock/${symbol}/unusual`),
-    strategyIdeas: (symbol: string) => fetchJSON(`/api/stock/${symbol}/strategy-ideas`),
   },
 
   macro: {

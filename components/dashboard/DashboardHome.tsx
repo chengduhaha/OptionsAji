@@ -467,7 +467,7 @@ export default function DashboardHome() {
               {(data?.earnings ?? []).map((e) => (
                 <Link
                   key={`${e.symbol}-${e.date}`}
-                  href={`/stock/${e.symbol}/earnings`}
+                  href={`/earnings?symbol=${encodeURIComponent(e.symbol)}`}
                   className="flex items-center justify-between p-3 rounded-lg bg-glass border border-glass-border hover:border-primary/30 transition-all"
                 >
                   <div className="flex items-center gap-3">

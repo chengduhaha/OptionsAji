@@ -114,7 +114,6 @@ type StockReport = {
   gex: AsyncSlot<JsonRecord>;
   gexHistory: AsyncSlot<JsonRecord>;
   unusual: AsyncSlot<JsonRecord>;
-  strategy: AsyncSlot<JsonRecord>;
   optionsInsights: AsyncSlot<StockOptionsInsightsContract>;
 };
 
@@ -1365,7 +1364,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
     setGammaChartOpen(true);
     setGammaTrendOpen(true);
     setGammaModal(null);
-    const [quote, overview, priceTarget, smart, chain, gex, gexHistory, unusual, strategy] = await Promise.all([
+    const [quote, overview, priceTarget, smart, chain, gex, gexHistory, unusual] = await Promise.all([
       settle<JsonRecord>(() => fetchJson(`/api/cross-market/quote/${encodeURIComponent(sym)}`, token)),
       settle<StockOverviewContract>(() => api.stock.overview(sym)),
       settle<AnalystPriceTargetContract>(() => api.analyst.priceTarget(sym)),
@@ -1382,7 +1381,6 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
       settle<JsonRecord>(() =>
         fetchJson(`/api/stock/${encodeURIComponent(sym)}/unusual-v2?page_size=20&min_score=20`, token),
       ),
-      settle<JsonRecord>(() => api.stock.strategyIdeas(sym) as Promise<JsonRecord>),
     ]);
     const overviewData = overview.data;
     const realtimeSpot = num(quote.data?.price);
@@ -1406,7 +1404,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
         market_regime_label: currentMarketRegime?.label ?? null,
       }, token),
     );
-    const nextReport = { quote, overview, priceTarget, smart, chain, gex, gexHistory, unusual, strategy, optionsInsights };
+    const nextReport = { quote, overview, priceTarget, smart, chain, gex, gexHistory, unusual, optionsInsights };
     cachedStockReports.set(reportCacheKey(sym, direction, regimeCode), {
       data: nextReport,
       cachedAt: Date.now(),
@@ -1485,7 +1483,6 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
   const gexError = report?.gex.error ?? null;
   const gexStrikes = normalizeGexStrikes(gexProfile);
   const gexHistoryRows = mergeGexHistory(report?.gexHistory.data ?? null, report?.gex.data ?? null);
-  const strategyIdeas = asArray(report?.strategy.data?.ideas).map(asRecord).slice(0, 3);
   const optionsInsights = report?.optionsInsights.data;
   const expectedMoveReads = new Map(
     (optionsInsights?.expected_moves ?? []).map((row) => [row.bucket, row]),
@@ -2151,12 +2148,6 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                   </button>
                   );
                 })}
-                {strategyIdeas.map((idea) => (
-                  <div key={text(idea.id) || text(idea.title)} className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
-                    <div className="text-xs font-medium text-foreground">{text(idea.title)}</div>
-                    <div className="mt-1 text-[11px] leading-4 text-muted-foreground">{text(idea.note)}</div>
-                  </div>
-                ))}
               </div>
             </div>
           </Card>
@@ -2175,11 +2166,6 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
           <ExpectedMoveDetailModal
             move={selectedExpectedMove}
             interpretation={expectedMoveReads.get(selectedExpectedMove.bucket)?.interpretation}
-            strategyIdeas={strategyIdeas.map((idea) => ({
-              id: text(idea.id),
-              title: text(idea.title),
-              note: text(idea.note),
-            }))}
             onClose={() => setSelectedExpectedMove(null)}
           />
         ) : null}

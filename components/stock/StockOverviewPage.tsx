@@ -181,19 +181,15 @@ export default function StockOverviewPage({ symbol }: { symbol: string }) {
           </div>
         </div>
         <div className="bg-panel border border-border2 rounded-[10px] p-4">
-          <div className="text-[12px] font-semibold text-text mb-2">财报</div>
-          <div className="text-[13px] text-text">
-            下次：{" "}
-            <span className="font-mono text-gold">{data?.earnings?.nextDate ?? "—"}</span>
-          </div>
-          <div className="text-[12px] text-muted mt-2">
-            距财报约 {data?.earnings?.daysTo ?? "—"} 天
-          </div>
+          <div className="text-[12px] font-semibold text-text mb-2">财报日历</div>
+          <p className="text-[12px] text-muted leading-relaxed">
+            查看全市场财报发布日程与历史波动统计。
+          </p>
           <Link
-            href={`/stock/${symbol}/earnings`}
+            href="/earnings"
             className="inline-block mt-3 text-[11px] text-blue hover:underline"
           >
-            财报详情 →
+            打开财报日历 →
           </Link>
         </div>
       </div>

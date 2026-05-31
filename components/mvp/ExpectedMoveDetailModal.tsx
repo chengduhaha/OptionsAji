@@ -14,8 +14,6 @@ export type ExpectedMoveRow = StockOverviewContract["expectedMoves"][number] & {
   spot?: number;
 };
 
-type StrategyIdea = { id?: string; title?: string; note?: string };
-
 function money(n: number | null | undefined): string {
   if (n === null || n === undefined || Number.isNaN(n)) return "—";
   return `$${n.toFixed(2)}`;
@@ -24,12 +22,10 @@ function money(n: number | null | undefined): string {
 export default function ExpectedMoveDetailModal({
   move,
   interpretation,
-  strategyIdeas,
   onClose,
 }: {
   move: ExpectedMoveRow;
   interpretation?: string;
-  strategyIdeas: StrategyIdea[];
   onClose: () => void;
 }) {
   const [playbookHints, setPlaybookHints] = useState<string[]>([]);
@@ -134,7 +130,7 @@ export default function ExpectedMoveDetailModal({
             <h3 className="text-[11px] uppercase tracking-wider text-muted">计算方法</h3>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               取该到期窗口 ATM Call 与 ATM Put 的中间价之和（Straddle），除以标的现价得到隐含波动幅度。
-              数据来自 yfinance 期权链，延迟约 15 分钟。
+              数据来自 Futu OpenD 期权链快照。
             </p>
           </section>
         )}
@@ -157,22 +153,6 @@ export default function ExpectedMoveDetailModal({
           </section>
         ) : null}
 
-        {strategyIdeas.length > 0 ? (
-          <section className="mt-3 space-y-2">
-            <h3 className="text-[11px] uppercase tracking-wider text-muted">关联策略思路</h3>
-            {strategyIdeas.map((idea) => (
-              <div
-                key={idea.id ?? idea.title}
-                className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2"
-              >
-                <div className="text-xs font-medium text-foreground">{idea.title}</div>
-                {idea.note ? (
-                  <p className="mt-1 text-[11px] leading-4 text-muted-foreground">{idea.note}</p>
-                ) : null}
-              </div>
-            ))}
-          </section>
-        ) : null}
       </div>
     </div>
   );

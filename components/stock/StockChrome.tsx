@@ -9,12 +9,9 @@ const HOT = ["SPY", "QQQ", "AAPL", "TSLA", "NVDA", "AMZN", "MSFT", "META"];
 
 const TABS: { segment: string; label: string }[] = [
   { segment: "", label: "概览" },
-  { segment: "chain", label: "期权链" },
   { segment: "volatility", label: "波动率" },
   { segment: "unusual", label: "异动" },
   { segment: "gex", label: "GEX" },
-  { segment: "strategy", label: "策略" },
-  { segment: "earnings", label: "财报" },
 ];
 
 export default function StockChrome({ symbol }: { symbol: string }) {

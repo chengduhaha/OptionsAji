@@ -1,6 +1,10 @@
-import StockStrategyPage from "@/components/stock/StockStrategyPage";
+import { redirect } from "next/navigation";
 
-export default async function Page({ params }: { params: Promise<{ symbol: string }> }) {
+export default async function StockStrategyRedirect({
+  params,
+}: {
+  params: Promise<{ symbol: string }>;
+}) {
   const { symbol } = await params;
-  return <StockStrategyPage symbol={symbol.trim().toUpperCase()} />;
+  redirect(`/stock/${symbol.trim().toUpperCase()}/overview`);
 }
