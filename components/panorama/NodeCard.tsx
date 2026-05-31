@@ -20,9 +20,9 @@ type CardData = {
 };
 
 const SEGMENT_COLORS: Record<string, string> = {
-  "AI 分部": "border-purple/40 bg-purple/10",
-  "Connectivity 分部": "border-cyan/40 bg-cyan/10",
-  "Space 分部": "border-blue/40 bg-blue/10",
+  "AI 分部": "border-purple/70 bg-purple/20",
+  "Connectivity 分部": "border-cyan/70 bg-cyan/20",
+  "Space 分部": "border-blue/70 bg-blue/20",
 };
 
 function SparklineSvg({
@@ -67,7 +67,12 @@ function NodeCardComponent({ data, selected }: NodeProps) {
   const isMoat = moatTier === "exclusive" || moatTier === "dominant";
   const isSegment = node.type === "segment";
   const title = node.ticker || node.label;
-  const accent = isMoat ? "#f0b429" : isSegment ? "#a855f7" : "#22d3ee";
+  const accent = isMoat ? "#f0b429" : isSegment ? "#a855f7" : moatTier === "primary" ? "#22d3ee" : moatTier === "scarce" ? "#818cf8" : "#60a5fa";
+  const surface = isSegment
+    ? `linear-gradient(135deg, ${accent}2e, rgba(11, 24, 44, 0.96))`
+    : isMoat
+      ? "linear-gradient(135deg, rgba(240,180,41,0.24), rgba(20,35,60,0.97))"
+      : `linear-gradient(135deg, ${accent}1f, rgba(13, 28, 50, 0.97))`;
 
   if (compact) {
     return (
@@ -76,7 +81,7 @@ function NodeCardComponent({ data, selected }: NodeProps) {
         onClick={() => onSelectNode?.(node)}
         title={node.label}
         className={cn(
-          "group relative flex h-[52px] min-w-[72px] items-center justify-center rounded-full border bg-background/80 px-3 shadow-xl backdrop-blur-md transition",
+          "group relative flex h-[52px] min-w-[72px] items-center justify-center rounded-full border px-3 shadow-xl backdrop-blur-md transition",
           selected ? "border-primary/80" : "border-white/10",
           isSegment && "border-purple/35 bg-purple/15",
           highlighted && "border-primary/70",
@@ -84,7 +89,11 @@ function NodeCardComponent({ data, selected }: NodeProps) {
           focus && "border-primary/80 shadow-[0_0_52px_rgba(240,180,41,0.28)] ring-1 ring-primary/50",
           isMoat && "shadow-[0_0_34px_rgba(240,180,41,0.36)] ring-1 ring-gold/45",
         )}
-        style={{ boxShadow: isMoat ? undefined : `0 0 22px ${accent}30` }}
+        style={{
+          background: surface,
+          borderColor: highlighted || focus ? accent : undefined,
+          boxShadow: isMoat || focus ? undefined : `0 0 22px ${accent}38`,
+        }}
       >
         <Handle type="target" position={Position.Left} className="!h-1.5 !w-1.5 !border-cyan !bg-background" />
         <Handle type="source" position={Position.Right} className="!h-1.5 !w-1.5 !border-gold !bg-background" />
@@ -104,7 +113,7 @@ function NodeCardComponent({ data, selected }: NodeProps) {
       type="button"
       onClick={() => onSelectNode?.(node)}
       className={cn(
-        "relative w-[210px] rounded-xl border bg-panel/90 px-3 py-3 text-left shadow-xl backdrop-blur-xl transition",
+        "relative w-[210px] rounded-xl border px-3 py-3 text-left shadow-xl backdrop-blur-xl transition",
         "hover:border-primary/50 hover:shadow-primary/10",
         selected && "border-primary/70",
         highlighted && "border-primary/60 shadow-primary/10",
@@ -113,11 +122,18 @@ function NodeCardComponent({ data, selected }: NodeProps) {
         isSegment ? SEGMENT_COLORS[node.label] ?? "border-purple/30 bg-purple/10" : "border-white/10",
         isMoat && "shadow-[0_0_38px_rgba(240,180,41,0.36)] ring-1 ring-gold/50",
       )}
+      style={{
+        background: surface,
+        borderColor: focus || highlighted || isMoat ? accent : "rgba(148, 163, 184, 0.34)",
+      }}
     >
       <Handle type="target" position={Position.Left} className="!h-2 !w-2 !border-cyan !bg-background" />
       <Handle type="source" position={Position.Right} className="!h-2 !w-2 !border-gold !bg-background" />
       <div className="flex items-start gap-2">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-glass text-[12px] font-semibold text-primary">
+        <div
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-[12px] font-semibold text-foreground shadow-sm"
+          style={{ borderColor: `${accent}7a`, background: `${accent}24` }}
+        >
           {node.logo ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={node.logo} alt="" className="h-7 w-7 rounded-md object-cover" />
@@ -127,16 +143,19 @@ function NodeCardComponent({ data, selected }: NodeProps) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <span className="truncate text-[13px] font-semibold text-foreground">{node.label}</span>
+            <span className="truncate text-[13px] font-semibold text-white">{node.label}</span>
             <span className="shrink-0 text-[12px]">{marketFlag(node.market)}</span>
           </div>
           <div className="mt-1 flex items-center gap-1.5">
             {node.ticker ? (
-              <span className="rounded border border-primary/25 bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary">
+              <span
+                className="rounded border px-1.5 py-0.5 font-mono text-[10px] font-semibold"
+                style={{ borderColor: `${accent}7a`, background: `${accent}1f`, color: accent }}
+              >
                 {node.ticker}
               </span>
             ) : null}
-            <span className="truncate text-[10px] text-muted-foreground">{node.sector || node.type}</span>
+            <span className="truncate text-[10px] text-gray-300">{node.sector || node.type}</span>
           </div>
         </div>
       </div>
@@ -145,7 +164,7 @@ function NodeCardComponent({ data, selected }: NodeProps) {
       </div>
       {moatTier ? (
         <div className="mt-2 flex items-center justify-between text-[10px]">
-          <span className="text-muted-foreground">护城河</span>
+          <span className="text-gray-300">护城河</span>
           <span className={cn("font-semibold", isMoat ? "text-gold" : "text-cyan")}>{moatTier}</span>
         </div>
       ) : null}

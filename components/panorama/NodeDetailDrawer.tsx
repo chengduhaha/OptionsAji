@@ -24,7 +24,7 @@ export function NodeDetailDrawer({
   if (!node && !edge) return null;
   const rel = edge ? RELATION_META[edge.relType] ?? RELATION_META.thematic_link : null;
   return (
-    <aside className="absolute right-4 top-4 z-20 w-[360px] rounded-xl border border-white/10 bg-panel-elevated/95 p-4 shadow-2xl backdrop-blur-xl">
+    <aside className="absolute right-4 top-4 z-20 w-[360px] rounded-xl border border-cyan/25 bg-[#0b182c]/95 p-4 shadow-[0_0_40px_rgba(34,211,238,0.14)] backdrop-blur-xl">
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
@@ -73,8 +73,8 @@ export function NodeDetailDrawer({
             <span className={`rounded border px-2 py-1 ${rel?.className}`}>{rel?.label || edge.relType}</span>
             {edge.moatTier ? <span className="rounded border border-gold/25 bg-gold/10 px-2 py-1 text-gold">{edge.moatTier}</span> : null}
           </div>
-          <p className="leading-relaxed text-muted-foreground">{edge.semantic || "暂无语义描述。"}</p>
-          <div className="rounded-lg border border-white/10 bg-background/60 p-3 text-[11px] text-muted-foreground">
+          <p className="leading-relaxed text-gray-200">{edge.semantic || "暂无语义描述。"}</p>
+          <div className="rounded-lg border border-white/15 bg-background/75 p-3 text-[11px] text-gray-300">
             <div>置信度：{edge.confidence || "unknown"}</div>
             <div>证据：{edge.evidence || "未提供"}</div>
             <div>日期：{edge.asOfDate || "未提供"}</div>

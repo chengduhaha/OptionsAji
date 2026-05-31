@@ -60,6 +60,7 @@ export function PanoramaClient() {
   const [expandingNodeId, setExpandingNodeId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const graphRef = useRef<SupplyGraphResponse | null>(null);
+  const loadSeqRef = useRef(0);
 
   useEffect(() => {
     graphRef.current = graph;
@@ -88,11 +89,14 @@ export function PanoramaClient() {
   }, [asOfDate, businessSegment, depth, focus, moatTier, pathname, perspective, relTypes, router]);
 
   const load = useCallback(async () => {
+    const seq = loadSeqRef.current + 1;
+    loadSeqRef.current = seq;
     if (graphRef.current) setRefreshing(true);
     else setLoading(true);
     setError(null);
     try {
       const boot = await fetchGraphBootstrap(query);
+      if (seq !== loadSeqRef.current) return;
       const nextGraph = {
         ...boot.graph,
         meta: { ...boot.graph.meta, source: boot.source },
@@ -102,10 +106,13 @@ export function PanoramaClient() {
       setTimelineDates(boot.timelineDates);
       resetExpandedNodes();
     } catch (err: unknown) {
+      if (seq !== loadSeqRef.current) return;
       setError(err instanceof Error ? err.message : "图谱加载失败");
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (seq === loadSeqRef.current) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
   }, [query, resetExpandedNodes]);
 

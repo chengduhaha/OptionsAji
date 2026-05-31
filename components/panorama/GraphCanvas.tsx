@@ -97,7 +97,8 @@ function GraphCanvasInner({
   }
 
   return (
-    <section className="relative h-full overflow-hidden rounded-xl border border-white/10 bg-[#05070d]">
+    <section className="relative h-full overflow-hidden rounded-xl border border-white/10 bg-[#07111f] shadow-[inset_0_0_120px_rgba(34,211,238,0.08)]">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_35%_25%,rgba(34,211,238,0.13),transparent_34%),radial-gradient(circle_at_70%_70%,rgba(240,180,41,0.1),transparent_32%)]" />
       {loading ? (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-sm">
           <div className="rounded-lg border border-white/10 bg-panel px-4 py-3 text-[13px] text-muted-foreground">
@@ -129,7 +130,7 @@ function GraphCanvasInner({
         proOptions={{ hideAttribution: true }}
         className="panorama-flow"
       >
-        <Background variant={BackgroundVariant.Dots} color="rgba(120,160,255,0.18)" gap={34} size={1.4} />
+        <Background variant={BackgroundVariant.Dots} color="rgba(170,205,255,0.25)" gap={34} size={1.4} />
         {perspective === "company" ? (
           <ViewportPortal>
             <SegmentConstellationLayer nodes={nodes} edges={edges} />

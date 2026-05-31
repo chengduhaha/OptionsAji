@@ -78,14 +78,22 @@ export function FloatingEdge({
   const particleColor = edgeData?.particleColor ?? "#22d3ee";
   const showParticle = !dimmed;
   const particleRadius = animated ? 3.4 : 2.5;
+  const mainStyle = style ?? {};
+  const underlayStyle = {
+    ...mainStyle,
+    stroke: particleColor,
+    strokeWidth: Math.max(Number(mainStyle.strokeWidth ?? 2) + 5, 7),
+    opacity: dimmed ? 0.05 : 0.18,
+  };
 
   return (
     <>
+      <BaseEdge id={`${id}-glow`} path={edgePath} style={underlayStyle} />
       <BaseEdge
         id={id}
         path={edgePath}
         markerEnd={markerEnd}
-        style={style}
+        style={mainStyle}
         className={animated ? "panorama-edge-flow" : undefined}
       />
       {showParticle ? (
@@ -96,8 +104,14 @@ export function FloatingEdge({
       {label ? (
         <EdgeLabelRenderer>
           <div
-            className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border border-white/10 bg-background/85 px-1.5 py-0.5 text-[10px] font-semibold text-foreground/90 shadow-sm backdrop-blur-sm transition-opacity"
-            style={{ transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)` }}
+            className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-lg backdrop-blur-md transition-opacity"
+            style={{
+              transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+              borderColor: `${particleColor}66`,
+              background: "rgba(9, 18, 34, 0.9)",
+              boxShadow: `0 0 18px ${particleColor}22`,
+              opacity: dimmed ? 0.25 : 1,
+            }}
           >
             {label as string}
           </div>
