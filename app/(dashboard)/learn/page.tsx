@@ -69,7 +69,7 @@ IV Rank：
     ],
   },
   {
-    title: "常见策略",
+    title: "常见结构",
     icon: BookMarked,
     free: true,
     articles: [

@@ -49,21 +49,21 @@ export default function DataLabel({ label, value, interpretation, color, sentime
 
 /** Interpretation rules engine — pure functions */
 export function interpretIVRank(rank: number): { interpretation: string; sentiment: "bull" | "bear" | "neutral" } {
-  if (rank >= 70) return { interpretation: "IV 处于历史高位，期权偏贵，适合卖方策略（卖 Call/Put、Iron Condor）", sentiment: "bear" };
+  if (rank >= 70) return { interpretation: "IV 处于历史高位，期权偏贵，对应卖方情景（卖 Call/Put、Iron Condor）", sentiment: "bear" };
   if (rank >= 50) return { interpretation: "IV 中等偏高，期权定价合理偏贵", sentiment: "neutral" };
   if (rank >= 30) return { interpretation: "IV 中等偏低，期权定价合理", sentiment: "neutral" };
-  return { interpretation: "IV 处于历史低位，期权便宜，适合买方策略（买 Call/Put、Straddle）", sentiment: "bull" };
+  return { interpretation: "IV 处于历史低位，期权便宜，对应买方情景（买 Call/Put、Straddle）", sentiment: "bull" };
 }
 
 export function interpretNetGex(gexBn: number): { interpretation: string; sentiment: "bull" | "bear" | "neutral" } {
   if (gexBn > 1) return { interpretation: `正 Gamma ${gexBn.toFixed(1)}B → 做市商低买高卖抑制波动，适合震荡策略`, sentiment: "bull" };
   if (gexBn > 0) return { interpretation: `正 Gamma ${gexBn.toFixed(2)}B → 做市商温和抑制波动`, sentiment: "bull" };
   if (gexBn > -1) return { interpretation: `负 Gamma ${gexBn.toFixed(2)}B → 做市商温和放大波动`, sentiment: "bear" };
-  return { interpretation: `负 Gamma ${gexBn.toFixed(1)}B → 做市商追涨杀跌放大波动，适合趋势策略`, sentiment: "bear" };
+  return { interpretation: `负 Gamma ${gexBn.toFixed(1)}B → 做市商追涨杀跌放大波动，对应趋势情景`, sentiment: "bear" };
 }
 
 export function interpretPCR(pcr: number): { interpretation: string; sentiment: "bull" | "bear" | "neutral" } {
-  if (pcr > 1.2) return { interpretation: "Put 异常活跃 → 市场极度看跌，可能是反向买入信号", sentiment: "bull" };
+  if (pcr > 1.2) return { interpretation: "Put 异常活跃 → 市场极度看跌，可能是反向买入情景", sentiment: "bull" };
   if (pcr > 1) return { interpretation: "Put 比 Call 活跃 → 市场偏谨慎", sentiment: "bear" };
   if (pcr < 0.5) return { interpretation: "Call 异常活跃 → 市场极度看涨，需警惕回调风险", sentiment: "bear" };
   if (pcr < 0.7) return { interpretation: "Call 比 Put 活跃 → 市场偏乐观", sentiment: "bull" };
@@ -78,8 +78,8 @@ export function interpretVix(vix: number): { interpretation: string; sentiment: 
 }
 
 export function interpretGammaRegime(regime: string): { interpretation: string; sentiment: "bull" | "bear" | "neutral" } {
-  if (regime === "Positive Gamma") return { interpretation: "正 Gamma → 做市商抑制波动，市场更平滑，适合区间策略", sentiment: "bull" };
-  return { interpretation: "负 Gamma → 做市商放大波动，市场更易失控，适合趋势策略", sentiment: "bear" };
+  if (regime === "Positive Gamma") return { interpretation: "正 Gamma → 做市商抑制波动，市场更平滑，对应区间情景", sentiment: "bull" };
+  return { interpretation: "负 Gamma → 做市商放大波动，市场更易失控，对应趋势情景", sentiment: "bear" };
 }
 
 export function interpretTheta(theta: number): string {
@@ -89,5 +89,5 @@ export function interpretTheta(theta: number): string {
 
 export function interpretTermStructure(structure: string): { interpretation: string; sentiment: "bull" | "bear" | "neutral" } {
   if (structure === "Contango") return { interpretation: "VIX 期货升水 → 正常状态，适合做空波动率", sentiment: "bull" };
-  return { interpretation: "VIX 期货贴水 → 市场恐慌，做多波动率信号", sentiment: "bear" };
+  return { interpretation: "VIX 期货贴水 → 市场恐慌，做多波动率情景", sentiment: "bear" };
 }

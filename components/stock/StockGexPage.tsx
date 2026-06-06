@@ -177,7 +177,7 @@ export default function StockGexPage({ symbol }: { symbol: string }) {
               Spot 距 Gamma Flip 约 {flipPct.toFixed(1)}%，留意突破情境。
             </li>
           ) : null}
-          <li>策略语境：卖方价差 / Iron Condor 往往出现在正 Gamma “抑制波动”段落；请务必自行风险控制。</li>
+          <li>情景语境：卖方价差 / Iron Condor 往往出现在正 Gamma “抑制波动”段落；请务必自行风险控制。</li>
         </ul>
       </div>
 

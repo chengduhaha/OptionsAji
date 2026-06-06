@@ -2,7 +2,7 @@ import { getServerOrigin } from "@/lib/serverOrigin";
 
 const KIND_ZH: Record<string, string> = {
   event: "事件",
-  signal: "信号",
+  signal: "解读",
   news: "资讯",
 };
 

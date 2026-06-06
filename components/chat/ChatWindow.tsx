@@ -13,23 +13,23 @@ import { runAgentViaSseStream, type AgentChatMessage } from "@/lib/agentSse";
 type Message = AgentChatMessage;
 
 const QUICK_PROMPTS = [
-  { label: "分析期权环境", icon: BarChart3, build: (symbol: string) => `分析 ${symbol} 当前的期权环境，给出策略建议` },
+  { label: "分析期权环境", icon: BarChart3, build: (symbol: string) => `分析 ${symbol} 当前的期权环境，给出情景说明` },
   { label: "扫描高 IV", icon: Target, build: () => "找到本周 IV Rank 最高的 10 只股票" },
   {
-    label: "评估价差策略",
+    label: "比较价差情景",
     icon: TrendingUp,
-    build: (symbol: string) => `评估这个策略的风险：Sell ${symbol} 250P 5/16, Buy 240P 5/16`,
+    build: (symbol: string) => `拆解这个情景的风险：Sell ${symbol} 250P 5/16, Buy 240P 5/16`,
   },
-  { label: "财报策略", icon: Zap, build: () => "下周有哪些重要财报？哪些适合做 IV Crush 策略？" },
+  { label: "财报事件研究", icon: Zap, build: () => "下周有哪些重要财报？哪些值得关注 IV Crush 情景？" },
   { label: "对比指数波动", icon: Brain, build: () => "对比 SPY 和 QQQ 的波动率环境" },
 ];
 
 const TICKERS = ["SPY", "QQQ", "AAPL", "TSLA", "NVDA", "AMZN", "MSFT", "META", "GOOGL"];
 const PRESET_TEMPLATES = [
-  (symbol: string) => `分析 ${symbol} 当前的期权环境，给出策略建议`,
+  (symbol: string) => `分析 ${symbol} 当前的期权环境，给出情景说明`,
   () => "找到本周 IV Rank 最高的 10 只股票",
-  () => "评估这个策略的风险：Sell TSLA 250P 5/16, Buy 240P 5/16",
-  () => "下周有哪些重要财报？哪些适合做 IV Crush 策略？",
+  () => "拆解这个情景的风险：Sell TSLA 250P 5/16, Buy 240P 5/16",
+  () => "下周有哪些重要财报？哪些值得关注 IV Crush 情景？",
   () => "对比 SPY 和 QQQ 的波动率环境",
 ];
 
@@ -39,7 +39,7 @@ type AgentMode = (typeof MODES)[number];
 const MODE_LABELS: Record<AgentMode, string> = {
   fast: "快速问答",
   analysis: "深度分析",
-  strategy: "策略评估",
+  strategy: "风险情景拆解",
 };
 
 const USE_AGENT_SSE = process.env.NEXT_PUBLIC_USE_AGENT_SSE === "1";
@@ -336,8 +336,8 @@ function WelcomeScreen({
         {[
           { icon: BarChart3, label: "GEX 分析" },
           { icon: TrendingUp, label: "趋势预测" },
-          { icon: Target, label: "策略生成" },
-          { icon: Zap, label: "实时信号" },
+          { icon: Target, label: "情景分析" },
+          { icon: Zap, label: "实时解读" },
         ].map((f) => (
           <div 
             key={f.label}

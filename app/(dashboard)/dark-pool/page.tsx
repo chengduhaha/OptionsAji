@@ -85,7 +85,7 @@ export default function DarkPoolPage() {
             <BarChart2 className="w-4 h-4 text-primary" />
             <h2 className="text-base font-semibold text-foreground">市场潮汐</h2>
             <span className={clsx("ml-auto px-2 py-0.5 rounded text-[10px] font-bold uppercase", tide.tide_direction === "BULLISH" ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400")}>
-              {tide.tide_direction === "BULLISH" ? "看涨" : "看跌"}
+              {tide.tide_direction === "BULLISH" ? "偏多" : "偏空"}
             </span>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

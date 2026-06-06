@@ -58,7 +58,7 @@ export default function DashboardHome() {
       setSignalFeed(Array.isArray(env.signals) ? env.signals.slice(0, 6) : []);
     } catch (error: unknown) {
       setSignalFeed([]);
-      setSignalsError(error instanceof Error ? error.message : "信号加载失败");
+      setSignalsError(error instanceof Error ? error.message : "数据加载失败");
     } finally {
       setSignalsLoading(false);
     }
@@ -208,8 +208,8 @@ export default function DashboardHome() {
                 <Brain className="w-5 h-5 text-primary-foreground" />
               </div>
               <div>
-                <h3 className="text-[14px] font-semibold text-foreground">AI 实时信号</h3>
-                <p className="text-[11px] text-muted">后端合成信号（/api/signals/feed）</p>
+                <h3 className="text-[14px] font-semibold text-foreground">AI 数据解读</h3>
+                <p className="text-[11px] text-muted">后端合成数据（/api/signals/feed）</p>
               </div>
             </div>
             <Link 

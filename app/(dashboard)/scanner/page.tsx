@@ -309,7 +309,7 @@ export default function ScannerPage() {
             <ScanLine className="w-4 h-4 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-foreground">期权扫描器</h1>
+            <h1 className="text-lg font-bold text-foreground">期权数据筛选器</h1>
             <p className="text-[11px] text-muted">监控自选股列表的异常合约活动</p>
           </div>
         </div>

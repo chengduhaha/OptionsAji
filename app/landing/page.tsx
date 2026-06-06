@@ -24,7 +24,7 @@ const FEATURES = [
   },
   {
     icon: ScanLine,
-    title: "期权扫描器",
+    title: "期权数据筛选器",
     description: "监控异常期权活动，帮助发现值得进一步研究的市场线索",
     color: "from-secondary to-purple",
   },
@@ -73,7 +73,7 @@ const PRICING = [
       "实时行情数据",
       "无限 AI 问答",
       "完整 GEX 分析",
-      "期权扫描器",
+      "期权数据筛选器",
       "异常活动追踪",
       "财报分析",
       "推送通知",
@@ -82,7 +82,7 @@ const PRICING = [
     popular: true,
   },
   { 
-    tier: "Alpha", 
+    tier: "Advanced", 
     price: "$149", 
     period: "/月",
     description: "高级研究与优先支持",
@@ -257,7 +257,7 @@ export default function LandingPage() {
                       </div>
                     </div>
                     <div className="glass rounded-xl p-4 h-40">
-                      <div className="text-[12px] text-muted mb-2">AI 信号</div>
+                      <div className="text-[12px] text-muted mb-2">AI 研究笔记</div>
                       <div className="space-y-2">
                         {[
                           { symbol: "NVDA", type: "CALL", conf: 87 },

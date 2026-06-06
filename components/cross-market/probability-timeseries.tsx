@@ -16,7 +16,7 @@ const SERIES = [
   { key: "options" as const, label: "期权市场", color: "#4A8FD4" },
   { key: "polymarket" as const, label: "Polymarket", color: "#D4AF37" },
   { key: "social" as const, label: "社交情绪", color: "#E8842A" },
-  { key: "institutional" as const, label: "机构信号", color: "#D44A4A" },
+  { key: "institutional" as const, label: "机构数据", color: "#D44A4A" },
 ];
 
 function CustomTooltip({

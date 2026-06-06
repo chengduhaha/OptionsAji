@@ -86,7 +86,7 @@ export default function DivergenceScannerPage() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-foreground">散户背离扫描</h1>
-            <p className="text-sm text-muted-foreground">社交媒体热度与内部人士抛售的背离信号</p>
+            <p className="text-sm text-muted-foreground">社交媒体热度与内部人士抛售的背离形态</p>
           </div>
         </div>
         <button onClick={fetchData} disabled={loading} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-glass border border-glass-border text-sm text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all disabled:opacity-50">
@@ -101,11 +101,11 @@ export default function DivergenceScannerPage() {
           <div className="text-2xl font-bold text-foreground">{items.length}</div>
         </div>
         <div className="rounded-xl border border-glass-border bg-glass/40 p-4">
-          <div className="text-[11px] text-muted uppercase tracking-wide mb-1">高风险信号</div>
+          <div className="text-[11px] text-muted uppercase tracking-wide mb-1">高风险形态</div>
           <div className="text-2xl font-bold text-red-400">{items.filter(i => i.alert_level?.toUpperCase() === "HIGH").length}</div>
         </div>
         <div className="rounded-xl border border-glass-border bg-glass/40 p-4">
-          <div className="text-[11px] text-muted uppercase tracking-wide mb-1">中风险信号</div>
+          <div className="text-[11px] text-muted uppercase tracking-wide mb-1">中风险形态</div>
           <div className="text-2xl font-bold text-yellow-400">{items.filter(i => i.alert_level?.toUpperCase() === "MEDIUM").length}</div>
         </div>
       </div>
@@ -113,7 +113,7 @@ export default function DivergenceScannerPage() {
       <div className="rounded-xl border border-glass-border bg-glass/40 overflow-hidden">
         {error && <div className="p-4 text-center text-red-400 text-sm">{error}</div>}
         {loading && !error && <div className="p-8 text-center text-muted-foreground text-sm">加载中…</div>}
-        {!loading && !error && sorted.length === 0 && <div className="p-8 text-center text-muted-foreground text-sm">暂无背离信号</div>}
+        {!loading && !error && sorted.length === 0 && <div className="p-8 text-center text-muted-foreground text-sm">暂无背离形态</div>}
         {!loading && !error && sorted.length > 0 && (
           <table className="w-full text-sm">
             <thead>

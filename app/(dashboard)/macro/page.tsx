@@ -125,7 +125,7 @@ function buildTreasuryFallback(row: Record<string, unknown> | undefined): string
   const tenYear = Number(row["10Y"] ?? row.year10);
   const thirtyYear = Number(row["30Y"] ?? row.year30);
   if (!Number.isFinite(twoYear) || !Number.isFinite(tenYear)) {
-    return "缺少 2Y 或 10Y，先把曲线当作利率水平背景，不单独作为交易信号。";
+    return "缺少 2Y 或 10Y，先把曲线当作利率水平背景，不单独作为方向性结论。";
   }
   const spread10y2y = tenYear - twoYear;
   if (spread10y2y < 0) {

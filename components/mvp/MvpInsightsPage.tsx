@@ -565,7 +565,7 @@ function classifyMarket(overview: MarketOverviewContract | null, signals: Signal
   const basis: string[] = [
     `SPY 涨跌 ${spy !== null ? pct(spy) : "—"}，QQQ 涨跌 ${qqq !== null ? pct(qqq) : "—"}，指数均值约 ${pct(avgIndex)}`,
     `VIX 现价 ${vix !== null ? vix.toFixed(2) : "—"}（${vixBand}），日变化 ${vixChange !== null ? pct(vixChange) : "—"}`,
-    `信号综合得分 ${signalScore}（看多信号加分、看空减分，来自 /api/signals/feed）`,
+    `信号综合得分 ${signalScore}（上涨情景加分、下跌情景减分，来自 /api/signals/feed）`,
   ];
 
   const engineNote = "阿吉深度洞察暂不可用，以下为盘面依据供对照。";
@@ -1091,7 +1091,7 @@ function buildTradePlan(args: {
   } else if (args.marketCode === "elevated_vol") {
     plan.push("高波动环境下，期权溢价与 Gamma 敏感度高，优先控制权利金与仓位规模。");
   } else if (args.marketCode === "risk_on") {
-    plan.push("风险偏好偏积极（Risk-On），可观察板块强弱与期限结构，避免将环境标签等同于做多信号。");
+    plan.push("风险偏好偏积极（Risk-On），可观察板块强弱与期限结构，避免将环境标签等同于上涨结论。");
   } else if (args.marketCode === "range_bound") {
     plan.push("中性震荡格局，缩小观察名单，等待指数与波动率给出同向突破。");
   } else {
@@ -1150,7 +1150,7 @@ function pickActionBias(direction: Direction, report: StockReport | null) {
   if (direction === "bear") {
     if ((change ?? 0) < -2.5 && (ivRank ?? 0) > 65) {
       return {
-        label: "看空拥挤",
+        label: "空头拥挤",
         tone: "text-red",
         thesis: "价格已快速下跌且 IV 偏高，直接买 put 的容错较低。",
       };
@@ -1159,7 +1159,7 @@ function pickActionBias(direction: Direction, report: StockReport | null) {
       return {
         label: "可观察下行验证",
         tone: "text-gold",
-        thesis: "看空方向需要跌破支撑或反弹不过压力位后再确认。",
+        thesis: "下跌情景需要跌破支撑或反弹不过压力位后再确认。",
       };
     }
   }
@@ -1872,9 +1872,9 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                 <label className="text-xs text-muted">方向</label>
                 <div className="grid grid-cols-3 rounded-lg border border-border2 bg-background p-1">
                   {([
-                    ["bull", "看多"],
-                    ["bear", "看空"],
-                    ["neutral", "观察"],
+                    ["bull", "上涨情景"],
+                    ["bear", "下跌情景"],
+                    ["neutral", "中性情景"],
                   ] as const).map(([id, label]) => (
                     <button
                       key={id}
@@ -1893,7 +1893,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                 disabled={reportLoading}
               >
                 {reportLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                生成分析报告
+                生成研究摘要
               </button>
             </form>
           </div>

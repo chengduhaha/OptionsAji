@@ -298,7 +298,7 @@ function NewsRow({ item, isNew }: { item: NewsItem; isNew: boolean }) {
           )}
         >
           ●{" "}
-          {item.sentiment === "bull" ? "看涨" : item.sentiment === "bear" ? "看跌" : "中性"}
+          {item.sentiment === "bull" ? "偏多" : item.sentiment === "bear" ? "偏空" : "中性"}
         </span>
         <span className="text-[10px] text-muted font-mono">{item.time}</span>
       </div>
@@ -521,7 +521,7 @@ export default function SignalsPage() {
               </div>
             ))}
             {!signalsFault && filteredSigs.length === 0 ? (
-              <div className="text-center py-12 text-muted text-[13px]">暂无后端信号或筛选结果为空。</div>
+              <div className="text-center py-12 text-muted text-[13px]">暂无后端数据或筛选结果为空。</div>
             ) : null}
           </div>
         </div>

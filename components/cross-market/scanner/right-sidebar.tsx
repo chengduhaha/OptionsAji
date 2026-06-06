@@ -83,7 +83,7 @@ export function RightSidebar({ opportunities }: { opportunities: ArbitrageOpport
         </div>
 
         <div className="mt-3 pt-3 border-t border-border">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">信号强度</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">数据强度</p>
           <div className="space-y-1.5">
             {[
               { label: '极强 (背离 >25)', color: 'bg-destructive', text: 'text-destructive' },

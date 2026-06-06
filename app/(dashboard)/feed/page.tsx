@@ -226,12 +226,12 @@ export default function FeedPage() {
           className="bg-panel border border-border2 text-[12px] px-2 py-1.5 rounded-[6px]"
         >
           <option value="all">全部类型</option>
-          <option value="signal">信号</option>
+          <option value="signal">解读</option>
           <option value="discord">Discord</option>
           <option value="macro">宏观</option>
           <option value="news">新闻</option>
           <option value="twitter">社媒</option>
-          <option value="resonance">共振信号</option>
+          <option value="resonance">共振指标</option>
         </select>
         <select
           value={sentimentFilter}

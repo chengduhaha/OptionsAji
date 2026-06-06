@@ -51,12 +51,12 @@ export function AiNarrativeCard({
 
         <div className="flex items-center gap-2.5 rounded-lg border border-[#D44A4A]/30 bg-[#D44A4A]/8 px-4 py-3 mb-5">
           <AlertTriangle className="w-4 h-4 text-[#D44A4A] flex-shrink-0" />
-          <span className="text-sm font-semibold text-[#D44A4A]">跨市场概率背离信号</span>
+          <span className="text-sm font-semibold text-[#D44A4A]">跨市场概率背离形态</span>
         </div>
 
         <div className="space-y-5 text-sm leading-relaxed text-[#B8C8DC]">
           <p>
-            期权与机构信号分别为{" "}
+            期权与机构数据分别为{" "}
             <span className="font-terminal text-[#4A8FD4] font-semibold">{optionsPct}%</span> 与{" "}
             <span className="font-terminal text-[#D44A4A] font-semibold">{institutionalPct}%</span>；
             预测市场与社交情绪为{" "}

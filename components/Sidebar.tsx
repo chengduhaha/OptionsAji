@@ -43,7 +43,7 @@ const NAV_GROUPS = [
     items: [
       { id: "aji_insights", label: "阿吉市场洞察", href: "/", icon: Zap },
       { id: "dash", label: "市场总览", href: "/market", icon: LayoutDashboard },
-      { id: "scanner", label: "期权扫描器", href: "/scanner", icon: ScanLine },
+      { id: "scanner", label: "期权数据筛选器", href: "/scanner", icon: ScanLine },
       { id: "stock", label: "个股深度", href: "/stock/SPY", icon: LineChart },
       { id: "feed", label: "统一信息流", href: "/feed", icon: RadioTower },
       { id: "ai", label: "AI 分析师", href: "/ai", icon: Sparkles, badge: "AI" },

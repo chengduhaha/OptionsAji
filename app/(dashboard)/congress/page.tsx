@@ -131,7 +131,7 @@ export default function CongressPage() {
         </div>
         <div>
           <h1 className="text-xl font-bold text-foreground">国会山追踪</h1>
-          <p className="text-sm text-muted-foreground">参众两院议员交易申报与策略回测</p>
+          <p className="text-sm text-muted-foreground">参众两院议员交易申报与情景回测</p>
         </div>
       </div>
 

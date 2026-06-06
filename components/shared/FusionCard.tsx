@@ -117,7 +117,7 @@ export default function FusionCard({ symbol, endpoint }: { symbol?: string; endp
         <div className="mb-2">
           <div className="flex items-center gap-1 mb-1.5">
             <Lightbulb className="w-3 h-3 text-gold" />
-            <span className="text-[10px] text-muted font-medium">策略参考</span>
+            <span className="text-[10px] text-muted font-medium">情景参考</span>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {data.strategy_bias.map(s => (

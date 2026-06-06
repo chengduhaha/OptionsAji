@@ -352,7 +352,7 @@ export default function SettingsPage() {
             onChange={(e) => setAlertType(e.target.value)}
             className="bg-bg border border-border2 rounded-md px-2 py-1.5 text-[12px]"
           >
-            <option value="resonance">共振信号</option>
+            <option value="resonance">共振指标</option>
             <option value="unusual_option">异动期权</option>
             <option value="sentiment_score">情绪阈值</option>
           </select>
