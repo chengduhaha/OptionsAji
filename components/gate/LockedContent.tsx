@@ -35,7 +35,7 @@ export function LockedContent({
   const reason = unlockReason ?? unlockReasonForRequired(currentTier, required);
   const label =
     unlockLabel ??
-    (reason === "login" ? "注册 / 登录解锁" : "输入 Access Key 解锁 Pro");
+    (reason === "login" ? "注册 / 登录解锁" : "升级 Pro 解锁");
 
   return (
     <div className="relative rounded-lg">

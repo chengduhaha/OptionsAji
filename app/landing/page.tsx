@@ -13,7 +13,7 @@ const FEATURES = [
   {
     icon: BarChart3,
     title: "GEX 分析",
-    description: "实时 Gamma Exposure 数据，精准把握做市商对冲行为",
+    description: "整理 Gamma Exposure 数据，辅助理解做市商对冲环境",
     color: "from-primary to-accent",
   },
   {
@@ -25,13 +25,13 @@ const FEATURES = [
   {
     icon: ScanLine,
     title: "期权扫描器",
-    description: "实时监控异常期权活动，捕捉机构大单信号",
+    description: "监控异常期权活动，帮助发现值得进一步研究的市场线索",
     color: "from-secondary to-purple",
   },
   {
     icon: Calendar,
     title: "财报日历",
-    description: "财报前后 IV 变化分析，优化财报交易策略",
+    description: "财报前后 IV 变化分析，用于教育性情景复盘",
     color: "from-primary to-green",
   },
   {
@@ -43,10 +43,10 @@ const FEATURES = [
 ];
 
 const STATS = [
-  { value: "50+", label: "AI 分析模型" },
-  { value: "98.7%", label: "数据准确率" },
-  { value: "< 100ms", label: "数据延迟" },
-  { value: "24/7", label: "实时监控" },
+  { value: "50+", label: "数据分析视角" },
+  { value: "多源", label: "行情与新闻数据" },
+  { value: "教育", label: "非投资建议" },
+  { value: "0", label: "资金托管 / 交易执行" },
 ];
 
 const PRICING = [
@@ -68,7 +68,7 @@ const PRICING = [
     tier: "Pro", 
     price: "$49", 
     period: "/月",
-    description: "专业交易者的标准配置",
+    description: "更完整的数据分析与教育功能",
     features: [
       "实时行情数据",
       "无限 AI 问答",
@@ -85,15 +85,15 @@ const PRICING = [
     tier: "Alpha", 
     price: "$149", 
     period: "/月",
-    description: "机构级数据与优先支持",
+    description: "高级研究与优先支持",
     features: [
       "Pro 全部功能",
       "深度报告生成",
       "API 访问",
-      "策略回测",
+      "历史情景复盘",
       "1 对 1 支持",
       "优先新功能",
-      "定制分析",
+      "定制数据看板",
     ],
     cta: "联系销售",
     popular: false,
@@ -102,19 +102,19 @@ const PRICING = [
 
 const TESTIMONIALS = [
   {
-    quote: "OptionsAji 的 GEX 分析帮我在 NVDA 财报前精准布局，收益翻倍。",
+    quote: "OptionsAji 的 GEX 视图让我能更快整理 NVDA 财报前后的关键价格区间。",
     author: "Jason L.",
     role: "期权交易员",
     avatar: "JL",
   },
   {
-    quote: "AI 助手就像有一个 24/7 在线的期权分析师，问什么都能给出专业建议。",
+    quote: "AI 助手适合把期权链、新闻和波动率变化整理成便于复盘的研究笔记。",
     author: "Sarah W.",
     role: "独立投资者",
     avatar: "SW",
   },
   {
-    quote: "GEX 快览和 AI 信号配合使用，让我每天开盘前就有完整的交易计划。",
+    quote: "GEX 快览和 AI 摘要帮我在开盘前完成观察清单，但最终判断仍由我自己负责。",
     author: "Mike C.",
     role: "期权交易员",
     avatar: "MC",
@@ -140,13 +140,13 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-3">
             <Link 
-              href="/"
+              href="/login"
               className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] text-muted-foreground hover:text-foreground transition-colors"
             >
               登录
             </Link>
             <Link 
-              href="/"
+              href="/register"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-accent text-primary-foreground text-[13px] font-medium shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all"
             >
               开始使用 <ArrowRight className="w-4 h-4" />
@@ -171,15 +171,15 @@ export default function LandingPage() {
 
           {/* Headline */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 animate-fade-up stagger-1">
-            <span className="text-foreground">像专业机构一样</span>
+            <span className="text-foreground">用数据更系统地</span>
             <br />
-            <span className="gradient-text">交易美股期权</span>
+            <span className="gradient-text">研究美股期权</span>
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-up stagger-2">
-            实时 GEX 数据、AI 智能分析、机构资金流追踪。
+            GEX 数据、AI 辅助解读、期权链与宏观事件整合。
             <br className="hidden md:block" />
-            OptionsAji 让散户拥有华尔街级别的期权分析能力。
+            OptionsAji 是数据分析与教育工具，不提供投资建议，也不执行交易。
           </p>
 
           {/* CTAs */}
@@ -296,10 +296,10 @@ export default function LandingPage() {
               <span className="text-[13px] text-muted-foreground">核心功能</span>
             </div>
             <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
-              专业级期权分析工具
+              系统化期权分析工具
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              从 GEX 分析到 AI 策略推荐，一站式覆盖专业交易者的全部需求
+              从 GEX 分析到 AI 辅助解读，一站式整理期权研究所需的信息
             </p>
           </div>
 
@@ -350,14 +350,14 @@ export default function LandingPage() {
               </h2>
               <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
                 基于多模型协作的 AI Agent 系统，能够理解复杂的期权问题，
-                实时获取市场数据，为你提供专业级分析建议。
+                获取市场数据并生成教育性解读，帮助你形成自己的研究框架。
               </p>
               <div className="space-y-4">
                 {[
                   "自然语言交互，无需学习复杂指令",
                   "实时接入 GEX、期权链、新闻数据",
-                  "多 Agent 协作，��不同角度分析",
-                  "策略生成与风险评估一站式完成",
+                  "多 Agent 协作，从不同角度整理信息",
+                  "情景推演与风险要点一站式归纳",
                 ].map((item) => (
                   <div key={item} className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-accent/20 flex items-center justify-center">
@@ -404,7 +404,7 @@ export default function LandingPage() {
                         Net GEX 约 $2.4B。Put Wall 在 $540，Call Wall 在 $560。
                         <br /><br />
                         这意味着做市商会在下跌时买入、上涨时卖出，市场波动会被<span className="text-primary font-medium">压缩</span>。
-                        适合做<span className="text-accent font-medium">卖方策略</span>如 Iron Condor 或 Credit Spread。
+                        可进一步观察<span className="text-accent font-medium">震荡情景</span>下的风险与收益结构。
                       </p>
                     </div>
                   </div>
@@ -428,7 +428,7 @@ export default function LandingPage() {
               选择适合你的方案
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              从免费入门到专业级服务，满足不同阶段交易者的需求
+              从免费入门到 Pro 订阅，所有付费入口优先使用 Creem；Stripe 保留为后续备用通道。
             </p>
           </div>
 
@@ -461,17 +461,20 @@ export default function LandingPage() {
                     </div>
                   ))}
                 </div>
-                <button className={clsx(
-                  "w-full py-3 rounded-xl text-[14px] font-medium transition-all",
+                <Link href={plan.tier === "Free" ? "/register" : plan.tier === "Pro" ? "/profile" : "/contact"} className={clsx(
+                  "w-full inline-flex items-center justify-center py-3 rounded-xl text-[14px] font-medium transition-all",
                   plan.popular
                     ? "bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/40"
                     : "glass-subtle text-foreground hover:border-primary/30"
                 )}>
                   {plan.cta}
-                </button>
+                </Link>
               </div>
             ))}
           </div>
+          <p className="mt-6 text-center text-[12px] text-muted-foreground">
+            数字订阅按月计费，可取消。支付由 Creem 处理；Stripe 仅作为兼容/备用方案，我们不保存银行卡信息。
+          </p>
         </div>
       </section>
 
@@ -520,6 +523,21 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Risk Disclaimer */}
+      <section className="py-16 px-6 relative">
+        <div className="max-w-5xl mx-auto rounded-2xl border border-amber-500/25 bg-amber-500/10 p-6">
+          <h2 className="text-[18px] font-semibold text-foreground mb-3">重要风险与服务边界</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[13px] text-muted-foreground leading-relaxed">
+            <p>
+              OptionsAji 仅提供数据分析、市场信息整理与教育性内容，不构成投资建议、交易建议、荐股、投顾服务或收益承诺。
+            </p>
+            <p>
+              OptionsAji 不是注册投资顾问，不执行交易，不接触用户资金，不连接券商账户，也不托管任何资产。期权交易风险很高，请独立判断并自行承担风险。
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-24 px-6 relative">
         <div className="max-w-4xl mx-auto text-center">
@@ -531,11 +549,11 @@ export default function LandingPage() {
                 准备好开始了吗？
               </h2>
               <p className="text-lg text-muted-foreground mb-8">
-                加入数千名使用 OptionsAji 进行专业期权分析的交易者
+                开始使用 OptionsAji 整理期权数据、宏观事件与教育性研究笔记
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link 
-                  href="/"
+                  href="/register"
                   className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-primary to-accent text-primary-foreground text-[16px] font-semibold shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all"
                 >
                   免费开始使用 <ArrowRight className="w-5 h-5" />
@@ -556,11 +574,13 @@ export default function LandingPage() {
             <span className="text-[14px] font-semibold text-foreground">OptionsAji</span>
           </div>
           <p className="text-[12px] text-muted text-center">
-            免责声明：本平台仅提供数据分析与教���内容，不构成投资建议。交易有风险，入市需谨慎。
+            免责声明：本平台仅提供数据分析与教育内容，不构成投资建议。交易有风险，请自行判断。
           </p>
           <div className="flex items-center gap-4">
-            <a href="#" className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">隐私政策</a>
-            <a href="#" className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">服务条款</a>
+            <Link href="/privacy" className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">隐私政策</Link>
+            <Link href="/terms" className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">服务条款</Link>
+            <Link href="/refund" className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">退款政策</Link>
+            <Link href="/contact" className="text-[13px] text-muted-foreground hover:text-foreground transition-colors">联系</Link>
           </div>
         </div>
       </footer>

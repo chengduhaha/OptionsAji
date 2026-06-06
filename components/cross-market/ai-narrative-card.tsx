@@ -111,7 +111,7 @@ export function AiNarrativeCard({
           <div>
             <div className="flex items-center gap-2 mb-3">
               <div className="w-1 h-4 rounded-full bg-[#3DBF7A]" />
-              <span className="text-xs font-semibold text-[#3DBF7A] uppercase tracking-wider">推荐组合策略</span>
+              <span className="text-xs font-semibold text-[#3DBF7A] uppercase tracking-wider">教育性策略说明</span>
             </div>
             <div className="space-y-3">
               {strategyBullets.map((item) => (

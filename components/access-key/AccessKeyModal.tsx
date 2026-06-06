@@ -62,14 +62,11 @@ export function AccessKeyModal({ open, onClose, onSaved, saveKey }: AccessKeyMod
         <div className="flex items-center gap-2 text-gold">
           <KeyRound className="h-5 w-5" />
           <h2 id="access-key-modal-title" className="text-lg font-semibold text-foreground">
-            启用完整浏览权限
+            启用内部试用 Key
           </h2>
         </div>
         <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          需要 Access Key 才能浏览阿吉市场洞察的全部内容。请联系阿吉获取 Access Key。
-        </p>
-        <p className="mt-2 text-sm text-foreground">
-          Discord：<span className="font-mono text-gold">ajifinance</span>
+          如果你已有内部或线下试用 Access Key，可在此启用。正式 Pro 订阅请在个人中心通过 Creem 完成。
         </p>
         <div className="mt-5">
           <AccessKeyForm busy={busy} message={message} messageTone={messageTone} onSave={handleSave} />

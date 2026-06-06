@@ -9,6 +9,16 @@ import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import { OPTIONS_AJI_API_KEY_LS, type AlertContract } from "@/lib/contracts";
 
+type CreemStatusPayload = {
+  tier?: string;
+  source?: string;
+  provider?: string | null;
+  provider_status?: string | null;
+  current_period_end_utc?: string | null;
+  in_grace_period?: boolean;
+  creem_active?: boolean;
+};
+
 export default function ProfilePage() {
   const { user, ready, token, refreshMe, loading: authLoading, isAdmin } = useAuth();
   const canManageIntegrations = user?.role === "admin";
@@ -36,6 +46,9 @@ export default function ProfilePage() {
   const [alertSymbol, setAlertSymbol] = useState("SPY");
   const [alertThreshold, setAlertThreshold] = useState("70");
   const [meBusy, setMeBusy] = useState(false);
+  const [creemStatus, setCreemStatus] = useState<CreemStatusPayload | null>(null);
+  const [creemBusy, setCreemBusy] = useState(false);
+  const [creemMsg, setCreemMsg] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -76,6 +89,29 @@ export default function ProfilePage() {
   useEffect(() => {
     void loadIntegration();
   }, [loadIntegration]);
+
+  const refreshCreemStatus = useCallback(async () => {
+    if (!token || !user) {
+      setCreemStatus(null);
+      return;
+    }
+    try {
+      const res = await fetch("/api/creem/status", {
+        cache: "no-store",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = (await res.json()) as CreemStatusPayload;
+      if (!res.ok) throw new Error("订阅状态读取失败");
+      setCreemStatus(data);
+    } catch (e) {
+      setCreemStatus(null);
+      setCreemMsg(e instanceof Error ? e.message : "订阅状态读取失败");
+    }
+  }, [token, user]);
+
+  useEffect(() => {
+    void refreshCreemStatus();
+  }, [refreshCreemStatus]);
 
   const persistKey = (raw: string) => {
     const v = raw.trim();
@@ -154,6 +190,50 @@ export default function ProfilePage() {
       await refreshMe();
     } finally {
       setMeBusy(false);
+    }
+  };
+
+  const startCreemCheckout = async () => {
+    if (!token) return;
+    setCreemBusy(true);
+    setCreemMsg(null);
+    try {
+      const res = await fetch("/api/creem/checkout", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = (await res.json()) as { url?: string; detail?: { message?: string } | string };
+      if (!res.ok) {
+        const message = typeof data.detail === "string" ? data.detail : data.detail?.message;
+        throw new Error(message || "Creem 结账创建失败");
+      }
+      if (data.url) window.location.href = data.url;
+    } catch (e) {
+      setCreemMsg(e instanceof Error ? e.message : "Creem 结账创建失败");
+    } finally {
+      setCreemBusy(false);
+    }
+  };
+
+  const openCreemPortal = async () => {
+    if (!token) return;
+    setCreemBusy(true);
+    setCreemMsg(null);
+    try {
+      const res = await fetch("/api/creem/portal", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = (await res.json()) as { url?: string; detail?: { message?: string } | string };
+      if (!res.ok) {
+        const message = typeof data.detail === "string" ? data.detail : data.detail?.message;
+        throw new Error(message || "订阅管理入口暂不可用");
+      }
+      if (data.url) window.location.href = data.url;
+    } catch (e) {
+      setCreemMsg(e instanceof Error ? e.message : "订阅管理入口暂不可用");
+    } finally {
+      setCreemBusy(false);
     }
   };
 
@@ -237,9 +317,73 @@ export default function ProfilePage() {
       )}
 
       {user ? (
+        <section className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-[13px] font-semibold text-foreground">订阅与用量 / Creem</h2>
+            <button
+              type="button"
+              onClick={() => void refreshCreemStatus()}
+              disabled={creemBusy}
+              className="text-[11px] text-primary hover:underline disabled:opacity-50"
+            >
+              刷新状态
+            </button>
+          </div>
+          <p className="text-[12px] text-muted-foreground leading-relaxed">
+            Pro 订阅优先通过 Creem 支付与管理。OptionsAji 不保存银行卡信息，不执行交易，不接触资金。
+            Stripe 仅作为后续/备用支付通道保留。
+          </p>
+          <dl className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[12px]">
+            <div>
+              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">权益</dt>
+              <dd className="text-foreground font-mono">{creemStatus?.tier ?? "—"}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">来源</dt>
+              <dd className="text-foreground font-mono">{creemStatus?.source ?? "—"}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">状态</dt>
+              <dd className="text-foreground font-mono">{creemStatus?.provider_status ?? "—"}</dd>
+            </div>
+          </dl>
+          {creemStatus?.current_period_end_utc ? (
+            <p className="text-[11px] text-muted-foreground">
+              当前周期结束：{new Date(creemStatus.current_period_end_utc).toLocaleString()}
+            </p>
+          ) : null}
+          {creemMsg ? <p className="text-[12px] text-gold whitespace-pre-wrap">{creemMsg}</p> : null}
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void startCreemCheckout()}
+              disabled={creemBusy}
+              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-[12px] font-medium disabled:opacity-50"
+            >
+              {creemBusy ? "处理中…" : "升级 Pro（Creem）"}
+            </button>
+            <button
+              type="button"
+              onClick={() => void openCreemPortal()}
+              disabled={creemBusy}
+              className="px-4 py-2 rounded-lg border border-primary/30 text-primary text-[12px] font-medium hover:bg-primary/10 disabled:opacity-50"
+            >
+              管理订阅
+            </button>
+            <Link
+              href="/refund"
+              className="px-4 py-2 rounded-lg border border-glass-border text-[12px] text-muted-foreground hover:text-foreground"
+            >
+              退款与取消政策
+            </Link>
+          </div>
+        </section>
+      ) : null}
+
+      {user && (isAdmin || hasAccessKey) ? (
         <section className="rounded-xl border border-glass-border bg-glass/40 p-4 space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-[13px] font-semibold text-foreground">Access Key（阿吉市场洞察）</h2>
+            <h2 className="text-[13px] font-semibold text-foreground">内部试用 Access Key</h2>
             <button
               type="button"
               onClick={() => void refreshStatus()}
@@ -251,12 +395,12 @@ export default function ProfilePage() {
           </div>
           {isAdmin ? (
             <p className="text-[12px] text-green leading-relaxed">
-              管理员账号可直接浏览阿吉市场洞察全部内容，无需 Access Key。
+              管理员账号可直接浏览阿吉市场洞察全部内容，无需内部试用 Key。
             </p>
           ) : null}
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px]">
             <div>
-              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">是否已设置</dt>
+              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">是否已设置内部 Key</dt>
               <dd className="text-foreground">{isAdmin ? "免 Key（管理员）" : hasAccessKey ? "是" : "否"}</dd>
             </div>
             <div>
@@ -271,25 +415,27 @@ export default function ProfilePage() {
             </div>
           </dl>
           {statusError ? <p className="text-[12px] text-red">{statusError}</p> : null}
-          <AccessKeyForm
-            busy={accessKeyBusy}
-            message={accessKeyMsg}
-            messageTone={accessKeyMsgTone}
-            submitLabel="保存并校验"
-            onSave={async (raw) => {
-              setAccessKeyBusy(true);
-              setAccessKeyMsg(null);
-              const result = await saveKey(raw);
-              setAccessKeyBusy(false);
-              if (result.ok) {
-                setAccessKeyMsg("Access Key 已启用");
-                setAccessKeyMsgTone("success");
-              } else {
-                setAccessKeyMsg(result.error ?? "校验失败");
-                setAccessKeyMsgTone("error");
-              }
-            }}
-          />
+          {isAdmin ? (
+            <AccessKeyForm
+              busy={accessKeyBusy}
+              message={accessKeyMsg}
+              messageTone={accessKeyMsgTone}
+              submitLabel="保存并校验"
+              onSave={async (raw) => {
+                setAccessKeyBusy(true);
+                setAccessKeyMsg(null);
+                const result = await saveKey(raw);
+                setAccessKeyBusy(false);
+                if (result.ok) {
+                  setAccessKeyMsg("Access Key 已启用");
+                  setAccessKeyMsgTone("success");
+                } else {
+                  setAccessKeyMsg(result.error ?? "校验失败");
+                  setAccessKeyMsgTone("error");
+                }
+              }}
+            />
+          ) : null}
           {hasAccessKey ? (
             <button
               type="button"
@@ -304,7 +450,7 @@ export default function ProfilePage() {
             </button>
           ) : null}
           <p className="text-[11px] text-muted-foreground leading-relaxed">
-            需要完整浏览权限请联系阿吉获取 Key。Discord：<span className="font-mono text-foreground">ajifinance</span>
+            Access Key 仅用于内部、线下或早期试用；正式 Pro 付费请使用上方 Creem 订阅入口。
           </p>
         </section>
       ) : null}

@@ -1552,7 +1552,6 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
           title={unlockPrompt.title}
           nextPath={nextPath}
           onClose={() => setUnlockPrompt((s) => ({ ...s, open: false }))}
-          onOpenAccessKey={() => setAccessKeyModalOpen(true)}
         />
         <AccessKeyModal
           open={accessKeyModalOpen}
@@ -1772,13 +1771,13 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
           <Card className="p-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Target className="h-4 w-4 text-green" />
-              今日交易计划
+              盘前观察框架
             </div>
             <LockedContent
               required="pro"
               currentTier={tier}
-              title="Pro：今日交易计划"
-              onUnlock={(reason) => openUnlock(reason, "Pro：今日交易计划")}
+              title="Pro：盘前观察框架"
+              onUnlock={(reason) => openUnlock(reason, "Pro：盘前观察框架")}
             >
               <div className="mt-4 space-y-3">
                 {tradePlan.map((item) => (

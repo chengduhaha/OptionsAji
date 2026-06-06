@@ -180,6 +180,17 @@ export default function RegisterPage() {
             登录
           </Link>
         </p>
+        <p className="mt-3 text-center text-[11px] text-muted">
+          注册即表示你理解 OptionsAji 仅提供数据分析与教育内容，并同意{" "}
+          <Link href="/terms" className="text-primary hover:underline">
+            服务条款
+          </Link>
+          {" / "}
+          <Link href="/privacy" className="text-primary hover:underline">
+            隐私政策
+          </Link>
+          。
+        </p>
       </div>
     </div>
   );

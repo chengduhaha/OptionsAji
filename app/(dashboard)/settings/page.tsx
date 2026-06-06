@@ -430,13 +430,14 @@ export default function SettingsPage() {
 
       <section className="rounded-[10px] border border-border2 bg-panel2 p-4 space-y-3">
         <h2 className="text-[13px] font-semibold text-muted uppercase tracking-wide">
-          订阅与用量（Stripe）
+          Stripe 备用结账（兼容保留）
         </h2>
         <p className="text-[12px] text-muted leading-relaxed">
-          自管 API 密钥模式：自定义一串密钥（≥8 字符），在下方完成 Stripe 结账后，后端将其与 Stripe
-          客户绑定。调用 AI 分析师时使用{" "}
+          当前正式 Pro 订阅入口在个人中心使用 Creem。本区仅保留 Stripe 兼容/备用链路：
+          自定义一串密钥（≥8 字符），在下方完成 Stripe 结账后，后端将其与 Stripe 客户绑定。
+          调用旧版 AI 分析师 API 时使用{" "}
           <code className="text-gold">Authorization: Bearer &lt;密钥&gt;</code>。
-          未配置 Stripe 时本节按钮将不可用；开发环境可继续用后端{" "}
+          未配置 Stripe 时本节按钮不可用；开发环境可继续用后端{" "}
           <code className="text-gold">SUBSCRIPTION_TOKENS</code>。
         </p>
         {data?.stripe_billing_configured ? (
@@ -468,7 +469,7 @@ export default function SettingsPage() {
               disabled={!data?.stripe_billing_configured}
               className="text-[12px] px-3 py-1.5 rounded-md border border-gold text-gold disabled:opacity-40"
             >
-              前往 Stripe 结账（Pro）
+              前往 Stripe 结账（备用）
             </button>
             <button
               type="button"

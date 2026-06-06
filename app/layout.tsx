@@ -15,12 +15,12 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "OptionsAji - AI 期权分析平台",
-  description: "AI 驱动的美股期权分析平台，实时 GEX 分析、期权扫描、智能策略推荐",
-  keywords: ["期权", "美股", "GEX", "AI分析", "期权交易", "Gamma Exposure"],
+  description: "AI 辅助的美股期权数据分析与教育平台，整合 GEX、期权链、宏观事件与研究笔记",
+  keywords: ["期权", "美股", "GEX", "AI分析", "期权教育", "Gamma Exposure"],
   authors: [{ name: "OptionsAji" }],
   openGraph: {
     title: "OptionsAji - AI 期权分析平台",
-    description: "AI 驱动的美股期权分析平台",
+    description: "AI 辅助的美股期权数据分析与教育平台",
     type: "website",
   },
 };

@@ -328,7 +328,7 @@ function WelcomeScreen({
         OptionsAji AI 分析师
       </h2>
       <p className="text-[14px] text-muted mb-8 text-center max-w-md">
-        实时 GEX 数据 · 期权链分析 · 智能策略推荐 · 风险评估
+        GEX 数据整理 · 期权链分析 · 教育性情景说明 · 风险提示
       </p>
 
       {/* Feature pills */}

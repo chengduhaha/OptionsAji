@@ -263,7 +263,7 @@ export default function CongressPage() {
                   { label:"初始资金", value:`$${btResult.initial_capital.toLocaleString()}`, color:"text-foreground" },
                   { label:"最终价値", value:`$${btResult.final_value.toLocaleString()}`, color:"text-foreground" },
                   { label:"总收益率", value:(btResult.total_return_pct>=0?"+":"")+btResult.total_return_pct?.toFixed(2)+"%", color:btResult.total_return_pct>=0?"text-green-400":"text-red-400" },
-                  { label:"胜率", value:btResult.trade_count>0?`${((btResult.winning_trades/btResult.trade_count)*100).toFixed(0)}%`:"N/A", color:"text-foreground" },
+                  { label:"历史命中率", value:btResult.trade_count>0?`${((btResult.winning_trades/btResult.trade_count)*100).toFixed(0)}%`:"N/A", color:"text-foreground" },
                 ].map(({label,value,color})=>(
                   <div key={label} className="rounded-xl border border-glass-border bg-glass/40 p-4">
                     <div className="text-[10px] text-muted uppercase tracking-wide mb-1">{label}</div>

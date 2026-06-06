@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { KeyRound, LogIn, UserPlus, X } from "lucide-react";
+import { CreditCard, LogIn, UserPlus, X } from "lucide-react";
 import type { UnlockReason } from "@/lib/mvp-tier";
 
 interface UnlockPromptModalProps {
@@ -10,7 +10,6 @@ interface UnlockPromptModalProps {
   title?: string;
   nextPath?: string;
   onClose: () => void;
-  onOpenAccessKey?: () => void;
 }
 
 export function UnlockPromptModal({
@@ -19,7 +18,6 @@ export function UnlockPromptModal({
   title = "解锁完整内容",
   nextPath = "/",
   onClose,
-  onOpenAccessKey,
 }: UnlockPromptModalProps) {
   if (!open) return null;
 
@@ -73,22 +71,15 @@ export function UnlockPromptModal({
         ) : (
           <>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              该内容为 Pro 会员专享。请输入 Access Key 解锁完整功能；也可联系阿吉获取 Key。
+              该内容为 Pro 会员专享。请在个人中心通过 Creem 升级 Pro。
             </p>
-            <p className="mt-2 text-sm text-foreground">
-              Discord：<span className="font-mono text-gold">ajifinance</span>
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                onOpenAccessKey?.();
-                onClose();
-              }}
-              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-gold/30 bg-gold/10 px-4 py-2.5 text-sm font-medium text-gold hover:bg-gold/15"
+            <Link
+              href="/profile"
+              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gold px-4 py-2.5 text-sm font-medium text-background hover:bg-gold/90"
             >
-              <KeyRound className="h-4 w-4" />
-              输入 Access Key
-            </button>
+              <CreditCard className="h-4 w-4" />
+              升级 Pro（Creem）
+            </Link>
           </>
         )}
       </div>
