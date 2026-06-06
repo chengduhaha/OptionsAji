@@ -1232,12 +1232,17 @@ function EmptyLine({ text: value }: { text: string }) {
 
 export type MvpInsightsPageVariant = "dashboard" | "standalone";
 
+export type MvpInsightsSection = "all" | "market" | "ticker";
+
 export type MvpInsightsPageProps = {
   variant?: MvpInsightsPageVariant;
+  section?: MvpInsightsSection;
 };
 
-export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsPageProps) {
+export default function MvpInsightsPage({ variant = "standalone", section = "all" }: MvpInsightsPageProps) {
   const isDashboard = variant === "dashboard";
+  const showMarket = section !== "ticker";
+  const showTicker = section !== "market";
   const { tier, ready, token, isPro, saveKey } = useMvpTier();
   const nextPath = variant === "standalone" ? "/mvp" : "/";
   const [accessKeyModalOpen, setAccessKeyModalOpen] = useState(false);
@@ -1520,19 +1525,21 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
               <span>美股市场分析</span>
             </div>
             <h1 className="display-1 mt-2 text-foreground">
-              市场洞察
+              {section === "ticker" ? "标的深析" : "市场洞察"}
             </h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => void loadWarRoom({ force: true })}
-              title="立即刷新市场总览"
-              className="inline-flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/10 px-3 py-2 text-sm text-gold transition hover:bg-gold/15"
-            >
-              <RefreshCw className={`h-4 w-4 ${warLoading ? "animate-spin" : ""}`} />
-              刷新
-            </button>
+            {showMarket ? (
+              <button
+                type="button"
+                onClick={() => void loadWarRoom({ force: true })}
+                title="立即刷新市场总览"
+                className="inline-flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/10 px-3 py-2 text-sm text-gold transition hover:bg-gold/15"
+              >
+                <RefreshCw className={`h-4 w-4 ${warLoading ? "animate-spin" : ""}`} />
+                刷新
+              </button>
+            ) : null}
           </div>
         </header>
 
@@ -1554,6 +1561,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
           saveKey={saveKey}
         />
 
+        {showMarket ? (
         <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.2fr_0.8fr]">
           <Card className="p-4">
             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -1781,7 +1789,10 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
             </LockedContent>
           </Card>
         </section>
+        ) : null}
 
+        {showTicker ? (
+        <>
         <LockedContent
           required="trial"
           currentTier={tier}
@@ -2170,6 +2181,8 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
           </Card>
         </section>
         </LockedContent>
+        </>
+        ) : null}
 
         {selectedEvent ? (
           <EventDetailModal

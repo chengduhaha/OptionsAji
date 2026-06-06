@@ -43,8 +43,6 @@ const STATS = [
   { value: "0", label: "资金托管 / 交易执行" },
 ];
 
-const DATA_SOURCES = ["FMP", "OpenBB", "Futu", "Massive", "Discord 存档"];
-
 const PRICING = [
   {
     tier: "Free",
@@ -264,16 +262,6 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-          </div>
-        </Reveal>
-
-        {/* Trust strip */}
-        <Reveal delay={120} className="mx-auto mt-14 max-w-4xl">
-          <p className="text-center text-[12px] uppercase tracking-[0.2em] text-muted">数据来源</p>
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-10 gap-y-3">
-            {DATA_SOURCES.map((src) => (
-              <span key={src} className="text-[15px] font-semibold text-muted-foreground/70">{src}</span>
-            ))}
           </div>
         </Reveal>
       </section>
