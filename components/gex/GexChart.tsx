@@ -89,7 +89,7 @@ export default function GexChart({
           const y = PT + chartH / 2 - (v / 1) * (chartH / 2 - 4);
           return (
             <g key={v}>
-              <line x1={PL - 3} y1={y} x2={PL + chartW} y2={y} stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+              <line x1={PL - 3} y1={y} x2={PL + chartW} y2={y} stroke="rgba(100,116,139,0.15)" strokeWidth="1" />
               <text x={PL - 6} y={y + 4} textAnchor="end" fontSize="9" fill="#8B8D97">
                 {(v * maxGex).toFixed(1)}B
               </text>
@@ -135,7 +135,7 @@ export default function GexChart({
         })}
 
         {/* Zero line */}
-        <line x1={PL} y1={midY} x2={PL + chartW} y2={midY} stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+        <line x1={PL} y1={midY} x2={PL + chartW} y2={midY} stroke="rgba(100,116,139,0.15)" strokeWidth="1" />
 
         {/* X axis labels (every 5th strike) */}
         {sorted.filter((_, i) => i % 5 === 0).map((s) => {

@@ -39,7 +39,7 @@ export default function GexTrendChart(props: {
         <div className="text-[11px] text-muted mb-1">Net GEX vs 收盘价</div>
         <ResponsiveContainer width="100%" height={220}>
           <LineChart data={merged} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(100,116,139,0.15)" />
             <XAxis dataKey="date" tick={{ fontSize: 9, fill: "#8B8D97" }} minTickGap={24} />
             <YAxis yAxisId="gx" tick={{ fontSize: 9, fill: "#8B8D97" }} width={44} domain={["auto", "auto"]} />
             <YAxis yAxisId="px" orientation="right" tick={{ fontSize: 9, fill: "#D4AF37" }} width={36} hide />
@@ -78,7 +78,7 @@ export default function GexTrendChart(props: {
         <div className="text-[11px] text-muted mb-1">Gamma Flip 估算</div>
         <ResponsiveContainer width="100%" height={220}>
           <LineChart data={merged} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(100,116,139,0.15)" />
             <XAxis dataKey="date" tick={{ fontSize: 9, fill: "#8B8D97" }} minTickGap={24} />
             <YAxis tick={{ fontSize: 9, fill: "#8B8D97" }} width={44} domain={["auto", "auto"]} />
             <Tooltip

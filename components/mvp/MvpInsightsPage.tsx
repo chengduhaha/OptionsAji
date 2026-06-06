@@ -26,8 +26,6 @@ import {
 import {
   Area,
   AreaChart,
-  Bar,
-  BarChart,
   CartesianGrid,
   ResponsiveContainer,
   Tooltip,
@@ -1427,12 +1425,6 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
   const events = useMemo(() => buildWarRoomEvents(warRoom), [warRoom]);
   const treasuryRows = getTreasuryRows(warRoom.treasury.data);
   const latestTreasury = treasuryRows[0] ?? {};
-  const yieldBars = [
-    { term: "1M", rate: num(latestTreasury.month1 ?? latestTreasury["1M"]) },
-    { term: "2Y", rate: num(latestTreasury.year2 ?? latestTreasury["2Y"]) },
-    { term: "10Y", rate: num(latestTreasury.year10 ?? latestTreasury["10Y"]) },
-    { term: "30Y", rate: num(latestTreasury.year30 ?? latestTreasury["30Y"]) },
-  ].filter((row): row is { term: string; rate: number } => row.rate !== null);
   const ruleTreasuryRead = buildTreasuryRead(latestTreasury);
   const treasuryRead = aiInsights?.treasury?.summary
     ? {
@@ -1441,9 +1433,6 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
         spreads: aiInsights.treasury.spreads ?? ruleTreasuryRead.spreads,
       }
     : ruleTreasuryRead;
-  const treasurySpreads = asRecord(treasuryRead.spreads);
-  const spread10y2y = num(treasurySpreads.spread10y2y ?? treasurySpreads["10y_2y"]);
-  const spread30y10y = num(treasurySpreads.spread30y10y ?? treasurySpreads["30y_10y"]);
   const overview = warRoom.overview.data;
   const pulseRows = overview?.pulse ?? [];
   const vixHistory = overview?.volatility.vixSeries ?? [];
@@ -1531,7 +1520,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
               <span>美股市场分析</span>
             </div>
             <h1 className="display-1 mt-2 text-foreground">
-              阿吉市场洞察
+              市场洞察
             </h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -1790,41 +1779,6 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                 ))}
               </div>
             </LockedContent>
-            <div className="mt-5 rounded-lg border border-border2 bg-foreground/[0.02] p-3">
-              <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
-                <span>国债曲线</span>
-                <span className="text-gold">{treasuryRead.label}</span>
-              </div>
-              {yieldBars.length > 0 ? (
-                <ResponsiveContainer width="100%" height={120}>
-                  <BarChart data={yieldBars}>
-                    <CartesianGrid stroke="rgba(255,255,255,.06)" vertical={false} />
-                    <XAxis dataKey="term" tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                    <YAxis hide domain={["auto", "auto"]} />
-                    <Tooltip contentStyle={{ background: "#0f1c30", border: "1px solid rgba(255,255,255,.1)" }} />
-                    <Bar dataKey="rate" fill="#22d3ee" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-[120px] items-center justify-center text-xs text-muted">收益率暂不可用</div>
-              )}
-              <LockedContent
-                required="trial"
-                currentTier={tier}
-                title="登录后查看国债曲线 AI 解读"
-                onUnlock={(reason) => openUnlock(reason, "登录后查看国债曲线解读")}
-              >
-                <p className="mt-2 text-xs leading-5 text-muted-foreground">{treasuryRead.summary}</p>
-                {spread10y2y !== null ? (
-                  <div className="mt-2 text-[10px] text-muted">
-                    10Y-2Y {spread10y2y.toFixed(2)}%
-                    {spread30y10y !== null
-                      ? ` · 30Y-10Y ${spread30y10y.toFixed(2)}%`
-                      : ""}
-                  </div>
-                ) : null}
-              </LockedContent>
-            </div>
           </Card>
         </section>
 
@@ -1942,10 +1896,10 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                         <stop offset="100%" stopColor="#22d3ee" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid stroke="rgba(255,255,255,.06)" vertical={false} />
+                    <CartesianGrid stroke="rgba(100,116,139,0.15)" vertical={false} />
                     <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} minTickGap={24} />
                     <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} domain={["auto", "auto"]} width={48} />
-                    <Tooltip contentStyle={{ background: "#0f1c30", border: "1px solid rgba(255,255,255,.1)" }} />
+                    <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)" }} />
                     <Area type="monotone" dataKey="close" stroke="#22d3ee" fill="url(#stockFill)" strokeWidth={2} dot={false} />
                   </AreaChart>
                 </ResponsiveContainer>

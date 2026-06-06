@@ -395,7 +395,7 @@ export default function ProfilePage() {
           </div>
           {isAdmin ? (
             <p className="text-[12px] text-green leading-relaxed">
-              管理员账号可直接浏览阿吉市场洞察全部内容，无需内部试用 Key。
+              管理员账号可直接浏览市场洞察全部内容，无需内部试用 Key。
             </p>
           ) : null}
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px]">

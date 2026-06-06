@@ -332,8 +332,8 @@ export default function DashboardHome() {
                     <YAxis hide domain={["auto", "auto"]} />
                     <Tooltip
                       contentStyle={{ 
-                        background: "rgba(15, 28, 48, 0.95)", 
-                        border: "1px solid rgba(240, 180, 41, 0.2)",
+                        background: "var(--color-card)", 
+                        border: "1px solid var(--color-border)",
                         borderRadius: "8px",
                         boxShadow: "0 4px 20px rgba(0,0,0,0.3)"
                       }}
