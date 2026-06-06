@@ -12,7 +12,7 @@ export const RELATION_META: Record<string, { label: string; color: string; class
   joint_development: { label: "共研", color: "#10b981", className: "text-green border-green/30 bg-green/10" },
   partnership: { label: "合作", color: "#10b981", className: "text-green border-green/30 bg-green/10" },
   licenses_to: { label: "授权", color: "#3b82f6", className: "text-blue border-blue/30 bg-blue/10" },
-  thematic_link: { label: "主题", color: "#94a3b8", className: "text-muted-foreground border-white/20 bg-white/5" },
+  thematic_link: { label: "主题", color: "#94a3b8", className: "text-muted-foreground border-foreground/20 bg-foreground/5" },
 };
 
 export function marketFlag(market?: string | null): string {

@@ -34,7 +34,7 @@ export function NodeDetailDrawer({
             {edge ? edge.label || rel?.label : node?.label}
           </h2>
         </div>
-        <button type="button" onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:bg-white/5 hover:text-foreground">
+        <button type="button" onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:bg-foreground/5 hover:text-foreground">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -62,7 +62,7 @@ export function NodeDetailDrawer({
             {expanded ? "已展开邻居" : expanding ? "展开中" : "展开邻居"}
           </button>
           <p className="leading-relaxed text-muted-foreground">{node.nameEn || node.nameZh || node.label}</p>
-          <pre className="max-h-48 overflow-auto rounded-lg border border-white/10 bg-background/60 p-3 text-[11px] text-muted-foreground">
+          <pre className="max-h-48 overflow-auto rounded-lg border border-foreground/10 bg-background/60 p-3 text-[11px] text-muted-foreground">
             {JSON.stringify(node.metrics ?? {}, null, 2)}
           </pre>
         </div>
@@ -74,7 +74,7 @@ export function NodeDetailDrawer({
             {edge.moatTier ? <span className="rounded border border-gold/25 bg-gold/10 px-2 py-1 text-gold">{edge.moatTier}</span> : null}
           </div>
           <p className="leading-relaxed text-gray-200">{edge.semantic || "暂无语义描述。"}</p>
-          <div className="rounded-lg border border-white/15 bg-background/75 p-3 text-[11px] text-gray-300">
+          <div className="rounded-lg border border-foreground/15 bg-background/75 p-3 text-[11px] text-gray-300">
             <div>置信度：{edge.confidence || "unknown"}</div>
             <div>证据：{edge.evidence || "未提供"}</div>
             <div>日期：{edge.asOfDate || "未提供"}</div>

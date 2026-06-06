@@ -73,7 +73,7 @@ export function SegmentConstellationLayer({ nodes, edges }: { nodes: Node[]; edg
       {hulls.map((hull) => (
         <div
           key={hull.id}
-          className="pointer-events-none absolute rounded-[44px] border border-white/10 opacity-80 blur-[0.2px]"
+          className="pointer-events-none absolute rounded-[44px] border border-foreground/10 opacity-80 blur-[0.2px]"
           style={{
             transform: `translate(${hull.x}px, ${hull.y}px)`,
             width: hull.width,
@@ -82,7 +82,7 @@ export function SegmentConstellationLayer({ nodes, edges }: { nodes: Node[]; edg
             boxShadow: `0 0 80px ${hull.color}`,
           }}
         >
-          <div className="absolute left-8 top-6 rounded-full border border-white/10 bg-background/55 px-3 py-1 text-[11px] font-semibold text-foreground/70 backdrop-blur-md">
+          <div className="absolute left-8 top-6 rounded-full border border-foreground/10 bg-background/55 px-3 py-1 text-[11px] font-semibold text-foreground/70 backdrop-blur-md">
             {hull.label}
           </div>
         </div>

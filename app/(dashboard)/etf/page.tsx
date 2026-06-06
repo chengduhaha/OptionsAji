@@ -74,7 +74,7 @@ export default function EtfPage() {
                     <Cell key={index} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v: any) => [`${Number(v).toFixed(2)}%`, "权重"]} contentStyle={{ background: "#1a1a2e", border: "1px solid #333", fontSize: 11 }} />
+                <Tooltip formatter={(v: any) => [`${Number(v).toFixed(2)}%`, "权重"]} contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 10, color: "var(--color-foreground)", boxShadow: "var(--shadow-card)", fontSize: 11 }} />
                 <Legend iconSize={8} wrapperStyle={{ fontSize: 10 }} />
               </PieChart>
             </ResponsiveContainer>

@@ -12,7 +12,7 @@ const TABS = [
 
 export function PerspectiveTabs({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   return (
-    <div className="flex rounded-lg border border-white/10 bg-glass p-1">
+    <div className="flex rounded-lg border border-foreground/10 bg-glass p-1">
       {TABS.map((tab) => {
         const Icon = tab.icon;
         return (

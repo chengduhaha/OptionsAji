@@ -214,10 +214,10 @@ export function IndustryGraphCanvas({
   }, [mountGraph, ready]);
 
   return (
-    <section className="relative h-full min-h-[480px] overflow-hidden rounded-xl border border-white/10 bg-background/60">
+    <section className="relative h-full min-h-[480px] overflow-hidden rounded-xl border border-foreground/10 bg-background/60">
       {loading ? (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-sm">
-          <div className="rounded-lg border border-white/10 bg-panel px-4 py-3 text-[13px] text-muted-foreground">
+          <div className="rounded-lg border border-foreground/10 bg-panel px-4 py-3 text-[13px] text-muted-foreground">
             正在加载行业力导向图…
           </div>
         </div>

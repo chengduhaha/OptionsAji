@@ -64,7 +64,7 @@ export function PanoramaInsightPanel({
 
   if (loading && !digest) {
     return (
-      <aside className="flex h-full min-h-[320px] flex-col rounded-xl border border-white/10 bg-panel/70 p-4">
+      <aside className="flex h-full min-h-[320px] flex-col rounded-xl border border-foreground/10 bg-panel/70 p-4">
         <div className="flex flex-1 items-center justify-center text-[13px] text-muted-foreground">
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           加载解读…
@@ -75,15 +75,15 @@ export function PanoramaInsightPanel({
 
   if (!digest) {
     return (
-      <aside className="flex h-full min-h-[320px] flex-col rounded-xl border border-white/10 bg-panel/70 p-4 text-[13px] text-muted-foreground">
+      <aside className="flex h-full min-h-[320px] flex-col rounded-xl border border-foreground/10 bg-panel/70 p-4 text-[13px] text-muted-foreground">
         暂无图谱数据
       </aside>
     );
   }
 
   return (
-    <aside className="flex h-full min-h-[320px] max-h-full flex-col overflow-hidden rounded-xl border border-white/10 bg-panel/70 backdrop-blur-xl">
-      <div className="shrink-0 border-b border-white/10 px-4 py-3">
+    <aside className="flex h-full min-h-[320px] max-h-full flex-col overflow-hidden rounded-xl border border-foreground/10 bg-panel/70 backdrop-blur-xl">
+      <div className="shrink-0 border-b border-foreground/10 px-4 py-3">
         <div className="text-[11px] uppercase tracking-[0.16em] text-primary">图谱解读</div>
         <h2 className="mt-1 text-[15px] font-semibold text-foreground">{digest.focusLabel}</h2>
         <p className="mt-1 font-mono text-[11px] text-muted-foreground">
@@ -115,7 +115,7 @@ export function PanoramaInsightPanel({
                   <button
                     type="button"
                     onClick={() => onFocusNode(segment.segmentId)}
-                    className="flex w-full items-center justify-between rounded-lg border border-white/10 bg-glass/60 px-2.5 py-1.5 text-left hover:border-primary/30"
+                    className="flex w-full items-center justify-between rounded-lg border border-foreground/10 bg-glass/60 px-2.5 py-1.5 text-left hover:border-primary/30"
                   >
                     <span className="text-foreground">{segment.label}</span>
                     <span className="text-[11px] text-muted-foreground">{segment.supplierCount} 关联方</span>
@@ -148,7 +148,7 @@ export function PanoramaInsightPanel({
             <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">关键链路</h3>
             <ul className="space-y-1.5">
               {digest.keyLinks.map((link) => (
-                <li key={link.id} className="rounded-lg border border-white/10 bg-background/40 px-2.5 py-2">
+                <li key={link.id} className="rounded-lg border border-foreground/10 bg-background/40 px-2.5 py-2">
                   <span className="rounded border border-cyan/25 bg-cyan/10 px-1.5 py-0.5 text-[10px] text-cyan">
                     {link.relLabel}
                   </span>
@@ -225,7 +225,7 @@ export function PanoramaInsightPanel({
         </section>
       </div>
 
-      <p className="shrink-0 border-t border-white/10 px-4 py-2 text-[10px] leading-relaxed text-muted-foreground">
+      <p className="shrink-0 border-t border-foreground/10 px-4 py-2 text-[10px] leading-relaxed text-muted-foreground">
         本平台仅提供数据分析和教育内容，不构成投资建议。
       </p>
     </aside>

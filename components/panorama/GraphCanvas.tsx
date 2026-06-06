@@ -158,11 +158,11 @@ function GraphCanvasInner({
   }
 
   return (
-    <section className="relative h-full min-h-[480px] overflow-hidden rounded-xl border border-white/10 bg-[#07111f] shadow-[inset_0_0_120px_rgba(34,211,238,0.08)]">
+    <section className="relative h-full min-h-[480px] overflow-hidden rounded-xl border border-foreground/10 bg-[#07111f] shadow-[inset_0_0_120px_rgba(34,211,238,0.08)]">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_35%_25%,rgba(34,211,238,0.13),transparent_34%),radial-gradient(circle_at_70%_70%,rgba(240,180,41,0.1),transparent_32%)]" />
       {loading ? (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-sm">
-          <div className="rounded-lg border border-white/10 bg-panel px-4 py-3 text-[13px] text-muted-foreground">
+          <div className="rounded-lg border border-foreground/10 bg-panel px-4 py-3 text-[13px] text-muted-foreground">
             正在加载{perspective === "product" ? "产品链" : "产业链"}图谱…
           </div>
         </div>
@@ -207,7 +207,7 @@ function GraphCanvasInner({
             聚焦视野
           </button>
         </Panel>
-        <Controls className="!bottom-4 !right-4 !top-auto !rounded-lg !border !border-white/10 !bg-background/80 !shadow-xl" />
+        <Controls className="!bottom-4 !right-4 !top-auto !rounded-lg !border !border-foreground/10 !bg-background/80 !shadow-xl" />
         <Minimap />
       </ReactFlow>
       <NodeDetailDrawer

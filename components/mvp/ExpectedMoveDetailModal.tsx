@@ -77,7 +77,7 @@ export default function ExpectedMoveDetailModal({
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-3 top-3 rounded-md p-1 text-muted-foreground transition hover:bg-white/10 hover:text-foreground"
+          className="absolute right-3 top-3 rounded-md p-1 text-muted-foreground transition hover:bg-foreground/10 hover:text-foreground"
           aria-label="关闭"
         >
           <X className="h-5 w-5" />
@@ -90,22 +90,22 @@ export default function ExpectedMoveDetailModal({
         <p className="mt-1 text-xs text-muted">{hint}</p>
 
         <div className="mt-4 grid grid-cols-2 gap-2">
-          <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
+          <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
             <div className="text-[10px] text-muted">预期波动</div>
             <div className="font-mono text-lg text-gold">±{move.pct.toFixed(2)}%</div>
           </div>
-          <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
+          <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
             <div className="text-[10px] text-muted">Straddle 价格</div>
             <div className="font-mono text-lg text-foreground">{money(move.straddleUsd)}</div>
           </div>
-          <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2 col-span-2">
+          <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2 col-span-2">
             <div className="text-[10px] text-muted">到期日</div>
             <div className="font-mono text-sm text-foreground">{move.expiration}</div>
           </div>
         </div>
 
         {spot !== null && spot !== undefined ? (
-          <section className="mt-4 rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
+          <section className="mt-4 rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
             <h3 className="text-[11px] uppercase tracking-wider text-muted">价格区间（隐含）</h3>
             <p className="mt-1 font-mono text-sm text-foreground">
               {money(lower)} — {money(upper)}
@@ -115,7 +115,7 @@ export default function ExpectedMoveDetailModal({
         ) : null}
 
         {move.atmStrike !== undefined ? (
-          <section className="mt-3 rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
+          <section className="mt-3 rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
             <h3 className="text-[11px] uppercase tracking-wider text-muted">计算拆解</h3>
             <ul className="mt-2 space-y-1 text-xs text-muted-foreground font-mono">
               <li>ATM 行权价：{move.atmStrike}</li>
@@ -126,7 +126,7 @@ export default function ExpectedMoveDetailModal({
             </ul>
           </section>
         ) : (
-          <section className="mt-3 rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
+          <section className="mt-3 rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
             <h3 className="text-[11px] uppercase tracking-wider text-muted">计算方法</h3>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               取该到期窗口 ATM Call 与 ATM Put 的中间价之和（Straddle），除以标的现价得到隐含波动幅度。
@@ -136,7 +136,7 @@ export default function ExpectedMoveDetailModal({
         )}
 
         {playbookHints.length > 0 ? (
-          <section className="mt-3 rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
+          <section className="mt-3 rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
             <h3 className="text-[11px] uppercase tracking-wider text-muted">教材要点</h3>
             <ul className="mt-2 list-disc space-y-1 pl-4 text-xs leading-5 text-muted-foreground">
               {playbookHints.map((line) => (

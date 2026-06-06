@@ -300,14 +300,14 @@ export default function MacroPage() {
               </div>
               <ResponsiveContainer width="100%" height={150}>
                 <LineChart data={yieldCurve.filter((p): p is { term: string; rate: number } => p.rate != null)}>
-                  <CartesianGrid stroke="#333" strokeDasharray="3 3" />
-                  <XAxis dataKey="term" tick={{ fontSize: 10, fill: "#888" }} />
-                  <YAxis tick={{ fontSize: 10, fill: "#888" }} domain={["auto", "auto"]} />
+                  <CartesianGrid stroke="rgba(100,116,139,0.15)" strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="term" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} domain={["auto", "auto"]} axisLine={false} tickLine={false} />
                   <Tooltip
-                    contentStyle={{ background: "#1a1a2e", border: "1px solid #333", fontSize: 12 }}
+                    contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 10, color: "var(--color-foreground)", boxShadow: "var(--shadow-card)", fontSize: 12 }}
                     formatter={(v: any) => [`${Number(v).toFixed(3)}%`, "收益率"]}
                   />
-                  <Line type="monotone" dataKey="rate" stroke="#d4af37" dot={{ r: 3 }} strokeWidth={2} />
+                  <Line type="monotone" dataKey="rate" stroke="#c8881a" dot={{ r: 3 }} strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
             </>
@@ -342,7 +342,7 @@ export default function MacroPage() {
             </span>
           </div>
 
-          <div className="mt-4 rounded-lg border border-border2 bg-white/[0.02] px-3 py-3">
+          <div className="mt-4 rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-3">
             <p className="text-sm leading-6 text-muted-foreground">{calendarRead}</p>
             {calendarInsights?.watch_plan?.length ? (
               <div className="mt-3 space-y-1.5">
@@ -395,19 +395,19 @@ export default function MacroPage() {
                       {(ev.why_it_matters_zh || ev.trading_impact_zh || ev.watch_zh) ? (
                         <div className="mt-3 grid grid-cols-1 gap-2 lg:grid-cols-3">
                           {ev.why_it_matters_zh ? (
-                            <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
+                            <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
                               <div className="text-[10px] text-muted">为何重要</div>
                               <p className="mt-1 text-[11px] leading-5 text-muted-foreground">{ev.why_it_matters_zh}</p>
                             </div>
                           ) : null}
                           {ev.trading_impact_zh ? (
-                            <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
+                            <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
                               <div className="text-[10px] text-muted">交易影响</div>
                               <p className="mt-1 text-[11px] leading-5 text-muted-foreground">{ev.trading_impact_zh}</p>
                             </div>
                           ) : null}
                           {ev.watch_zh ? (
-                            <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
+                            <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
                               <div className="text-[10px] text-muted">盘中观察</div>
                               <p className="mt-1 text-[11px] leading-5 text-muted-foreground">{ev.watch_zh}</p>
                             </div>

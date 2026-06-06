@@ -32,7 +32,7 @@ export function RelationLegend({
             key={rel}
             type="button"
             onClick={() => onToggleRelType(rel)}
-            className={`rounded-md border px-2 py-1 text-[11px] transition ${active ? meta.className : "border-white/10 bg-glass text-muted-foreground hover:text-foreground"}`}
+            className={`rounded-md border px-2 py-1 text-[11px] transition ${active ? meta.className : "border-foreground/10 bg-glass text-muted-foreground hover:text-foreground"}`}
           >
             <span className="mr-1 inline-block h-2 w-2 rounded-full" style={{ background: meta.color }} />
             {meta.label}
@@ -42,7 +42,7 @@ export function RelationLegend({
       <select
         value={businessSegment}
         onChange={(event) => onBusinessSegment(event.target.value)}
-        className="h-7 rounded-md border border-white/10 bg-background px-2 text-[11px] text-muted-foreground outline-none focus:border-primary/50"
+        className="h-7 rounded-md border border-foreground/10 bg-background px-2 text-[11px] text-muted-foreground outline-none focus:border-primary/50"
       >
         <option value="">全部业务分部</option>
         {segmentOptions.map((segment) => (
@@ -54,7 +54,7 @@ export function RelationLegend({
       <select
         value={moatTier}
         onChange={(event) => onMoatTier(event.target.value)}
-        className="h-7 rounded-md border border-white/10 bg-background px-2 text-[11px] text-muted-foreground outline-none focus:border-primary/50"
+        className="h-7 rounded-md border border-foreground/10 bg-background px-2 text-[11px] text-muted-foreground outline-none focus:border-primary/50"
       >
         <option value="">全部护城河</option>
         {MOATS.map((tier) => (

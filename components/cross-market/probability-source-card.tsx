@@ -62,7 +62,7 @@ export function ProbabilitySourceCard({
           </div>
           <Tooltip>
             <TooltipTrigger asChild>
-              <button className="p-1 rounded-md hover:bg-white/5 transition-colors">
+              <button className="p-1 rounded-md hover:bg-foreground/5 transition-colors">
                 <Info className="w-3.5 h-3.5 text-[#4A5A73]" />
               </button>
             </TooltipTrigger>
@@ -92,7 +92,7 @@ export function ProbabilitySourceCard({
         </div>
 
         {/* Mini progress bar */}
-        <div className="w-full h-1 rounded-full bg-white/5 mb-4 overflow-hidden">
+        <div className="w-full h-1 rounded-full bg-foreground/5 mb-4 overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-700"
             style={{

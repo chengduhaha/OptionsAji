@@ -18,7 +18,7 @@ export function LayoutSwitcher({
   onChange: (value: "layered" | "radial" | "force") => void;
 }) {
   return (
-    <div className="flex rounded-lg border border-white/10 bg-glass p-1">
+    <div className="flex rounded-lg border border-foreground/10 bg-glass p-1">
       {LAYOUTS.map((layout) => {
         const Icon = layout.icon;
         return (

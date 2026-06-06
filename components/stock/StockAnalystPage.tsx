@@ -152,7 +152,7 @@ export default function StockAnalystPage({ symbol }: { symbol: string }) {
                     <tr><td colSpan={6} className="py-8 text-center text-muted">暂无评级记录</td></tr>
                   ) : (
                     (data.ratings ?? []).slice(0, 100).map((r, i) => (
-                      <tr key={i} className="hover:bg-white/[0.02] transition-colors">
+                      <tr key={i} className="hover:bg-foreground/[0.02] transition-colors">
                         <td className="px-4 py-2 text-muted">{r.date?.slice(0, 10) ?? "—"}</td>
                         <td className="px-4 py-2 text-text font-medium">{r.analyst_company ?? "—"}</td>
                         <td className={clsx("px-4 py-2 font-medium", ACTION_COLOR[(r.action ?? "").toLowerCase()] || "text-muted")}>

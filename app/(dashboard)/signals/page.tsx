@@ -206,7 +206,7 @@ function SignalCard({ sig }: { sig: Signal }) {
               key={i}
               className={clsx(
                 "inline-block w-1.5 h-2.5 rounded-sm",
-                i <= sig.strength ? (isUrgent ? "bg-red" : "bg-gold") : "bg-white/10",
+                i <= sig.strength ? (isUrgent ? "bg-red" : "bg-gold") : "bg-foreground/10",
               )}
             />
           ))}
@@ -279,7 +279,7 @@ function NewsRow({ item, isNew }: { item: NewsItem; isNew: boolean }) {
   return (
     <div
       className={clsx(
-        "py-2.5 border-b border-border2 cursor-pointer hover:bg-white/[0.02] transition-all",
+        "py-2.5 border-b border-border2 cursor-pointer hover:bg-foreground/[0.02] transition-all",
         isNew && "animate-slide-down",
       )}
       onClick={() => setExpanded((v) => !v)}
@@ -305,7 +305,7 @@ function NewsRow({ item, isNew }: { item: NewsItem; isNew: boolean }) {
       <p className="text-[12.5px] text-text leading-snug mb-1.5">{item.headline}</p>
       <div className="flex gap-1.5 flex-wrap">
         {item.tags.map((t) => (
-          <span key={t} className="text-[9.5px] font-mono bg-white/[0.06] text-muted px-1.5 py-px rounded">
+          <span key={t} className="text-[9.5px] font-mono bg-foreground/[0.06] text-muted px-1.5 py-px rounded">
             {t}
           </span>
         ))}
@@ -479,7 +479,7 @@ export default function SignalsPage() {
         ].map((f) => (
           <div key={f.label} className="flex items-center gap-1.5">
             <span className="text-[10px] text-muted uppercase tracking-wider">{f.label}</span>
-            <div className="flex gap-0.5 bg-white/[0.03] border border-border2 p-0.5 rounded-[6px]">
+            <div className="flex gap-0.5 bg-foreground/[0.03] border border-border2 p-0.5 rounded-[6px]">
               {f.opts.map((o) => (
                 <button
                   key={o.v}
@@ -510,7 +510,7 @@ export default function SignalsPage() {
             <div className="flex items-center gap-2 text-[11px] text-muted uppercase tracking-wider">
               <Star className="w-3 h-3 text-gold" />
               信号 Feed
-              <span className="bg-white/[0.06] px-1.5 py-px rounded-full text-[10px]">{filteredSigs.length} 条</span>
+              <span className="bg-foreground/[0.06] px-1.5 py-px rounded-full text-[10px]">{filteredSigs.length} 条</span>
             </div>
             <span className="text-[11px] text-muted">OpenBBToolkit · yfinance（+可选 GEX 上游）</span>
           </div>
@@ -531,7 +531,7 @@ export default function SignalsPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-[11px] text-muted uppercase tracking-wider">
                 实时新闻流
-                <span className="bg-white/[0.06] px-1.5 py-px rounded-full text-[10px]">{filteredNews.length} 条</span>
+                <span className="bg-foreground/[0.06] px-1.5 py-px rounded-full text-[10px]">{filteredNews.length} 条</span>
               </div>
               <span className="text-[11px] text-muted font-mono">Discord 存档 72h</span>
             </div>

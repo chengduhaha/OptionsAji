@@ -246,7 +246,7 @@ export default function LearnPage() {
               <button
                 type="button"
                 onClick={() => setOpenSection(isOpen ? null : si)}
-                className="flex items-center gap-3 w-full px-5 py-4 hover:bg-white/[0.02] transition-colors text-left"
+                className="flex items-center gap-3 w-full px-5 py-4 hover:bg-foreground/[0.02] transition-colors text-left"
               >
                 <div className={clsx(
                   "w-9 h-9 rounded-lg flex items-center justify-center",
@@ -280,7 +280,7 @@ export default function LearnPage() {
                           onClick={() => setOpenArticle(isArticleOpen ? null : ai)}
                           className={clsx(
                             "flex items-center gap-2 w-full px-4 py-3 text-left transition-colors text-[12px]",
-                            isArticleOpen ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-white/[0.02]",
+                            isArticleOpen ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-foreground/[0.02]",
                           )}
                         >
                           <BookOpen className="w-3.5 h-3.5 flex-shrink-0" />

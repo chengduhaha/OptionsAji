@@ -45,10 +45,10 @@ export function EntitySearch({ value, onSelect }: { value: string; onSelect: (va
           }
         }}
         placeholder="搜索公司 / ticker"
-        className="h-9 w-full rounded-lg border border-white/10 bg-glass pl-9 pr-3 text-[13px] text-foreground outline-none focus:border-primary/50"
+        className="h-9 w-full rounded-lg border border-foreground/10 bg-glass pl-9 pr-3 text-[13px] text-foreground outline-none focus:border-primary/50"
       />
       {open && results.length > 0 ? (
-        <div className="absolute z-30 mt-2 w-full overflow-hidden rounded-lg border border-white/10 bg-panel-elevated shadow-2xl">
+        <div className="absolute z-30 mt-2 w-full overflow-hidden rounded-lg border border-foreground/10 bg-panel-elevated shadow-2xl">
           {results.map((node) => (
             <button
               key={node.id}
@@ -57,7 +57,7 @@ export function EntitySearch({ value, onSelect }: { value: string; onSelect: (va
                 onSelect(node.ticker || node.nameEn || node.label);
                 setOpen(false);
               }}
-              className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-[12px] hover:bg-white/5"
+              className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-[12px] hover:bg-foreground/5"
             >
               <span className="truncate text-foreground">{node.label}</span>
               <span className="font-mono text-primary">{node.ticker || node.type}</span>

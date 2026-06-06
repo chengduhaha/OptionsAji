@@ -82,7 +82,7 @@ export function ProbabilityPanorama({
               <div className="absolute inset-y-0 left-[60%] w-[40%] bg-[#3DBF7A]/5" />
 
               <div
-                className="absolute inset-y-0 w-0.5 bg-white/20"
+                className="absolute inset-y-0 w-0.5 bg-foreground/20"
                 style={{ left: `${aiConsensusPercent}%` }}
               >
                 <div className="absolute -top-0 left-1 font-terminal text-[9px] text-white/40">AI</div>

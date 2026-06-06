@@ -105,7 +105,7 @@ export default function OptionsChainPage() {
               <th className="text-right px-3 py-2">量</th>
               <th className="text-right px-3 py-2">买</th>
               <th className="text-right px-3 py-2">卖</th>
-              <th className="text-center px-4 py-2 bg-white/[0.03] font-bold text-text">行权价</th>
+              <th className="text-center px-4 py-2 bg-foreground/[0.03] font-bold text-text">行权价</th>
               <th className="text-left px-3 py-2">买</th>
               <th className="text-left px-3 py-2">卖</th>
               <th className="text-left px-3 py-2">量</th>
@@ -128,7 +128,7 @@ export default function OptionsChainPage() {
                   <tr
                     key={strike}
                     className={clsx(
-                      "hover:bg-white/[0.02] transition-colors",
+                      "hover:bg-foreground/[0.02] transition-colors",
                       isATM && "bg-gold/[0.06] border-gold/20"
                     )}
                   >
@@ -138,7 +138,7 @@ export default function OptionsChainPage() {
                     <td className="text-right px-3 py-1.5 text-muted">{call?.day_volume?.toLocaleString() ?? "—"}</td>
                     <td className="text-right px-3 py-1.5 text-green-400">{call ? fmt(call.bid) : "—"}</td>
                     <td className="text-right px-3 py-1.5 text-red-400">{call ? fmt(call.ask) : "—"}</td>
-                    <td className={clsx("text-center px-4 py-1.5 font-bold bg-white/[0.03]", isATM ? "text-gold" : "text-text")}>
+                    <td className={clsx("text-center px-4 py-1.5 font-bold bg-foreground/[0.03]", isATM ? "text-gold" : "text-text")}>
                       {strike}
                     </td>
                     <td className="text-left px-3 py-1.5 text-green-400">{put ? fmt(put.bid) : "—"}</td>

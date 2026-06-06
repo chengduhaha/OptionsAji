@@ -223,7 +223,7 @@ export default function StockFinancialsPage({ symbol }: { symbol: string }) {
                 const allDash = vals.every((v) => v === "—");
                 if (allDash) return null;
                 return (
-                  <tr key={k} className="hover:bg-white/[0.02]">
+                  <tr key={k} className="hover:bg-foreground/[0.02]">
                     <td className="px-3 py-2 text-muted">{label}</td>
                     {vals.map((v, i) => (
                       <td key={i} className="px-3 py-2 text-right font-mono text-text">{v}</td>

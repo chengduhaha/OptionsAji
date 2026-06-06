@@ -113,7 +113,7 @@ function TableSection({ table }: { table: AgentTable }) {
         </thead>
         <tbody className="divide-y divide-glass-border">
           {table.rows.map((row, ri) => (
-            <tr key={ri} className="hover:bg-white/[0.02]">
+            <tr key={ri} className="hover:bg-foreground/[0.02]">
               {row.map((cell, ci) => (
                 <td key={ci} className="px-3 py-1.5 font-mono text-foreground">{cell}</td>
               ))}

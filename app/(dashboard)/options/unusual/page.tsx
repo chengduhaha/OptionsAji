@@ -69,7 +69,7 @@ export default function UnusualOptionsPage() {
               <tr><td colSpan={10} className="py-8 text-center text-muted">暂无异常活动数据 — 请等待数据同步</td></tr>
             ) : (
               contracts.map((c: any, i: number) => (
-                <tr key={i} className="hover:bg-white/[0.02] transition-colors">
+                <tr key={i} className="hover:bg-foreground/[0.02] transition-colors">
                   <td className="px-4 py-2 text-gold font-semibold">{c.underlying}</td>
                   <td className={`px-4 py-2 font-medium ${c.contract_type === "call" ? "text-green-400" : "text-red-400"}`}>
                     {c.contract_type === "call" ? "CALL" : "PUT"}

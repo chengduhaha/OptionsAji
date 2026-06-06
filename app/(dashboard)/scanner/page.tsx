@@ -512,7 +512,7 @@ export default function ScannerPage() {
                 </thead>
                 <tbody className="divide-y divide-glass-border">
                   {sortedRows.map((r, i) => (
-                    <tr key={`${r.symbol}-${i}`} className="hover:bg-white/[0.02] transition-colors">
+                    <tr key={`${r.symbol}-${i}`} className="hover:bg-foreground/[0.02] transition-colors">
                       <td className="px-4 py-2">
                         <Link href={`/stock/${r.symbol}`} className="font-mono font-semibold text-primary hover:underline">
                           {r.symbol}

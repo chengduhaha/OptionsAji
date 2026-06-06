@@ -38,6 +38,7 @@ import GexChart from "@/components/gex/GexChart";
 import GexTrendChart, { type HistRow } from "@/components/gex/GexTrendChart";
 import { interpretPCR, interpretVix } from "@/components/shared/DataLabel";
 import { api } from "@/lib/api";
+import { CHART, tooltipStyle } from "@/lib/chart-theme";
 import { buildMvpRequestHeaders } from "@/lib/access-key";
 import { AccessKeyModal } from "@/components/access-key/AccessKeyModal";
 import { LockedContent } from "@/components/gate/LockedContent";
@@ -208,7 +209,7 @@ function EventDetailModal({
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-3 top-3 rounded-md p-1 text-muted-foreground transition hover:bg-white/10 hover:text-foreground"
+          className="absolute right-3 top-3 rounded-md p-1 text-muted-foreground transition hover:bg-foreground/10 hover:text-foreground"
           aria-label="关闭"
         >
           <X className="h-5 w-5" />
@@ -241,7 +242,7 @@ function EventDetailModal({
         ) : null}
 
         {detail.watchZh ? (
-          <section className="mt-3 rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
+          <section className="mt-3 rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
             <h3 className="text-[11px] uppercase tracking-wider text-muted">观察要点</h3>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">{detail.watchZh}</p>
           </section>
@@ -250,19 +251,19 @@ function EventDetailModal({
         {detail.deepDive || detail.tradeImplications || detail.scenario || detail.riskWatch ? (
           <section className="mt-4 grid grid-cols-1 gap-2">
             {detail.deepDive ? (
-              <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
+              <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
                 <h3 className="text-[11px] uppercase tracking-wider text-muted">深度解析</h3>
                 <p className="mt-1 text-sm leading-6 text-muted-foreground whitespace-pre-wrap">{detail.deepDive}</p>
               </div>
             ) : null}
             {detail.tradeImplications ? (
-              <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
+              <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
                 <h3 className="text-[11px] uppercase tracking-wider text-muted">交易影响</h3>
                 <p className="mt-1 text-sm leading-6 text-muted-foreground whitespace-pre-wrap">{detail.tradeImplications}</p>
               </div>
             ) : null}
             {detail.scenario ? (
-              <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
+              <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
                 <h3 className="text-[11px] uppercase tracking-wider text-muted">情景推演</h3>
                 <p className="mt-1 text-sm leading-6 text-muted-foreground whitespace-pre-wrap">{detail.scenario}</p>
               </div>
@@ -307,7 +308,7 @@ function EventDetailModal({
         {detail.rawOriginal ? (
           <section className="mt-4">
             <h3 className="text-[11px] uppercase tracking-wider text-muted">原文</h3>
-            <p className="mt-2 rounded-lg border border-border2 bg-white/[0.02] px-3 py-2 text-xs leading-6 text-muted-foreground whitespace-pre-wrap">
+            <p className="mt-2 rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2 text-xs leading-6 text-muted-foreground whitespace-pre-wrap">
               {detail.rawOriginal}
             </p>
           </section>
@@ -1205,7 +1206,7 @@ function Pill({
           ? "border-gold/30 bg-gold/10 text-gold"
           : tone === "blue"
             ? "border-blue/30 bg-blue/10 text-blue"
-            : "border-white/10 bg-white/[0.03] text-muted-foreground";
+            : "border-foreground/10 bg-foreground/[0.03] text-muted-foreground";
   return <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] ${color}`}>{children}</span>;
 }
 
@@ -1219,16 +1220,16 @@ function Metric({
   sub?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
-      <div className="text-[10px] uppercase tracking-wider text-muted">{label}</div>
-      <div className="mt-1 font-mono text-lg font-semibold text-foreground">{value}</div>
-      {sub ? <div className="mt-0.5 text-[11px] text-muted-foreground">{sub}</div> : null}
+    <div className="rounded-xl surface-1 lift px-4 py-3.5">
+      <div className="stat-label">{label}</div>
+      <div className="stat-value mt-1.5 text-[26px]">{value}</div>
+      {sub ? <div className="mt-1 text-[12px] font-medium tabular-nums">{sub}</div> : null}
     </div>
   );
 }
 
 function EmptyLine({ text: value }: { text: string }) {
-  return <div className="rounded-lg border border-border2 bg-white/[0.02] px-4 py-3 text-sm text-muted">{value}</div>;
+  return <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-4 py-3 text-sm text-muted">{value}</div>;
 }
 
 export type MvpInsightsPageVariant = "dashboard" | "standalone";
@@ -1529,7 +1530,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
               )}
               <span>美股市场分析</span>
             </div>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+            <h1 className="display-1 mt-2 text-foreground">
               阿吉市场洞察
             </h1>
           </div>
@@ -1636,7 +1637,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                           key={event.id}
                           type="button"
                           onClick={() => setSelectedEvent(event)}
-                          className="w-full rounded-lg border border-border2 bg-white/[0.02] px-3 py-2 text-left transition hover:border-gold/35 hover:bg-white/[0.04]"
+                          className="w-full rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2 text-left transition hover:border-gold/35 hover:bg-foreground/[0.04]"
                         >
                           <div className="flex flex-wrap items-center gap-2">
                             <Pill tone={event.impact === "利好" ? "green" : event.impact === "利空" || event.impact === "风险" ? "red" : "muted"}>
@@ -1668,7 +1669,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
               </div>
 
               <div className="space-y-3">
-                <div className="rounded-lg border border-border2 bg-white/[0.02] p-2">
+                <div className="rounded-lg border border-border2 bg-foreground/[0.02] p-2">
                   <div className="mb-1 flex items-center justify-between gap-2 text-[10px] text-muted">
                     <span>VIX 恐慌指数 · 近 {vixHistory.length || 7} 日</span>
                     <span className="text-muted-foreground">越高 = 波动/恐慌越强</span>
@@ -1683,10 +1684,11 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                               <stop offset="100%" stopColor="#f0b429" stopOpacity={0} />
                             </linearGradient>
                           </defs>
-                          <XAxis dataKey="day" tick={{ fill: "#94a3b8", fontSize: 9 }} interval="preserveStartEnd" />
+                          <XAxis dataKey="day" tick={CHART.axisTick} interval="preserveStartEnd" axisLine={false} tickLine={false} />
                           <YAxis hide domain={["auto", "auto"]} />
                           <Tooltip
-                            contentStyle={{ background: "#0f1c30", border: "1px solid rgba(255,255,255,.1)" }}
+                            contentStyle={tooltipStyle()}
+                            cursor={{ stroke: CHART.gridStroke }}
                             formatter={(value: number) => [`${value.toFixed(2)}`, "VIX"]}
                             labelFormatter={(label) => `交易日 ${label}`}
                           />
@@ -1711,10 +1713,10 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                   </LockedContent>
                 </div>
                 <div className="grid grid-cols-1 gap-2">
-                  <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
-                    <div className="text-[10px] uppercase tracking-wider text-muted">VIX</div>
-                    <div className="mt-1 flex flex-wrap items-baseline gap-2">
-                      <span className="font-mono text-lg font-semibold text-foreground">
+                  <div className="rounded-xl surface-1 px-4 py-3">
+                    <div className="stat-label">VIX</div>
+                    <div className="mt-1.5 flex flex-wrap items-baseline gap-2">
+                      <span className="stat-value text-[22px]">
                         {vixLevel !== null ? vixLevel.toFixed(2) : "—"}
                       </span>
                       <span className={`font-mono text-xs ${(vixChangePct ?? 0) >= 0 ? "text-red" : "text-green"}`}>
@@ -1737,7 +1739,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                       )}
                     </LockedContent>
                   </div>
-                  <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-2">
+                  <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
                     <div className="text-[10px] uppercase tracking-wider text-muted">P/C 成交量比</div>
                     <div className="mt-1 font-mono text-lg font-semibold text-foreground">
                       {pcr !== null ? pcr.toFixed(2) : "—"}
@@ -1788,7 +1790,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                 ))}
               </div>
             </LockedContent>
-            <div className="mt-5 rounded-lg border border-border2 bg-white/[0.02] p-3">
+            <div className="mt-5 rounded-lg border border-border2 bg-foreground/[0.02] p-3">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
                 <span>国债曲线</span>
                 <span className="text-gold">{treasuryRead.label}</span>
@@ -1930,7 +1932,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
               <Metric label="情绪" value={report?.smart.data?.retail_sentiment_score ?? "—"} sub={report?.smart.data?.consensus_type ?? "smart vs retail"} />
             </div>
 
-            <div className="mt-4 h-[220px] rounded-lg border border-border2 bg-white/[0.02] p-2">
+            <div className="mt-4 h-[220px] rounded-lg border border-border2 bg-foreground/[0.02] p-2">
               {priceSeries.length > 1 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={priceSeries}>
@@ -1991,7 +1993,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
             </div>
 
             <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-[1fr_0.8fr]">
-              <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-3">
+              <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-3">
                 <div className="text-[10px] font-medium uppercase tracking-wider text-muted">操作含义</div>
                 <div className="mt-2 space-y-2">
                   {gammaRead.actions.map((line) => (
@@ -2002,7 +2004,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                   ))}
                 </div>
               </div>
-              <div className="rounded-lg border border-border2 bg-white/[0.02] px-3 py-3">
+              <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-3">
                 <div className="text-[10px] font-medium uppercase tracking-wider text-muted">风险边界</div>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">{gammaRead.risk}</p>
                 <div className="mt-3 grid grid-cols-2 gap-2 text-[10px] text-muted">
@@ -2052,7 +2054,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
             </div>
 
             {gammaChartOpen ? (
-              <div className="mt-4 rounded-lg border border-border2 bg-white/[0.02] p-3">
+              <div className="mt-4 rounded-lg border border-border2 bg-foreground/[0.02] p-3">
                 {gexStrikes.length > 0 && gexSpot !== null ? (
                   <GexChart
                     ticker={symbol}
@@ -2067,7 +2069,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
             ) : null}
 
             {gammaTrendOpen ? (
-              <div className="mt-4 rounded-lg border border-border2 bg-white/[0.02] p-3">
+              <div className="mt-4 rounded-lg border border-border2 bg-foreground/[0.02] p-3">
                 <GexTrendChart merged={gexHistoryRows} symbol={symbol} />
               </div>
             ) : null}
@@ -2102,7 +2104,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                     <X className="h-4 w-4" />
                   </button>
                 </div>
-                <div className="max-h-[78vh] overflow-auto rounded-lg border border-border2 bg-white/[0.02] p-3">
+                <div className="max-h-[78vh] overflow-auto rounded-lg border border-border2 bg-foreground/[0.02] p-3">
                   {gammaModal === "distribution" ? (
                     gexStrikes.length > 0 && gexSpot !== null ? (
                       <GexChart
@@ -2151,10 +2153,10 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
 
             <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-[1fr_220px]">
               <div className="overflow-hidden rounded-lg border border-border2">
-                <div className="border-b border-border2 bg-white/[0.02] px-3 py-1.5 text-[10px] text-muted">
+                <div className="border-b border-border2 bg-foreground/[0.02] px-3 py-1.5 text-[10px] text-muted">
                   流动性筛选合约（{direction === "bull" ? "看涨 Call" : "看跌 Put"}，非异动榜）
                 </div>
-                <div className="grid grid-cols-[0.9fr_0.9fr_0.8fr_0.8fr_1fr] bg-white/[0.03] px-3 py-2 text-[11px] text-muted">
+                <div className="grid grid-cols-[0.9fr_0.9fr_0.8fr_0.8fr_1fr] bg-foreground/[0.03] px-3 py-2 text-[11px] text-muted">
                   <span>合约</span>
                   <span>到期日</span>
                   <span title="距离到期的交易日天数">剩余天数</span>
@@ -2193,7 +2195,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                     key={move.bucket}
                     type="button"
                     onClick={() => setSelectedExpectedMove(row)}
-                    className="w-full rounded-lg border border-border2 bg-white/[0.02] px-3 py-2 text-left transition hover:border-gold/40 hover:bg-gold/5 cursor-pointer"
+                    className="w-full rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2 text-left transition hover:border-gold/40 hover:bg-gold/5 cursor-pointer"
                   >
                     <div className="text-[11px] font-medium text-foreground">
                       {aiMove?.bucket_zh ?? expectedMoveBucketLabel(move.bucket)}

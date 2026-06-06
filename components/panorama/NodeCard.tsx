@@ -82,7 +82,7 @@ function NodeCardComponent({ data, selected }: NodeProps) {
         title={node.label}
         className={cn(
           "group relative flex h-[52px] min-w-[72px] items-center justify-center rounded-full border px-3 shadow-xl backdrop-blur-md transition",
-          selected ? "border-primary/80" : "border-white/10",
+          selected ? "border-primary/80" : "border-foreground/10",
           isSegment && "border-purple/35 bg-purple/15",
           highlighted && "border-primary/70",
           dimmed && "opacity-25 grayscale",
@@ -119,7 +119,7 @@ function NodeCardComponent({ data, selected }: NodeProps) {
         highlighted && "border-primary/60 shadow-primary/10",
         dimmed && "opacity-25 grayscale",
         focus && "border-primary/65 shadow-[0_0_46px_rgba(240,180,41,0.24)] ring-1 ring-primary/40",
-        isSegment ? SEGMENT_COLORS[node.label] ?? "border-purple/30 bg-purple/10" : "border-white/10",
+        isSegment ? SEGMENT_COLORS[node.label] ?? "border-purple/30 bg-purple/10" : "border-foreground/10",
         isMoat && "shadow-[0_0_38px_rgba(240,180,41,0.36)] ring-1 ring-gold/50",
       )}
       style={{

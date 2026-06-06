@@ -226,7 +226,7 @@ export function PanoramaClient() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden p-4">
-      <header className="mb-3 flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-panel/75 px-4 py-3 backdrop-blur-xl">
+      <header className="mb-3 flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-xl border border-foreground/10 bg-panel/75 px-4 py-3 backdrop-blur-xl">
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-primary">
             <Share2 className="h-3.5 w-3.5" />
@@ -256,7 +256,7 @@ export function PanoramaClient() {
           <button
             type="button"
             onClick={() => void load()}
-            className="flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-glass px-3 text-[12px] text-muted-foreground hover:text-foreground"
+            className="flex h-9 items-center gap-1.5 rounded-lg border border-foreground/10 bg-glass px-3 text-[12px] text-muted-foreground hover:text-foreground"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             {refreshing ? "刷新中" : "刷新"}
@@ -264,7 +264,7 @@ export function PanoramaClient() {
         </div>
       </header>
 
-      <div className="mb-3 flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-panel/60 px-4 py-2 backdrop-blur-xl">
+      <div className="mb-3 flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-xl border border-foreground/10 bg-panel/60 px-4 py-2 backdrop-blur-xl">
         <RelationLegend
           relTypes={relTypes}
           businessSegment={businessSegment}

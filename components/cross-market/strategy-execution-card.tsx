@@ -58,7 +58,7 @@ export function StrategyExecutionCard({ legs, summary }: StrategyExecutionCardPr
           {legs.map((leg) => (
             <div
               key={leg.leg}
-              className="grid grid-cols-1 md:grid-cols-[80px_120px_80px_1fr_100px_180px] gap-3 px-5 py-4 items-center hover:bg-white/[0.02] transition-colors"
+              className="grid grid-cols-1 md:grid-cols-[80px_120px_80px_1fr_100px_180px] gap-3 px-5 py-4 items-center hover:bg-foreground/[0.02] transition-colors"
             >
               <div className="flex items-center gap-2">
                 <Badge className="font-terminal text-[10px] bg-[#1A2640] text-[#7A8BA8] border-[#1E2D4A]">
@@ -96,7 +96,7 @@ export function StrategyExecutionCard({ legs, summary }: StrategyExecutionCardPr
                 </span>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button type="button" className="p-0.5 rounded hover:bg-white/5">
+                    <button type="button" className="p-0.5 rounded hover:bg-foreground/5">
                       <Info className="w-3 h-3 text-[#4A5A73]" />
                     </button>
                   </TooltipTrigger>

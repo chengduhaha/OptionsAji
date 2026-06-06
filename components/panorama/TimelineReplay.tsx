@@ -14,7 +14,7 @@ export function TimelineReplay({
   const selectedIndex = value ? Math.max(0, dates.indexOf(value)) : Math.max(0, dates.length - 1);
   const disabled = dates.length === 0;
   return (
-    <div className="flex min-w-[250px] items-center gap-2 rounded-lg border border-white/10 bg-glass px-3 py-2">
+    <div className="flex min-w-[250px] items-center gap-2 rounded-lg border border-foreground/10 bg-glass px-3 py-2">
       <CalendarClock className="h-3.5 w-3.5 text-primary" />
       <span className="text-[12px] text-muted-foreground">回放</span>
       <input
@@ -30,7 +30,7 @@ export function TimelineReplay({
         type="button"
         disabled={disabled}
         onClick={() => onChange("")}
-        className="min-w-[86px] rounded border border-white/10 px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-40"
+        className="min-w-[86px] rounded border border-foreground/10 px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-40"
       >
         {value || dates[dates.length - 1] || "无日期"}
       </button>

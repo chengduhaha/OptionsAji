@@ -180,7 +180,7 @@ export default function PortfolioPage() {
                     </thead>
                     <tbody className="divide-y divide-glass-border">
                       {result.positions.map((p, i) => (
-                        <tr key={i} className="hover:bg-white/[0.02] transition-colors">
+                        <tr key={i} className="hover:bg-foreground/[0.02] transition-colors">
                           <td className="px-3 py-2 font-mono text-primary text-[10px]">{p.ticker}</td>
                           <td className={clsx("px-3 py-2 text-right font-mono", p.quantity > 0 ? "text-green" : "text-red")}>
                             {p.quantity > 0 ? "+" : ""}{p.quantity}
