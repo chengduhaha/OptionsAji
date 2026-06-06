@@ -35,6 +35,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useNavVisibility } from "@/lib/nav-visibility-context";
 import type { NavMenuId } from "@/lib/nav-visibility";
 import { Menu } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const NAV_GROUPS = [
   {
@@ -274,6 +275,9 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div className="px-4 py-4 border-t border-glass-border">
+        <div className="mb-3">
+          <ThemeToggle />
+        </div>
         {user ? (
           <div className="mb-3 px-1">
             <div className="text-[10px] text-muted uppercase tracking-wide">已登录</div>

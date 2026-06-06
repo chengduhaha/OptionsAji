@@ -1,38 +1,110 @@
 @import "tailwindcss";
 
+/* Enable class-based dark mode (default theme is light; `.dark` on <html> opts in). */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  /* Core Colors - Deep Space Theme with Electric Accents */
-  --color-background: #050a14;
-  --color-foreground: #f0f4f8;
-  
+  /* ===== Light theme (DEFAULT) — enterprise neutral ===== */
+  --color-background: #f6f7f9;
+  --color-foreground: #0f172a;
+
   /* Panel System */
-  --color-card: rgba(10, 22, 40, 0.8);
-  --color-card-foreground: #f0f4f8;
-  --color-panel: rgba(15, 28, 48, 0.9);
-  --color-panel-elevated: rgba(20, 35, 60, 0.95);
-  
+  --color-card: #ffffff;
+  --color-card-foreground: #0f172a;
+  --color-panel: #ffffff;
+  --color-panel-elevated: #ffffff;
+
   /* Legacy panel support */
-  --color-bg: #050a14;
-  --color-panel2: rgba(10, 22, 40, 0.8);
-  
-  /* Primary - Electric Gold */
-  --color-primary: #f0b429;
-  --color-primary-foreground: #050a14;
-  --color-primary-dim: rgba(240, 180, 41, 0.12);
-  
+  --color-bg: #f6f7f9;
+  --color-panel2: #ffffff;
+
+  /* Primary - Brand Gold (deepened for legibility on light surfaces) */
+  --color-primary: #c8881a;
+  --color-primary-foreground: #1a1206;
+  --color-primary-dim: rgba(200, 136, 26, 0.10);
+
   /* Legacy gold support */
+  --color-gold: #c8881a;
+  --color-gold-dim: rgba(200, 136, 26, 0.10);
+
+  /* Secondary - Restrained Blue */
+  --color-secondary: #2563eb;
+  --color-secondary-foreground: #ffffff;
+
+  /* Accent */
+  --color-accent: #2563eb;
+  --color-accent-foreground: #ffffff;
+
+  /* Semantic Colors (data viz — kept saturated for legibility on white) */
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+  --color-input: rgba(15, 23, 42, 0.14);
+  --color-green: #059669;
+  --color-red: #dc2626;
+  --color-blue: #2563eb;
+  --color-purple: #7c3aed;
+  --color-cyan: #0891b2;
+
+  /* Text Hierarchy */
+  --color-text: #0f172a;
+  --color-muted: #64748b;
+  --color-muted-foreground: #475569;
+
+  /* Borders — neutral gray (no gold outlines) */
+  --color-border: rgba(15, 23, 42, 0.10);
+  --color-border2: rgba(15, 23, 42, 0.06);
+  --color-ring: rgba(200, 136, 26, 0.45);
+
+  /* Surfaces */
+  --color-glass: rgba(255, 255, 255, 0.72);
+  --color-glass-border: rgba(15, 23, 42, 0.08);
+  --grid-line: rgba(15, 23, 42, 0.045);
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.08);
+  --shadow-hover: 0 8px 24px -8px rgba(15, 23, 42, 0.18);
+
+  /* Gradients — subtle, no neon glow */
+  --gradient-primary: linear-gradient(135deg, #f0b429 0%, #d99617 100%);
+  --gradient-glow: radial-gradient(ellipse at center, rgba(200, 136, 26, 0.06) 0%, transparent 70%);
+  --gradient-hero: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(37, 99, 235, 0.08) 0%, transparent 55%);
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Radius */
+  --radius: 0.75rem;
+  --radius-sm: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+}
+
+/* ===== Dark theme (opt-in via `.dark` on <html>) — refined, de-neoned ===== */
+.dark {
+  --color-background: #0e131b;
+  --color-foreground: #e6ebf2;
+
+  --color-card: #161d28;
+  --color-card-foreground: #e6ebf2;
+  --color-panel: #1a2230;
+  --color-panel-elevated: #1f2836;
+
+  --color-bg: #0e131b;
+  --color-panel2: #161d28;
+
+  --color-primary: #f0b429;
+  --color-primary-foreground: #0e131b;
+  --color-primary-dim: rgba(240, 180, 41, 0.12);
+
   --color-gold: #f0b429;
   --color-gold-dim: rgba(240, 180, 41, 0.12);
-  
-  /* Secondary - Cyber Blue */
+
   --color-secondary: #3b82f6;
   --color-secondary-foreground: #f0f4f8;
-  
-  /* Accent - Neon Cyan */
-  --color-accent: #22d3ee;
-  --color-accent-foreground: #050a14;
-  
-  /* Semantic Colors */
+
+  --color-accent: #38bdf8;
+  --color-accent-foreground: #0e131b;
+
   --color-destructive: #ef4444;
   --color-destructive-foreground: #fafafa;
   --color-input: rgba(255, 255, 255, 0.12);
@@ -41,36 +113,25 @@
   --color-blue: #3b82f6;
   --color-purple: #a855f7;
   --color-cyan: #22d3ee;
-  
-  /* Text Hierarchy */
-  --color-text: #f0f4f8;
+
+  --color-text: #e6ebf2;
   --color-muted: #64748b;
   --color-muted-foreground: #94a3b8;
-  
-  /* Borders */
-  --color-border: rgba(240, 180, 41, 0.2);
-  --color-border2: rgba(255, 255, 255, 0.06);
+
+  /* neutral borders (no gold outlines) */
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border2: rgba(255, 255, 255, 0.05);
   --color-ring: rgba(240, 180, 41, 0.4);
-  
-  /* Glass Effect */
-  --color-glass: rgba(255, 255, 255, 0.03);
+
+  --color-glass: rgba(22, 29, 40, 0.7);
   --color-glass-border: rgba(255, 255, 255, 0.08);
-  
-  /* Gradients */
+  --grid-line: rgba(255, 255, 255, 0.03);
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+  --shadow-hover: 0 10px 24px -6px rgba(0, 0, 0, 0.5);
+
   --gradient-primary: linear-gradient(135deg, #f0b429 0%, #f59e0b 100%);
-  --gradient-glow: radial-gradient(ellipse at center, rgba(240, 180, 41, 0.15) 0%, transparent 70%);
-  --gradient-hero: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.3) 0%, transparent 50%);
-  
-  /* Typography */
-  --font-sans: 'Inter', 'Space Grotesk', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-  --font-ui: 'Inter', 'Space Grotesk', system-ui, sans-serif;
-  
-  /* Radius */
-  --radius: 0.75rem;
-  --radius-sm: 0.5rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
+  --gradient-glow: radial-gradient(ellipse at center, rgba(240, 180, 41, 0.12) 0%, transparent 70%);
+  --gradient-hero: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.18) 0%, transparent 55%);
 }
 
 @layer base {
@@ -80,8 +141,15 @@
     padding: 0;
   }
 
+  :root {
+    color-scheme: light;
+  }
+
   html {
     background: var(--color-background);
+  }
+
+  html.dark {
     color-scheme: dark;
   }
 
@@ -94,7 +162,12 @@
     min-height: 100vh;
   }
 
-  /* Premium Scrollbar */
+  /* Smooth theme transition on the big surfaces only */
+  html, body {
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* Scrollbar — neutral in both themes */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -103,17 +176,16 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(240, 180, 41, 0.2);
+    background: rgba(100, 116, 139, 0.35);
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(240, 180, 41, 0.4);
+    background: rgba(100, 116, 139, 0.55);
   }
 
   /* Selection */
   ::selection {
-    background: rgba(240, 180, 41, 0.3);
-    color: #fff;
+    background: rgba(200, 136, 26, 0.22);
   }
 }
 
@@ -123,72 +195,64 @@
   }
 
   .terminal-grid {
-    background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-image: linear-gradient(var(--grid-line) 1px, transparent 1px);
     background-size: 100% 28px;
   }
 
-  /* Glass Card Effect */
+  /* Glass Card Effect — theme-aware */
   .glass {
-    background: rgba(15, 28, 48, 0.7);
+    background: var(--color-glass);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--color-glass-border);
   }
 
   .glass-subtle {
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--color-glass);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--color-glass-border);
   }
 
-  /* Gradient Text */
+  /* Gradient Text — single-hue gold (no rainbow) */
   .gradient-text {
-    background: linear-gradient(135deg, #f0b429 0%, #f59e0b 50%, #22d3ee 100%);
+    background: linear-gradient(135deg, #c8881a 0%, #e0a020 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  /* Glow Effects */
+  /* Glow Effects — softened to subtle shadows (kept for opt-in use) */
   .glow-primary {
-    box-shadow: 
-      0 0 20px rgba(240, 180, 41, 0.2),
-      0 0 40px rgba(240, 180, 41, 0.1);
+    box-shadow: 0 4px 18px -6px rgba(200, 136, 26, 0.25);
   }
 
   .glow-accent {
-    box-shadow: 
-      0 0 20px rgba(34, 211, 238, 0.2),
-      0 0 40px rgba(34, 211, 238, 0.1);
+    box-shadow: 0 4px 18px -6px rgba(37, 99, 235, 0.22);
   }
 
   .glow-green {
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 4px 18px -6px rgba(5, 150, 105, 0.25);
   }
 
   .glow-red {
-    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+    box-shadow: 0 4px 18px -6px rgba(220, 38, 38, 0.25);
   }
 
-  /* Card Styles */
+  /* Card Styles — theme-aware surface + soft shadow */
   .card-elevated {
-    background: rgba(15, 28, 48, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
-    box-shadow: 
-      0 4px 6px -1px rgba(0, 0, 0, 0.3),
-      0 2px 4px -2px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-card);
   }
 
   .card-interactive {
     transition: all 0.2s ease;
   }
   .card-interactive:hover {
-    border-color: rgba(240, 180, 41, 0.3);
+    border-color: var(--color-border);
     transform: translateY(-2px);
-    box-shadow: 
-      0 10px 20px -5px rgba(0, 0, 0, 0.4),
-      0 0 30px rgba(240, 180, 41, 0.1);
+    box-shadow: var(--shadow-hover);
   }
 
   /* Status Indicators */
@@ -217,11 +281,11 @@
     animation: shimmer 1.5s infinite;
   }
 
-  /* Hero Background Pattern */
+  /* Hero Background Pattern — neutral, theme-aware */
   .hero-grid {
-    background-image: 
-      linear-gradient(rgba(240, 180, 41, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(240, 180, 41, 0.03) 1px, transparent 1px);
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size: 60px 60px;
   }
 
@@ -241,13 +305,13 @@
   }
 
   .panorama-flow .react-flow__controls-button {
-    background: rgba(15, 28, 48, 0.9);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    color: #f0f4f8;
+    background: var(--color-panel);
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-foreground);
   }
 
   .panorama-flow .react-flow__controls-button:hover {
-    background: rgba(240, 180, 41, 0.14);
+    background: var(--color-primary-dim);
   }
 
   .panorama-flow .react-flow__edge-textbg {
@@ -310,11 +374,11 @@
 }
 
 @keyframes status-pulse {
-  0%, 100% { 
-    opacity: 1; 
+  0%, 100% {
+    opacity: 1;
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
   }
-  50% { 
+  50% {
     opacity: 0.8;
     box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
   }
@@ -340,10 +404,10 @@
 }
 
 @keyframes glow-pulse {
-  0%, 100% { 
+  0%, 100% {
     box-shadow: 0 0 20px rgba(240, 180, 41, 0.2);
   }
-  50% { 
+  50% {
     box-shadow: 0 0 40px rgba(240, 180, 41, 0.4);
   }
 }
@@ -368,9 +432,9 @@
 .animate-blink      { animation: blink 2s ease infinite; }
 .animate-float      { animation: float 3s ease-in-out infinite; }
 .animate-glow       { animation: glow-pulse 2s ease infinite; }
-.animate-gradient   { 
+.animate-gradient   {
   background-size: 200% 200%;
-  animation: gradient-shift 3s ease infinite; 
+  animation: gradient-shift 3s ease infinite;
 }
 .animate-signal     { animation: signal-flow 2s ease-in-out infinite; }
 

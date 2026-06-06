@@ -26,9 +26,15 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#050a14",
-  colorScheme: "dark",
+  colorScheme: "light dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6f7f9" },
+    { media: "(prefers-color-scheme: dark)", color: "#0e131b" },
+  ],
 };
+
+// Applied before paint to avoid a theme flash. Default is light; `.dark` opts in.
+const themeInitScript = `(function(){try{if(localStorage.getItem('theme')==='dark'){document.documentElement.classList.add('dark');}}catch(e){}})();`;
 
 export default function RootLayout({
   children,
@@ -36,7 +42,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh" className={`${inter.variable} ${jetbrainsMono.variable} bg-background`}>
+    <html
+      lang="zh"
+      suppressHydrationWarning
+      className={`${inter.variable} ${jetbrainsMono.variable} bg-background`}
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="bg-background text-foreground font-sans antialiased">
         <Providers>{children}</Providers>
       </body>
