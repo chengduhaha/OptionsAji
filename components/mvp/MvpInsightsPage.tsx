@@ -7,9 +7,12 @@ import {
   BarChart3,
   CalendarClock,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   Clock3,
   Gauge,
   GitBranch,
+  Info,
   LineChart as LineChartIcon,
   Loader2,
   Maximize2,
@@ -29,6 +32,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -44,7 +48,7 @@ import { AccessKeyModal } from "@/components/access-key/AccessKeyModal";
 import { LockedContent } from "@/components/gate/LockedContent";
 import { UnlockPromptModal } from "@/components/gate/UnlockPromptModal";
 import { useMvpTier } from "@/hooks/useMvpTier";
-import { unwrapMvpEnvelope, type UnlockReason } from "@/lib/mvp-tier";
+import { tierMeetsRequired, unwrapMvpEnvelope, type UnlockReason } from "@/lib/mvp-tier";
 import ExpectedMoveDetailModal, {
   type ExpectedMoveRow,
 } from "@/components/mvp/ExpectedMoveDetailModal";
@@ -595,6 +599,235 @@ function regimeIcon(code: MvpMarketRegimeCode): typeof TrendingUp {
   if (code === "elevated_vol") return Gauge;
   if (code === "range_bound") return BarChart3;
   return Clock3;
+}
+
+function regimeAccentBorder(code: MvpMarketRegimeCode): string {
+  if (code === "risk_off") return "border-red/35";
+  if (code === "risk_on") return "border-green/35";
+  if (code === "elevated_vol") return "border-gold/35";
+  if (code === "range_bound") return "border-blue/35";
+  return "border-gold/25";
+}
+
+function regimeAccentBar(code: MvpMarketRegimeCode): string {
+  if (code === "risk_off") return "bg-red";
+  if (code === "risk_on") return "bg-green";
+  if (code === "elevated_vol") return "bg-gold";
+  if (code === "range_bound") return "bg-blue";
+  return "bg-gold/70";
+}
+
+function indexDirectionRead(avgIndex: number): { label: string; tone: string; hint: string } {
+  if (avgIndex >= 0.35) {
+    return {
+      label: "偏强",
+      tone: "text-green",
+      hint: `SPY/QQQ 平均涨 ${pct(avgIndex)}，宽基指数方向向上`,
+    };
+  }
+  if (avgIndex <= -0.35) {
+    return {
+      label: "偏弱",
+      tone: "text-red",
+      hint: `SPY/QQQ 平均跌 ${Math.abs(avgIndex).toFixed(2)}%，宽基指数承压`,
+    };
+  }
+  return {
+    label: "震荡",
+    tone: "text-blue",
+    hint: `指数涨跌有限（均值 ${pct(avgIndex)}），方向待确认`,
+  };
+}
+
+function pcrMoodRead(pcr: number | null): { label: string; tone: string; barPct: number } {
+  if (pcr === null) return { label: "—", tone: "text-muted", barPct: 50 };
+  if (pcr > 1.2) return { label: "极度看跌", tone: "text-red", barPct: 85 };
+  if (pcr > 1) return { label: "偏谨慎", tone: "text-gold", barPct: 65 };
+  if (pcr < 0.5) return { label: "极度看涨", tone: "text-green", barPct: 15 };
+  if (pcr < 0.7) return { label: "偏乐观", tone: "text-green", barPct: 35 };
+  return { label: "均衡", tone: "text-blue", barPct: 50 };
+}
+
+function buildPlainLanguageBasis(args: {
+  avgIndex: number;
+  vix: number | null;
+  vixChange: number | null;
+  vixBand: string;
+  pcr: number | null;
+  regimeLabel: string;
+}): string[] {
+  const lines: string[] = [];
+  const indexRead = indexDirectionRead(args.avgIndex);
+  lines.push(indexRead.hint);
+
+  if (args.vix !== null) {
+    if (args.vixChange !== null && args.vixChange > 5) {
+      lines.push(`VIX 急升至 ${args.vix.toFixed(1)}（${args.vixBand}），波动/恐慌快速升温`);
+    } else if (args.vix >= 22) {
+      lines.push(`VIX ${args.vix.toFixed(1)} 处于偏高区间，期权溢价与对冲成本上升`);
+    } else if (args.vix < 15) {
+      lines.push(`VIX ${args.vix.toFixed(1)} 处于低位，市场波动较小`);
+    } else {
+      lines.push(`VIX ${args.vix.toFixed(1)}（${args.vixBand}），波动率处于常规区间`);
+    }
+  }
+
+  if (args.pcr !== null) {
+    const mood = pcrMoodRead(args.pcr);
+    lines.push(
+      mood.label === "均衡"
+        ? `P/C ${args.pcr.toFixed(2)}，Put/Call 成交均衡，无极端情绪`
+        : `P/C ${args.pcr.toFixed(2)}，期权成交情绪${mood.label}`,
+    );
+  }
+
+  lines.push(`综合判断：${args.regimeLabel}`);
+  return lines;
+}
+
+function buildHeadlineSummary(args: {
+  hasAiSummary: boolean;
+  fallbackSummary: string;
+  code: MvpMarketRegimeCode;
+  avgIndex: number;
+  vix: number | null;
+  vixChange: number | null;
+}): string {
+  if (args.hasAiSummary) return args.fallbackSummary;
+
+  const indexUp = args.avgIndex >= 0.35;
+  const indexDown = args.avgIndex <= -0.35;
+  const vixSpike = args.vixChange !== null && args.vixChange > 5;
+  const vixHigh = args.vix !== null && args.vix >= 22;
+  const vixLow = args.vix !== null && args.vix < 15;
+
+  if (indexUp && (vixSpike || vixHigh)) {
+    const vixPart = args.vix !== null ? `VIX ${vixSpike ? "急升至" : "偏高至"} ${args.vix.toFixed(1)}` : "波动率抬升";
+    return `指数走强（均值 ${pct(args.avgIndex)}），但 ${vixPart}——表面强势下隐藏波动风险，属「涨中有险」的 ${regimeMeta(args.code).english} 模式。`;
+  }
+  if (indexDown && vixHigh) {
+    return `指数走弱且 VIX 偏高，避险情绪占主导；期权侧优先关注对冲与仓位，而非抄底假设。`;
+  }
+  if (indexUp && vixLow) {
+    return `指数偏强、VIX 处于低位，风险偏好尚可；注意低波动环境下的 Gamma 与 IV Crush 风险。`;
+  }
+  if (args.code === "range_bound") {
+    return `指数与波动率变动均有限，盘面呈区间震荡；突破需等待量价与 VIX 同向确认。`;
+  }
+  if (args.code === "transitional") {
+    return `指数、VIX 与期权情绪存在分歧，暂无单一主导环境；宜缩小假设、等待交叉验证。`;
+  }
+  return args.fallbackSummary;
+}
+
+function hasDivergentSignals(avgIndex: number, vixChange: number | null): boolean {
+  return avgIndex >= 0.35 && vixChange !== null && vixChange > 5;
+}
+
+function pcrMarkerPct(pcr: number | null): number {
+  if (pcr === null) return 50;
+  const clamped = Math.min(1.5, Math.max(0.5, pcr));
+  return ((clamped - 0.5) / 1) * 100;
+}
+
+function MetaHint({ label, hint }: { label: string; hint: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointer = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onPointer);
+    return () => document.removeEventListener("mousedown", onPointer);
+  }, [open]);
+
+  return (
+    <span ref={ref} className="relative inline-flex items-center gap-1">
+      <span>{label}</span>
+      <button
+        type="button"
+        aria-label={hint}
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="text-muted hover:text-gold transition-colors"
+      >
+        <Info className="h-3.5 w-3.5" />
+      </button>
+      {open ? (
+        <span className="absolute left-0 top-full z-20 mt-1 w-56 rounded-lg border border-border2 bg-panel px-2.5 py-2 text-xs leading-5 text-muted-foreground shadow-lg">
+          {hint}
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
+function PulseSkeleton() {
+  return (
+    <div className="mt-4 flex gap-2 overflow-hidden rounded-xl border border-gold/15 bg-foreground/[0.02] p-2">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className="h-14 min-w-[120px] flex-1 animate-pulse rounded-lg bg-foreground/[0.06]" />
+      ))}
+    </div>
+  );
+}
+
+function PcrSentimentBar({ pcr }: { pcr: number | null }) {
+  const marker = pcrMarkerPct(pcr);
+  return (
+    <div className="space-y-1.5">
+      <div className="flex justify-between text-xs text-muted">
+        <span>Put 活跃</span>
+        <span>Call 活跃</span>
+      </div>
+      <div className="relative h-2 overflow-hidden rounded-full bg-gradient-to-r from-red/40 via-gold/30 to-green/40">
+        <div
+          className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-foreground shadow"
+          style={{ left: `${marker}%` }}
+        />
+      </div>
+      <p className="text-xs text-muted">P/C 成交量比 · 全市场 Put/Call 近似</p>
+    </div>
+  );
+}
+
+function EvidenceCard({
+  title,
+  icon: Icon,
+  accentBar,
+  borderClass,
+  value,
+  valueTone,
+  sub,
+  children,
+}: {
+  title: string;
+  icon: typeof TrendingUp;
+  accentBar: string;
+  borderClass: string;
+  value: React.ReactNode;
+  valueTone?: string;
+  sub?: React.ReactNode;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className={`relative overflow-hidden rounded-xl border bg-foreground/[0.02] p-4 ${borderClass}`}>
+      <div className={`absolute inset-x-0 top-0 h-0.5 ${accentBar}`} />
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Icon className="h-4 w-4 text-gold" />
+        {title}
+      </div>
+      <div className={`mt-2 font-mono text-2xl font-semibold tabular-nums ${valueTone ?? "text-foreground"}`}>
+        {value}
+      </div>
+      {sub ? <div className="mt-1 text-sm">{sub}</div> : null}
+      {children ? <div className="mt-3">{children}</div> : null}
+    </div>
+  );
 }
 
 function engineNoteFromInsights(insights: MvpMarketInsightsContract | null): string {
@@ -1228,6 +1461,145 @@ function Metric({
   );
 }
 
+type FlipExpectedMoveCompare = {
+  flipPct: number | null;
+  inside: boolean | null;
+  label: string;
+};
+
+function compareFlipToExpectedMove(
+  spot: number | null,
+  gammaFlip: number | null,
+  expectedMovePct: number,
+): FlipExpectedMoveCompare {
+  if (spot === null || gammaFlip === null || spot <= 0) {
+    return { flipPct: null, inside: null, label: "Flip 数据缺失" };
+  }
+  const flipPct = ((gammaFlip - spot) / spot) * 100;
+  const inside = Math.abs(flipPct) <= expectedMovePct;
+  if (inside) {
+    return {
+      flipPct,
+      inside: true,
+      label: `Flip ${flipPct >= 0 ? "+" : ""}${flipPct.toFixed(1)}% 在 ±${expectedMovePct.toFixed(1)}% 内`,
+    };
+  }
+  const beyond = flipPct > expectedMovePct ? "上界" : "下界";
+  return {
+    flipPct,
+    inside: false,
+    label: `Flip ${flipPct >= 0 ? "+" : ""}${flipPct.toFixed(1)}% 超出 EM ${beyond}`,
+  };
+}
+
+function entryGammaHint(structureBias: string): string {
+  if (structureBias === "波动放大") {
+    return "负 Gamma 环境下价格波动易放大，入场宜缩小仓位并设好止损。";
+  }
+  if (structureBias === "震荡吸附") {
+    return "正 Gamma 环境下价格倾向被结构吸附，适合区间思路或卖波动策略。";
+  }
+  return "Gamma 结构尚未确认，建议等 Flip/Wall 方向明朗后再入场。";
+}
+
+function GlanceStat({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: React.ReactNode;
+  tone?: "default" | "green" | "red" | "gold";
+}) {
+  const valueTone =
+    tone === "green"
+      ? "text-green"
+      : tone === "red"
+        ? "text-red"
+        : tone === "gold"
+          ? "text-gold"
+          : "text-foreground";
+  return (
+    <div className="flex min-w-0 flex-col gap-0.5">
+      <span className="text-[10px] uppercase tracking-wider text-muted">{label}</span>
+      <span className={`truncate font-mono text-sm font-semibold tabular-nums ${valueTone}`}>{value}</span>
+    </div>
+  );
+}
+
+function FlipEmRangeAxis({
+  spot,
+  gammaFlip,
+  expectedMovePct,
+  inside,
+}: {
+  spot: number | null;
+  gammaFlip: number | null;
+  expectedMovePct: number;
+  inside: boolean | null;
+}) {
+  if (spot === null || spot <= 0 || expectedMovePct <= 0) return null;
+
+  const lower = spot * (1 - expectedMovePct / 100);
+  const upper = spot * (1 + expectedMovePct / 100);
+  const flipPct = gammaFlip !== null ? ((gammaFlip - spot) / spot) * 100 : null;
+  const flipPos = flipPct !== null ? 50 + (flipPct / expectedMovePct) * 50 : null;
+  const clampedFlipPos = flipPos !== null ? Math.max(4, Math.min(96, flipPos)) : null;
+  const flipBeyond =
+    flipPct !== null
+      ? flipPct < -expectedMovePct
+        ? "low"
+        : flipPct > expectedMovePct
+          ? "high"
+          : null
+      : null;
+
+  return (
+    <div className="mt-2.5" role="img" aria-label="Expected Move 与 Gamma Flip 位置对比">
+      <div className="relative mx-0.5 h-3 overflow-visible">
+        <div className="absolute inset-y-0.5 inset-x-0 rounded-full border border-blue/25 bg-blue/10" />
+        <div
+          className="absolute top-0 z-10 h-full w-0.5 -translate-x-1/2 bg-foreground/55"
+          style={{ left: "50%" }}
+          title="现价"
+        />
+        {clampedFlipPos !== null && gammaFlip !== null ? (
+          <div
+            className={`absolute top-1/2 z-20 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rotate-45 border ${
+              inside ? "border-green bg-green shadow-[0_0_6px_rgba(0,212,170,0.5)]" : "border-gold bg-gold shadow-[0_0_6px_rgba(212,175,55,0.5)]"
+            }`}
+            style={{ left: `${clampedFlipPos}%` }}
+            title={`Gamma Flip ${gammaFlip}`}
+          />
+        ) : null}
+        {flipBeyond === "low" ? (
+          <div className="absolute left-0 top-1/2 z-20 -translate-y-1/2 text-[8px] text-gold">◀</div>
+        ) : null}
+        {flipBeyond === "high" ? (
+          <div className="absolute right-0 top-1/2 z-20 -translate-y-1/2 text-[8px] text-gold">▶</div>
+        ) : null}
+      </div>
+      <div className="mt-1.5 flex items-center justify-between gap-1 text-[9px] font-mono leading-none text-muted">
+        <span title="EM 下界">{money(lower)}</span>
+        <span className="text-foreground/55">±{expectedMovePct.toFixed(1)}%</span>
+        <span title="EM 上界">{money(upper)}</span>
+      </div>
+      <div className="mt-0.5 flex items-center justify-center gap-3 text-[8px] text-muted">
+        <span className="inline-flex items-center gap-1">
+          <span className="inline-block h-2 w-2 rounded-full bg-foreground/50" />
+          现价
+        </span>
+        {gammaFlip !== null ? (
+          <span className={`inline-flex items-center gap-1 ${inside ? "text-green" : "text-gold"}`}>
+            <span className="inline-block h-2 w-2 rotate-45 border border-current bg-current/80" />
+            Flip {money(gammaFlip)}
+          </span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 function EmptyLine({ text: value }: { text: string }) {
   return <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-4 py-3 text-sm text-muted">{value}</div>;
 }
@@ -1267,7 +1639,14 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
   const [gammaChartOpen, setGammaChartOpen] = useState(true);
   const [gammaTrendOpen, setGammaTrendOpen] = useState(true);
   const [gammaModal, setGammaModal] = useState<"distribution" | "trend" | null>(null);
+  const [showTechnicalBasis, setShowTechnicalBasis] = useState(false);
+  const [showAllEvents, setShowAllEvents] = useState(false);
   const initialReportLoadedRef = useRef(Boolean(initialReportCache));
+  const gammaHeroRef = useRef<HTMLDivElement>(null);
+
+  const scrollToGammaHero = useCallback(() => {
+    gammaHeroRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
 
   const openUnlock = useCallback((reason: UnlockReason, title?: string) => {
     setUnlockPrompt({ open: true, reason, title });
@@ -1460,6 +1839,48 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
   const pcrReadFallback = pcr !== null ? interpretPCR(pcr) : null;
   const pcrInterpretation = aiInsights?.pcr?.interpretation || pcrReadFallback?.interpretation;
   const vixChartCaption = aiInsights?.vix_chart?.caption ?? "";
+  const spyChange = pulseRows.find((p) => p.symbol === "SPY")?.changePct ?? null;
+  const qqqChange = pulseRows.find((p) => p.symbol === "QQQ")?.changePct ?? null;
+  const avgIndexChange =
+    spyChange !== null && qqqChange !== null
+      ? (spyChange + qqqChange) / 2
+      : spyChange !== null
+        ? spyChange
+        : qqqChange !== null
+          ? qqqChange
+          : 0;
+  const indexRead = indexDirectionRead(avgIndexChange);
+  const pcrMood = pcrMoodRead(pcr);
+  const plainBasis = useMemo(
+    () =>
+      buildPlainLanguageBasis({
+        avgIndex: avgIndexChange,
+        vix: vixLevel,
+        vixChange: vixChangePct,
+        vixBand: overview?.volatility.band ?? "—",
+        pcr,
+        regimeLabel: marketState.label,
+      }),
+    [avgIndexChange, vixLevel, vixChangePct, overview?.volatility.band, pcr, marketState.label],
+  );
+  const visibleEvents = showAllEvents ? events : events.slice(0, 3);
+  const regimeBorder = regimeAccentBorder(marketState.code);
+  const regimeBar = regimeAccentBar(marketState.code);
+  const regimeEnglish = regimeMeta(marketState.code).english;
+  const marketSessionLabel = overview?.marketSessionLabel ?? null;
+  const headlineSummary = useMemo(
+    () =>
+      buildHeadlineSummary({
+        hasAiSummary: Boolean(aiInsights?.regime.summary),
+        fallbackSummary: marketState.summary,
+        code: marketState.code,
+        avgIndex: avgIndexChange,
+        vix: vixLevel,
+        vixChange: vixChangePct,
+      }),
+    [aiInsights?.regime.summary, marketState.summary, marketState.code, avgIndexChange, vixLevel, vixChangePct],
+  );
+  const showDivergenceAlert = hasDivergentSignals(avgIndexChange, vixChangePct);
   const allWarErrors = reportErrors([
     { slot: warRoom.overview, key: "overview" },
     { slot: warRoom.marketInsights, key: "marketInsights" },
@@ -1499,6 +1920,29 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
     regime: text(gexProfile?.regime),
   });
   const upside = spot !== null && ptAvg ? ((ptAvg - spot) / spot) * 100 : null;
+  const gammaFlipLevel = num(gexProfile?.gammaFlip);
+  const callWallLevel = num(gexProfile?.callWall);
+  const putWallLevel = num(gexProfile?.putWall);
+  const maxPainLevel = num(gexProfile?.maxPain);
+  const priceChartYDomain = useMemo((): [number, number] | ["auto", "auto"] => {
+    const closes = priceSeries
+      .map((row) => row.close)
+      .filter((value): value is number => value !== null && Number.isFinite(value));
+    if (closes.length === 0) return ["auto", "auto"];
+    const levels = [gammaFlipLevel, callWallLevel, putWallLevel, maxPainLevel].filter(
+      (value): value is number => value !== null,
+    );
+    const all = [...closes, ...levels];
+    const min = Math.min(...all);
+    const max = Math.max(...all);
+    const pad = Math.max((max - min) * 0.06, 0.5);
+    return [min - pad, max + pad];
+  }, [priceSeries, gammaFlipLevel, callWallLevel, putWallLevel, maxPainLevel]);
+  const netGexValue = num(gexProfile?.netGex);
+  const netGexDisplay =
+    netGexValue !== null ? `${netGexValue >= 0 ? "+" : ""}${netGexValue.toFixed(2)}B` : "—";
+  const netGexTone: "green" | "red" | "default" =
+    netGexValue === null ? "default" : netGexValue >= 0 ? "green" : "red";
   const mvpTradePlan = asArray(warRoom.mvp.data?.trade_plan)
     .map((item) => String(item).trim())
     .filter(Boolean)
@@ -1513,6 +1957,8 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
         vix: overview?.volatility.vix ?? null,
         vixChange: overview?.volatility.vixChangePct ?? null,
       });
+  const watchPreview = tradePlan[0] ?? null;
+  const watchRemainder = tradePlan.slice(1);
 
   return (
     <RootTag className={rootClassName}>
@@ -1535,6 +1981,12 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
             </h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            {marketSessionLabel ? (
+              <span className="inline-flex items-center gap-1.5 rounded-lg border border-green/25 bg-green/10 px-3 py-2 text-xs font-medium text-green">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green" />
+                {marketSessionLabel}
+              </span>
+            ) : null}
             <button
               type="button"
               onClick={() => void loadWarRoom({ force: true })}
@@ -1565,121 +2017,179 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
           saveKey={saveKey}
         />
 
-        <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-          <Card className="p-4">
-            <div className="flex flex-wrap items-start justify-between gap-4">
+        <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_320px]">
+          <Card className="p-5">
+            {/* Section header + meta */}
+            <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                   <CalendarClock className="h-4 w-4 text-gold" />
                   市场总览
                 </div>
                 {warRoomUpdatedAt ? (
-                  <p className="mt-1 text-[10px] text-muted">
-                    每 5 分钟更新 · 事件窗口 {DISCORD_EVENT_HOURS} 小时 · 上次 {zhTime(warRoomUpdatedAt)}
-                  </p>
-                ) : null}
-                <div className="mt-3 flex items-start gap-3">
-                  <MarketIcon className={`h-8 w-8 shrink-0 ${marketState.tone}`} />
-                  <div className="min-w-0">
-                    <div className={`text-xl font-semibold ${marketState.tone}`}>{marketState.label}</div>
-                    <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">{marketState.summary}</p>
-                    <p className="mt-2 text-[10px] leading-5 text-muted">{marketState.engineNote}</p>
-                    <LockedContent
-                      required="trial"
-                      currentTier={tier}
-                      title="登录后查看 AI 市场解读"
-                      onUnlock={(reason) => openUnlock(reason, "登录后查看 AI 市场解读")}
-                    >
-                      {aiInsights?.regime.reasoning ? (
-                        <p className="mt-1 text-[11px] leading-5 text-muted-foreground">{aiInsights.regime.reasoning}</p>
-                      ) : null}
-                      <ul className="mt-1.5 space-y-0.5 text-[10px] leading-5 text-muted-foreground">
-                        {marketState.basis.map((line) => (
-                          <li key={line}>· {line}</li>
-                        ))}
-                      </ul>
-                    </LockedContent>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+                    <MetaHint label="每 5 分钟自动刷新" hint="指数、VIX、P/C 等盘面数据每 5 分钟从后端拉取一次。" />
+                    <MetaHint
+                      label={`事件来源：近 ${DISCORD_EVENT_HOURS} 小时`}
+                      hint="关键事件来自过去 6 小时的 Discord 推文、新闻与宏观日历，用于解释环境变化。"
+                    />
+                    <span>上次更新 {zhTime(warRoomUpdatedAt)}</span>
                   </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-                {pulseRows.slice(0, 4).map((row) => (
-                  <Metric
-                    key={row.symbol}
-                    label={row.symbol}
-                    value={row.price !== null ? row.price.toFixed(2) : "—"}
-                    sub={<span className={row.changePct && row.changePct >= 0 ? "text-green" : "text-red"}>{pct(row.changePct)}</span>}
-                  />
-                ))}
+                ) : null}
               </div>
             </div>
 
-            <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_280px]">
-              <div className="min-h-[220px]">
-                <div className="mb-2 flex items-center gap-2 text-xs text-muted">
-                  <Newspaper className="h-4 w-4 text-blue" />
-                  <span>市场关键事件</span>
+            {/* Layer 1 · Market pulse strip */}
+            {warLoading && pulseRows.length === 0 ? (
+              <PulseSkeleton />
+            ) : (
+              <div className="mt-4 flex gap-2 overflow-x-auto rounded-xl border border-gold/15 bg-foreground/[0.02] p-2 snap-x snap-mandatory scrollbar-thin">
+                {pulseRows.slice(0, 4).map((row) => (
+                  <Link
+                    key={row.symbol}
+                    href={`/stock/${row.symbol}`}
+                    className="flex min-w-[128px] flex-1 snap-start items-center justify-between gap-2 rounded-lg border border-border2 bg-panel/60 px-3 py-2.5 transition hover:border-gold/35 hover:bg-panel"
+                  >
+                    <span className="text-xs font-semibold text-muted-foreground">{row.symbol}</span>
+                    <div className="text-right">
+                      <div className="font-mono text-base font-semibold tabular-nums text-foreground">
+                        {row.price !== null ? row.price.toFixed(2) : "—"}
+                      </div>
+                      <div className={`font-mono text-xs font-medium tabular-nums ${row.changePct !== null && row.changePct >= 0 ? "text-green" : "text-red"}`}>
+                        {pct(row.changePct)}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+                <div className="flex min-w-[128px] flex-1 snap-start items-center justify-between gap-2 rounded-lg border border-gold/25 bg-gold/5 px-3 py-2.5">
+                  <span className="text-xs font-semibold text-gold">VIX</span>
+                  <div className="text-right">
+                    <div className="font-mono text-base font-semibold tabular-nums text-foreground">
+                      {vixLevel !== null ? vixLevel.toFixed(2) : "—"}
+                    </div>
+                    <div className={`font-mono text-xs font-medium tabular-nums ${(vixChangePct ?? 0) >= 0 ? "text-red" : "text-green"}`}>
+                      {pct(vixChangePct)}
+                    </div>
+                  </div>
                 </div>
-                <LockedContent
-                  required="trial"
-                  currentTier={tier}
-                  title="登录后查看市场关键事件与阿吉解读"
-                  onUnlock={(reason) => openUnlock(reason, "登录后查看市场关键事件")}
-                >
-                  <div className="space-y-2">
-                    {warLoading && events.length === 0 ? (
-                      <EmptyLine text="正在载入盘前关键事件..." />
-                    ) : events.length === 0 ? (
-                      <EmptyLine text="暂无高优先级事件，先观察指数、VIX 与开盘前成交量。" />
-                    ) : (
-                      events.slice(0, 8).map((event) => (
-                        <button
-                          key={event.id}
-                          type="button"
-                          onClick={() => setSelectedEvent(event)}
-                          className="w-full rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2 text-left transition hover:border-gold/35 hover:bg-foreground/[0.04]"
-                        >
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Pill tone={event.impact === "利好" ? "green" : event.impact === "利空" || event.impact === "风险" ? "red" : "muted"}>
-                              {event.impactLabel}
-                            </Pill>
-                            {event.relatedAssets.slice(0, 3).map((sym) => (
-                              <Pill key={`${event.id}-${sym}`} tone="blue">
-                                {sym}
-                              </Pill>
-                            ))}
-                            <span className="ml-auto shrink-0 font-mono text-xs text-gold">{event.time}</span>
-                          </div>
-                          <div className="mt-2 text-sm font-medium text-foreground">{event.title}</div>
-                          {event.impactNote ? (
-                            <p className="mt-1 text-[11px] leading-4 text-gold/85">{event.impactNote}</p>
-                          ) : null}
-                          {event.body ? (
-                            <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{event.body}</p>
-                          ) : null}
-                          {event.watchZh ? (
-                            <p className="mt-1 line-clamp-1 text-[10px] leading-4 text-muted">{event.watchZh}</p>
-                          ) : null}
-                          <p className="mt-1 text-[10px] text-muted">点击查看阿吉解读详情</p>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                </LockedContent>
               </div>
+            )}
 
-              <div className="space-y-3">
-                <div className="rounded-lg border border-border2 bg-foreground/[0.02] p-2">
-                  <div className="mb-1 flex items-center justify-between gap-2 text-[10px] text-muted">
-                    <span>VIX 恐慌指数 · 近 {vixHistory.length || 7} 日</span>
-                    <span className="text-muted-foreground">越高 = 波动/恐慌越强</span>
+            {/* Layer 2 · One-sentence conclusion */}
+            <div className={`mt-5 rounded-xl border ${regimeBorder} bg-foreground/[0.02] p-4 md:p-5`}>
+              <div className="flex items-start gap-3">
+                <MarketIcon className={`mt-0.5 h-9 w-9 shrink-0 ${marketState.tone}`} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className={`text-2xl font-semibold ${marketState.tone}`}>{marketState.label}</div>
+                    <Pill tone="muted">{regimeEnglish}</Pill>
                   </div>
-                  <div className="h-[100px]">
+                  <p className="mt-2 max-w-3xl text-base leading-relaxed text-foreground">{headlineSummary}</p>
+                  {showDivergenceAlert ? (
+                    <div className="mt-3 flex items-start gap-2 rounded-lg border border-gold/30 bg-gold/10 px-3 py-2.5 text-sm leading-6 text-gold">
+                      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                      <span>矛盾信号：指数上涨但 VIX 急升，不宜盲目追涨，优先关注对冲与仓位。</span>
+                    </div>
+                  ) : null}
+                  <ul className="mt-4 space-y-1.5 rounded-lg border border-border2/80 bg-foreground/[0.02] px-3 py-3">
+                    {plainBasis.map((line) => (
+                      <li key={line} className="flex gap-2 text-sm leading-6 text-muted-foreground">
+                        <span className="text-gold">·</span>
+                        <span>{line}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-3 text-xs text-muted">{marketState.engineNote}</p>
+                  <LockedContent
+                    required="trial"
+                    currentTier={tier}
+                    title="登录后查看 AI 深度解读"
+                    onUnlock={(reason) => openUnlock(reason, "登录后查看 AI 市场解读")}
+                  >
+                    {aiInsights?.regime.reasoning ? (
+                      <p className="mt-3 text-sm leading-6 text-muted-foreground">{aiInsights.regime.reasoning}</p>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => setShowTechnicalBasis((v) => !v)}
+                      className="mt-3 inline-flex items-center gap-1.5 text-xs text-gold transition hover:text-gold/80"
+                    >
+                      {showTechnicalBasis ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                      {showTechnicalBasis ? "收起技术细节" : "展开：阿吉如何判断"}
+                    </button>
+                    {showTechnicalBasis ? (
+                      <ul className="mt-2 space-y-1 rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
+                        {marketState.basis.map((line) => (
+                          <li key={line} className="font-mono text-xs leading-5 text-muted">
+                            {line}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </LockedContent>
+                </div>
+              </div>
+            </div>
+
+            {/* Connector */}
+            <div className="mx-auto my-4 h-px w-3/4 bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
+
+            {/* Layer 3 · Three evidence cards */}
+            <div>
+              <h3 className="mb-3 text-sm font-medium text-muted-foreground">支撑判断的数据</h3>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <EvidenceCard
+                  title="指数方向"
+                  icon={TrendingUp}
+                  accentBar={regimeBar}
+                  borderClass={regimeBorder}
+                  value={indexRead.label}
+                  valueTone={indexRead.tone}
+                  sub={
+                    <span className={`font-mono tabular-nums ${indexRead.tone}`}>
+                      SPY/QQQ 均值 {pct(avgIndexChange)}
+                    </span>
+                  }
+                >
+                  <p className="text-sm leading-6 text-muted-foreground">{indexRead.hint}</p>
+                  <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                    <div className="rounded-md bg-foreground/[0.03] px-2 py-1.5">
+                      <span className="text-muted">SPY </span>
+                      <span className={`font-mono font-medium ${(spyChange ?? 0) >= 0 ? "text-green" : "text-red"}`}>
+                        {pct(spyChange)}
+                      </span>
+                    </div>
+                    <div className="rounded-md bg-foreground/[0.03] px-2 py-1.5">
+                      <span className="text-muted">QQQ </span>
+                      <span className={`font-mono font-medium ${(qqqChange ?? 0) >= 0 ? "text-green" : "text-red"}`}>
+                        {pct(qqqChange)}
+                      </span>
+                    </div>
+                  </div>
+                </EvidenceCard>
+
+                <EvidenceCard
+                  title="波动率"
+                  icon={Gauge}
+                  accentBar={regimeBar}
+                  borderClass={regimeBorder}
+                  value={vixLevel !== null ? vixLevel.toFixed(2) : "—"}
+                  valueTone={(vixChangePct ?? 0) >= 0 ? "text-red" : "text-green"}
+                  sub={
+                    <span className={`font-mono text-sm tabular-nums ${(vixChangePct ?? 0) >= 0 ? "text-red" : "text-green"}`}>
+                      {pct(vixChangePct)}
+                      {overview?.volatility.band ? (
+                        <span className="ml-2 text-muted-foreground">{overview.volatility.band}</span>
+                      ) : null}
+                    </span>
+                  }
+                >
+                  <div className="h-[72px]">
                     {vixSeries.length > 1 ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={vixSeries}>
                           <defs>
-                            <linearGradient id="vixFill" x1="0" x2="0" y1="0" y2="1">
+                            <linearGradient id="vixFillOverview" x1="0" x2="0" y1="0" y2="1">
                               <stop offset="0%" stopColor="#f0b429" stopOpacity={0.4} />
                               <stop offset="100%" stopColor="#f0b429" stopOpacity={0} />
                             </linearGradient>
@@ -1692,111 +2202,156 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                             formatter={(value: number) => [`${value.toFixed(2)}`, "VIX"]}
                             labelFormatter={(label) => `交易日 ${label}`}
                           />
-                          <Area type="monotone" dataKey="value" stroke="#f0b429" fill="url(#vixFill)" strokeWidth={2} dot={false} />
+                          <Area type="monotone" dataKey="value" stroke="#f0b429" fill="url(#vixFillOverview)" strokeWidth={2} dot={false} />
                         </AreaChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="flex h-full items-center justify-center text-xs text-muted">VIX 历史序列暂不可用</div>
+                      <div className="flex h-full items-center justify-center text-xs text-muted">VIX 曲线暂不可用</div>
                     )}
                   </div>
-                  <LockedContent
-                    required="trial"
-                    currentTier={tier}
-                    title="登录后查看 VIX 曲线解读"
-                    onUnlock={(reason) => openUnlock(reason, "登录后查看 VIX / P/C 解读")}
-                  >
-                    {vixChartCaption ? (
-                      <p className="mt-2 text-[11px] leading-5 text-muted-foreground">{vixChartCaption}</p>
-                    ) : warLoading ? (
-                      <p className="mt-2 text-[11px] text-muted">阿吉深度洞察生成中…</p>
-                    ) : null}
-                  </LockedContent>
-                </div>
-                <div className="grid grid-cols-1 gap-2">
-                  <div className="rounded-xl surface-1 px-4 py-3">
-                    <div className="stat-label">VIX</div>
-                    <div className="mt-1.5 flex flex-wrap items-baseline gap-2">
-                      <span className="stat-value text-[22px]">
-                        {vixLevel !== null ? vixLevel.toFixed(2) : "—"}
-                      </span>
-                      <span className={`font-mono text-xs ${(vixChangePct ?? 0) >= 0 ? "text-red" : "text-green"}`}>
-                        {pct(vixChangePct)}
-                      </span>
-                      {overview?.volatility.band ? (
-                        <Pill tone="muted">{overview.volatility.band}</Pill>
-                      ) : null}
-                    </div>
-                    <LockedContent
-                      required="trial"
-                      currentTier={tier}
-                      title="登录后查看 VIX 解读"
-                      onUnlock={(reason) => openUnlock(reason, "登录后查看 VIX 解读")}
-                    >
-                      {vixInterpretation ? (
-                        <p className="mt-2 text-[11px] leading-5 text-muted-foreground">{vixInterpretation}</p>
-                      ) : (
-                        <p className="mt-2 text-[11px] text-muted">VIX 数据缺失</p>
-                      )}
-                    </LockedContent>
-                  </div>
-                  <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
-                    <div className="text-[10px] uppercase tracking-wider text-muted">P/C 成交量比</div>
-                    <div className="mt-1 font-mono text-lg font-semibold text-foreground">
-                      {pcr !== null ? pcr.toFixed(2) : "—"}
-                    </div>
-                    <p className="mt-0.5 text-[10px] text-muted">全市场 Put/Call 成交量近似</p>
-                    <LockedContent
-                      required="trial"
-                      currentTier={tier}
-                      title="登录后查看 P/C 解读"
-                      onUnlock={(reason) => openUnlock(reason, "登录后查看 P/C 解读")}
-                    >
-                      {pcrInterpretation ? (
-                        <p className="mt-2 text-[11px] leading-5 text-muted-foreground">{pcrInterpretation}</p>
-                      ) : (
-                        <p className="mt-2 text-[11px] text-muted">P/C 数据缺失</p>
-                      )}
-                    </LockedContent>
-                  </div>
-                </div>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {vixInterpretation || vixChartCaption || (warLoading ? "阿吉深度洞察生成中…" : "VIX 数据缺失")}
+                  </p>
+                </EvidenceCard>
+
+                <EvidenceCard
+                  title="期权情绪"
+                  icon={BarChart3}
+                  accentBar={regimeBar}
+                  borderClass={regimeBorder}
+                  value={pcr !== null ? pcr.toFixed(2) : "—"}
+                  valueTone={pcrMood.tone}
+                  sub={<span className={pcrMood.tone}>{pcrMood.label}</span>}
+                >
+                  <PcrSentimentBar pcr={pcr} />
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {pcrInterpretation || "P/C 数据缺失"}
+                  </p>
+                </EvidenceCard>
               </div>
             </div>
 
+            {/* Layer 4 · Driving events */}
+            <div className="mt-6 border-t border-border2 pt-5">
+              <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                    <Newspaper className="h-4 w-4 text-blue" />
+                    什么在驱动市场？
+                  </div>
+                  <p className="mt-1 text-xs text-muted">以下事件可能解释了上面的环境判断 · 近 {DISCORD_EVENT_HOURS} 小时</p>
+                </div>
+                {events.length > 3 ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowAllEvents((v) => !v)}
+                    className="text-xs text-gold transition hover:text-gold/80"
+                  >
+                    {showAllEvents ? "收起" : `查看全部 ${events.length} 条 →`}
+                  </button>
+                ) : null}
+              </div>
+              <div className="relative mt-3 space-y-0 pl-4">
+                <div className="absolute bottom-2 left-[7px] top-2 w-px bg-border2" aria-hidden="true" />
+                {warLoading && events.length === 0 ? (
+                  <EmptyLine text="正在载入关键事件…" />
+                ) : events.length === 0 ? (
+                  <EmptyLine text="暂无高优先级事件，先观察上方指数、VIX 与 P/C 数据。" />
+                ) : (
+                  visibleEvents.map((event) => (
+                    <button
+                      key={event.id}
+                      type="button"
+                      onClick={() => {
+                        if (!tierMeetsRequired(tier, "trial")) {
+                          openUnlock("login", "登录后查看事件详情与阿吉解读");
+                          return;
+                        }
+                        setSelectedEvent(event);
+                      }}
+                      className="relative mb-3 w-full rounded-lg border border-border2 bg-foreground/[0.02] px-4 py-3 text-left transition hover:border-gold/35 hover:bg-foreground/[0.04]"
+                    >
+                      <span
+                        className={`absolute -left-4 top-4 h-2.5 w-2.5 rounded-full border-2 border-background ${
+                          event.impact === "利好" ? "bg-green" : event.impact === "利空" || event.impact === "风险" ? "bg-red" : "bg-muted"
+                        }`}
+                        aria-hidden="true"
+                      />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Pill tone={event.impact === "利好" ? "green" : event.impact === "利空" || event.impact === "风险" ? "red" : "muted"}>
+                          {event.impactLabel}
+                        </Pill>
+                        {event.relatedAssets.slice(0, 2).map((sym) => (
+                          <Pill key={`${event.id}-${sym}`} tone="blue">
+                            {sym}
+                          </Pill>
+                        ))}
+                        <span className="ml-auto shrink-0 font-mono text-xs text-gold">{event.time}</span>
+                      </div>
+                      <div className="mt-2 text-base font-medium text-foreground">{event.title}</div>
+                      {(event.impactNote || event.body) ? (
+                        <p className="mt-1 line-clamp-2 text-sm leading-6 text-muted-foreground">
+                          {event.impactNote || event.body}
+                        </p>
+                      ) : null}
+                      {!tierMeetsRequired(tier, "trial") ? (
+                        <p className="mt-2 text-xs text-gold">登录查看阿吉解读 →</p>
+                      ) : null}
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Layer 5 · Watch list */}
+            <div className="mt-6 border-t border-border2 pt-5">
+              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <Target className="h-4 w-4 text-green" />
+                今日观察清单
+              </div>
+              <p className="mt-1 text-xs text-muted">基于当前环境，接下来建议重点盯住的要点</p>
+              {watchPreview ? (
+                <div className="mt-4 flex items-start gap-2 rounded-lg border border-green/20 bg-green/5 px-3 py-2.5 text-sm leading-6 text-muted-foreground">
+                  <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-green" />
+                  <span>{watchPreview}</span>
+                </div>
+              ) : null}
+              {watchRemainder.length > 0 ? (
+                <LockedContent
+                  required="pro"
+                  currentTier={tier}
+                  title="Pro：完整观察清单"
+                  onUnlock={(reason) => openUnlock(reason, "Pro：今日观察清单")}
+                >
+                  <div className="mt-3 space-y-3">
+                    {watchRemainder.map((item) => (
+                      <div key={item} className="flex items-start gap-2 text-sm leading-6 text-muted-foreground">
+                        <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-green" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </LockedContent>
+              ) : null}
+            </div>
+
             {allWarErrors.length > 0 ? (
-              <div className="mt-4 flex items-start gap-2 rounded-lg border border-red/20 bg-red/10 px-3 py-2 text-xs text-red">
+              <div className="mt-4 flex items-start gap-2 rounded-lg border border-red/20 bg-red/10 px-3 py-2 text-sm text-red">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{allWarErrors.slice(0, 2).join(" · ")}</span>
               </div>
             ) : null}
           </Card>
 
-          <Card className="p-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Target className="h-4 w-4 text-green" />
-              盘前观察框架
+          <Card className="p-4 xl:sticky xl:top-4 xl:self-start">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <GitBranch className="h-4 w-4 text-blue" />
+              国债曲线
             </div>
-            <LockedContent
-              required="pro"
-              currentTier={tier}
-              title="Pro：盘前观察框架"
-              onUnlock={(reason) => openUnlock(reason, "Pro：盘前观察框架")}
-            >
-              <div className="mt-4 space-y-3">
-                {tradePlan.map((item) => (
-                  <div key={item} className="flex items-start gap-2 text-sm leading-6 text-muted-foreground">
-                    <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-green" />
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
-            </LockedContent>
-            <div className="mt-5 rounded-lg border border-border2 bg-foreground/[0.02] p-3">
-              <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
-                <span>国债曲线</span>
-                <span className="text-gold">{treasuryRead.label}</span>
-              </div>
+            <p className="mt-1 text-xs text-muted">利率环境 · {treasuryRead.label}</p>
+            <div className="mt-4 rounded-lg border border-border2 bg-foreground/[0.02] p-3">
               {yieldBars.length > 0 ? (
-                <ResponsiveContainer width="100%" height={120}>
+                <ResponsiveContainer width="100%" height={140}>
                   <BarChart data={yieldBars}>
                     <CartesianGrid stroke="rgba(255,255,255,.06)" vertical={false} />
                     <XAxis dataKey="term" tick={{ fill: "#94a3b8", fontSize: 11 }} />
@@ -1806,24 +2361,18 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex h-[120px] items-center justify-center text-xs text-muted">收益率暂不可用</div>
+                <div className="flex h-[140px] items-center justify-center text-sm text-muted">收益率暂不可用</div>
               )}
-              <LockedContent
-                required="trial"
-                currentTier={tier}
-                title="登录后查看国债曲线 AI 解读"
-                onUnlock={(reason) => openUnlock(reason, "登录后查看国债曲线解读")}
-              >
-                <p className="mt-2 text-xs leading-5 text-muted-foreground">{treasuryRead.summary}</p>
-                {spread10y2y !== null ? (
-                  <div className="mt-2 text-[10px] text-muted">
-                    10Y-2Y {spread10y2y.toFixed(2)}%
-                    {spread30y10y !== null
-                      ? ` · 30Y-10Y ${spread30y10y.toFixed(2)}%`
-                      : ""}
-                  </div>
-                ) : null}
-              </LockedContent>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">{treasuryRead.summary}</p>
+              {spread10y2y !== null ? (
+                <div className="mt-2 text-xs text-muted">
+                  10Y-2Y {spread10y2y.toFixed(2)}%
+                  {spread30y10y !== null ? ` · 30Y-10Y ${spread30y10y.toFixed(2)}%` : ""}
+                </div>
+              ) : null}
+              {!tierMeetsRequired(tier, "trial") && aiInsights?.treasury?.summary ? (
+                <p className="mt-2 text-xs text-gold">登录解锁阿吉 AI 利率解读 →</p>
+              ) : null}
             </div>
           </Card>
         </section>
@@ -1908,172 +2457,425 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
           title="Pro：完整标的深度、Gamma 与期权筛选"
           onUnlock={(reason) => openUnlock(reason, "Pro：完整标的深度分析")}
         >
-        <section className="grid grid-cols-1 gap-4 xl:grid-cols-[0.95fr_1.05fr]">
-          <Card className="p-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <LineChartIcon className="h-4 w-4 text-blue" />
-                  入场时机评估
+        <section className="space-y-4">
+          {/* Gamma 快览条 — 滚动时固定置顶 */}
+          <div className="relative sticky top-0 z-30 flex flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border border-gold/25 bg-background/92 px-4 py-3 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.45)] backdrop-blur-md supports-[backdrop-filter]:bg-background/78">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" aria-hidden />
+            <div className="flex items-center gap-2">
+              <GitBranch className="h-4 w-4 shrink-0 text-gold" />
+              <span className="font-mono text-sm font-semibold text-gold">{symbol}</span>
+              <span className="text-[10px] text-muted">Gamma 快览</span>
+            </div>
+            <div className="hidden h-5 w-px bg-border2 sm:block" aria-hidden />
+            <GlanceStat label="Net GEX" value={netGexDisplay} tone={netGexTone} />
+            <GlanceStat label="Gamma Flip" value={money(gammaFlipLevel)} />
+            <GlanceStat
+              label="Regime"
+              value={gammaRead.regimeLabel}
+              tone={gammaRead.tone === "muted" ? "default" : gammaRead.tone}
+            />
+            <GlanceStat
+              label="结构偏向"
+              value={gammaRead.structureBias}
+              tone={
+                gammaRead.structureBias === "波动放大"
+                  ? "red"
+                  : gammaRead.structureBias === "震荡吸附"
+                    ? "green"
+                    : "default"
+              }
+            />
+            {gexSpot !== null ? (
+              <>
+                <div className="hidden h-5 w-px bg-border2 lg:block" aria-hidden />
+                <GlanceStat label="现价" value={money(gexSpot)} />
+              </>
+            ) : null}
+            {reportLoading ? (
+              <Loader2 className="ml-auto h-4 w-4 animate-spin text-gold" />
+            ) : (
+              <button
+                type="button"
+                onClick={scrollToGammaHero}
+                className="ml-auto inline-flex items-center gap-1 rounded-lg border border-gold/30 bg-gold/5 px-2.5 py-1.5 text-[10px] font-medium text-gold transition hover:border-gold/50 hover:bg-gold/10"
+              >
+                查看 Gamma 详情
+                <ChevronDown className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+
+          {/* Gamma Hero — 平台核心特色，全宽置顶 */}
+          <div ref={gammaHeroRef} id="gamma-hero-section" className="scroll-mt-3">
+          <Card className="overflow-hidden border-gold/25">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gold/15 bg-gradient-to-r from-gold/[0.08] via-gold/[0.03] to-transparent px-4 py-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <GitBranch className="h-5 w-5 text-gold" />
+                  <span className="text-base font-semibold text-foreground">Gamma 结构定位</span>
                 </div>
-                <div className="mt-3 flex items-center gap-3">
-                  <div className={`text-lg font-semibold ${stockBias.tone}`}>{stockBias.label}</div>
-                  {spot !== null ? <Pill tone="blue">{money(spot)}</Pill> : null}
-                </div>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">{stockBias.thesis}</p>
+                <Pill tone="gold">平台核心</Pill>
+                <Pill tone={gammaRead.tone}>{gammaRead.regimeLabel}</Pill>
+                <Pill tone={gammaRead.structureBias === "波动放大" ? "red" : gammaRead.structureBias === "震荡吸附" ? "green" : "muted"}>
+                  {gammaRead.structureBias}
+                </Pill>
+                {gexSpot !== null ? <Pill tone="blue">现价 {money(gexSpot)}</Pill> : null}
               </div>
               {reportLoading ? <Loader2 className="h-5 w-5 animate-spin text-gold" /> : null}
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
-              <Metric label="现价" value={money(spot)} sub={pct(stockOverview?.bar?.changePct)} />
-              <Metric label="IV Rank" value={num(stockOverview?.keyStats?.ivRank)?.toFixed(1) ?? "—"} sub="波动率热度" />
-              <Metric label="目标价差" value={upside !== null ? pct(upside) : "—"} sub={ptAvg ? money(ptAvg) : "分析师"} />
-              <Metric label="情绪" value={report?.smart.data?.retail_sentiment_score ?? "—"} sub={report?.smart.data?.consensus_type ?? "smart vs retail"} />
-            </div>
+            <div className="p-4">
+              <p className="text-sm leading-6 text-muted-foreground">{gammaRead.summary}</p>
 
-            <div className="mt-4 h-[220px] rounded-lg border border-border2 bg-foreground/[0.02] p-2">
-              {priceSeries.length > 1 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={priceSeries}>
-                    <defs>
-                      <linearGradient id="stockFill" x1="0" x2="0" y1="0" y2="1">
-                        <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.35} />
-                        <stop offset="100%" stopColor="#22d3ee" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid stroke="rgba(255,255,255,.06)" vertical={false} />
-                    <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} minTickGap={24} />
-                    <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} domain={["auto", "auto"]} width={48} />
-                    <Tooltip contentStyle={{ background: "#0f1c30", border: "1px solid rgba(255,255,255,.1)" }} />
-                    <Area type="monotone" dataKey="close" stroke="#22d3ee" fill="url(#stockFill)" strokeWidth={2} dot={false} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-full items-center justify-center text-sm text-muted">K 线数据载入中</div>
-              )}
+              {gexError ? (
+                <div className="mt-3 rounded-lg border border-red/20 bg-red/10 px-3 py-2 text-xs text-red">
+                  Gamma 结构暂不可用：{friendlyApiError(gexError, "gex")}
+                </div>
+              ) : null}
+
+              <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+                <Metric
+                  label="Net GEX"
+                  value={num(gexProfile?.netGex) !== null ? `${num(gexProfile?.netGex)! >= 0 ? "+" : ""}${num(gexProfile?.netGex)!.toFixed(2)}B` : "—"}
+                  sub="对冲环境"
+                />
+                <Metric label="Gamma Flip" value={money(gexProfile?.gammaFlip)} sub="波动分界" />
+                <Metric label="Call Wall" value={money(gexProfile?.callWall)} sub="上方压力" />
+                <Metric label="Put Wall" value={money(gexProfile?.putWall)} sub="下方支撑" />
+                <Metric label="Max Pain" value={money(gexProfile?.maxPain)} sub="到期吸附" />
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-3">
+                  <div className="text-[10px] font-medium uppercase tracking-wider text-muted">操作含义</div>
+                  <div className="mt-2 space-y-2">
+                    {gammaRead.actions.map((line) => (
+                      <div key={line} className="flex gap-2 text-sm leading-6 text-muted-foreground">
+                        <span className="text-gold">·</span>
+                        <span>{line}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-3">
+                  <div className="text-[10px] font-medium uppercase tracking-wider text-muted">风险边界</div>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{gammaRead.risk}</p>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-[10px] text-muted">
+                    <span>距 Flip {pct(gammaRead.distances.flipPct)}</span>
+                    <span>距 Call Wall {pct(gammaRead.distances.callWallPct)}</span>
+                    <span>距 Put Wall {pct(gammaRead.distances.putWallPct)}</span>
+                    <span>距 Max Pain {pct(gammaRead.distances.maxPainPct)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setGammaChartOpen((open) => !open)}
+                  className="rounded-lg border border-border2 px-3 py-2 text-xs text-muted-foreground transition hover:border-gold/40 hover:text-gold disabled:opacity-50"
+                  disabled={gexStrikes.length === 0}
+                >
+                  {gammaChartOpen ? "收起分布图" : "展开分布图"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGammaModal("distribution")}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border2 px-3 py-2 text-xs text-muted-foreground transition hover:border-gold/40 hover:text-gold disabled:opacity-50"
+                  disabled={gexStrikes.length === 0 || gexSpot === null}
+                >
+                  <Maximize2 className="h-3.5 w-3.5" />
+                  放大分布
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGammaTrendOpen((open) => !open)}
+                  className="rounded-lg border border-border2 px-3 py-2 text-xs text-muted-foreground transition hover:border-gold/40 hover:text-gold disabled:opacity-50"
+                  disabled={gexHistoryRows.length === 0}
+                >
+                  {gammaTrendOpen ? "收起趋势图" : "展开趋势图"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGammaModal("trend")}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border2 px-3 py-2 text-xs text-muted-foreground transition hover:border-gold/40 hover:text-gold disabled:opacity-50"
+                  disabled={gexHistoryRows.length === 0}
+                >
+                  <Maximize2 className="h-3.5 w-3.5" />
+                  放大趋势
+                </button>
+              </div>
+
+              {gammaChartOpen || gammaTrendOpen ? (
+                <div className={`mt-4 grid gap-4 ${gammaChartOpen && gammaTrendOpen ? "grid-cols-1 xl:grid-cols-2" : "grid-cols-1"}`}>
+                  {gammaChartOpen ? (
+                    <div className="rounded-lg border border-gold/15 bg-foreground/[0.02] p-3">
+                      <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-gold">Strike Gamma 分布</div>
+                      {gexStrikes.length > 0 && gexSpot !== null ? (
+                        <GexChart
+                          ticker={symbol}
+                          strikes={gexStrikes}
+                          price={gexSpot}
+                          gammaFlip={num(gexProfile?.gammaFlip) ?? undefined}
+                        />
+                      ) : (
+                        <EmptyLine text="暂无 Gamma 分布数据" />
+                      )}
+                    </div>
+                  ) : null}
+                  {gammaTrendOpen ? (
+                    <div className="rounded-lg border border-gold/15 bg-foreground/[0.02] p-3">
+                      <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-gold">Net GEX 趋势</div>
+                      <GexTrendChart merged={gexHistoryRows} symbol={symbol} />
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           </Card>
+          </div>
 
-          <Card className="p-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
+          {/* 辅助分析 — 对称双栏 */}
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2 xl:items-start">
+            <Card className="p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <LineChartIcon className="h-4 w-4 text-blue" />
+                    入场时机评估
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-gold/15 bg-gold/[0.04] px-3 py-2">
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-gold">基于 Gamma 环境</span>
+                    <Pill tone={gammaRead.tone}>{gammaRead.regimeLabel}</Pill>
+                    <Pill
+                      tone={
+                        gammaRead.structureBias === "波动放大"
+                          ? "red"
+                          : gammaRead.structureBias === "震荡吸附"
+                            ? "green"
+                            : "muted"
+                      }
+                    >
+                      {gammaRead.structureBias}
+                    </Pill>
+                    {gammaFlipLevel !== null && gexSpot !== null ? (
+                      <span className="text-[11px] text-muted-foreground">
+                        Flip {money(gammaFlipLevel)} · {pct(gammaRead.distances.flipPct)} 距现价
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-2 text-[11px] leading-5 text-muted-foreground">{entryGammaHint(gammaRead.structureBias)}</p>
+                  <div className="mt-3 flex items-center gap-3">
+                    <div className={`text-lg font-semibold ${stockBias.tone}`}>{stockBias.label}</div>
+                    {spot !== null ? <Pill tone="blue">{money(spot)}</Pill> : null}
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{stockBias.thesis}</p>
+                </div>
+                {reportLoading ? <Loader2 className="h-5 w-5 animate-spin text-gold" /> : null}
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <Metric label="现价" value={money(spot)} sub={pct(stockOverview?.bar?.changePct)} />
+                <Metric label="IV Rank" value={num(stockOverview?.keyStats?.ivRank)?.toFixed(1) ?? "—"} sub="波动率热度" />
+                <Metric label="目标价差" value={upside !== null ? pct(upside) : "—"} sub={ptAvg ? money(ptAvg) : "分析师"} />
+                <Metric label="情绪" value={report?.smart.data?.retail_sentiment_score ?? "—"} sub={report?.smart.data?.consensus_type ?? "smart vs retail"} />
+              </div>
+
+              <div className="mt-4 rounded-lg border border-border2 bg-foreground/[0.02] p-2">
+                <div className="h-[200px]">
+                  {priceSeries.length > 1 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={priceSeries}>
+                        <defs>
+                          <linearGradient id="stockFill" x1="0" x2="0" y1="0" y2="1">
+                            <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.35} />
+                            <stop offset="100%" stopColor="#22d3ee" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid stroke="rgba(255,255,255,.06)" vertical={false} />
+                        <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} minTickGap={24} />
+                        <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} domain={priceChartYDomain} width={48} />
+                        <Tooltip contentStyle={{ background: "#0f1c30", border: "1px solid rgba(255,255,255,.1)" }} />
+                        {gammaFlipLevel !== null ? (
+                          <ReferenceLine
+                            y={gammaFlipLevel}
+                            stroke="#D4AF37"
+                            strokeDasharray="6 4"
+                            strokeWidth={1.5}
+                            label={{ value: "Flip", position: "insideTopRight", fill: "#D4AF37", fontSize: 9 }}
+                          />
+                        ) : null}
+                        {callWallLevel !== null ? (
+                          <ReferenceLine
+                            y={callWallLevel}
+                            stroke="#FF6B6B"
+                            strokeDasharray="3 3"
+                            strokeWidth={1}
+                            label={{ value: "Call", position: "insideTopLeft", fill: "#FF6B6B", fontSize: 9 }}
+                          />
+                        ) : null}
+                        {putWallLevel !== null ? (
+                          <ReferenceLine
+                            y={putWallLevel}
+                            stroke="#00D4AA"
+                            strokeDasharray="3 3"
+                            strokeWidth={1}
+                            label={{ value: "Put", position: "insideBottomLeft", fill: "#00D4AA", fontSize: 9 }}
+                          />
+                        ) : null}
+                        {maxPainLevel !== null ? (
+                          <ReferenceLine
+                            y={maxPainLevel}
+                            stroke="#8B8D97"
+                            strokeDasharray="2 4"
+                            strokeWidth={1}
+                            label={{ value: "MP", position: "insideBottomRight", fill: "#8B8D97", fontSize: 9 }}
+                          />
+                        ) : null}
+                        <Area type="monotone" dataKey="close" stroke="#22d3ee" fill="url(#stockFill)" strokeWidth={2} dot={false} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-sm text-muted">K 线数据载入中</div>
+                  )}
+                </div>
+                {gammaFlipLevel !== null || callWallLevel !== null || putWallLevel !== null || maxPainLevel !== null ? (
+                  <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 border-t border-border2/60 pt-1.5 text-[9px] text-muted">
+                    {gammaFlipLevel !== null ? (
+                      <span className="text-gold">— Flip {money(gammaFlipLevel)}</span>
+                    ) : null}
+                    {callWallLevel !== null ? (
+                      <span className="text-red">— Call Wall {money(callWallLevel)}</span>
+                    ) : null}
+                    {putWallLevel !== null ? (
+                      <span className="text-green">— Put Wall {money(putWallLevel)}</span>
+                    ) : null}
+                    {maxPainLevel !== null ? (
+                      <span>— Max Pain {money(maxPainLevel)}</span>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            </Card>
+
+            <Card className="p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <GitBranch className="h-4 w-4 text-gold" />
-                  Gamma 结构定位
+                  <WalletCards className="h-4 w-4 text-gold" />
+                  期权合约筛选器
                 </div>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <Pill tone={gammaRead.tone}>{gammaRead.regimeLabel}</Pill>
-                  <Pill tone={gammaRead.structureBias === "波动放大" ? "red" : gammaRead.structureBias === "震荡吸附" ? "green" : "muted"}>
-                    {gammaRead.structureBias}
-                  </Pill>
-                  {gexSpot !== null ? <Pill tone="blue">现价 {money(gexSpot)}</Pill> : null}
-                </div>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">{gammaRead.summary}</p>
+                <p className="mt-1 max-w-3xl text-[11px] leading-5 text-muted">
+                  {optionsInsights?.framework_summary ?? OPTION_FRAMEWORK_INTRO}
+                </p>
               </div>
-              {reportLoading ? <Loader2 className="h-5 w-5 animate-spin text-gold" /> : null}
             </div>
 
-            {gexError ? (
-              <div className="mt-3 rounded-lg border border-red/20 bg-red/10 px-3 py-2 text-xs text-red">
-                Gamma 结构暂不可用：{friendlyApiError(gexError, "gex")}
+            {optionsInsights?.combined_insight ? (
+              <div className="mt-3 rounded-lg border border-gold/20 bg-gold/5 px-3 py-2">
+                <div className="text-[10px] font-medium text-gold">阿吉深度洞察</div>
+                <p className="mt-1 text-[11px] leading-5 text-muted-foreground">{optionsInsights.combined_insight}</p>
               </div>
+            ) : reportLoading ? (
+              <p className="mt-2 text-[11px] text-muted">阿吉深度洞察生成中…</p>
             ) : null}
 
-            <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-5">
-              <Metric
-                label="Net GEX"
-                value={num(gexProfile?.netGex) !== null ? `${num(gexProfile?.netGex)! >= 0 ? "+" : ""}${num(gexProfile?.netGex)!.toFixed(2)}B` : "—"}
-                sub="对冲环境"
-              />
-              <Metric label="Gamma Flip" value={money(gexProfile?.gammaFlip)} sub="波动分界" />
-              <Metric label="Call Wall" value={money(gexProfile?.callWall)} sub="上方压力" />
-              <Metric label="Put Wall" value={money(gexProfile?.putWall)} sub="下方支撑" />
-              <Metric label="Max Pain" value={money(gexProfile?.maxPain)} sub="到期吸附" />
-            </div>
+            <p className="mt-2 text-[10px] leading-5 text-muted">
+              {optionsInsights?.contracts_note ?? OPTION_TABLE_LEGEND}
+            </p>
+            <p className="mt-1 text-[10px] leading-5 text-muted">{PLAYBOOK_SCREENER_FOOTNOTE}</p>
 
-            <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-[1fr_0.8fr]">
-              <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-3">
-                <div className="text-[10px] font-medium uppercase tracking-wider text-muted">操作含义</div>
-                <div className="mt-2 space-y-2">
-                  {gammaRead.actions.map((line) => (
-                    <div key={line} className="flex gap-2 text-sm leading-6 text-muted-foreground">
-                      <span className="text-gold">·</span>
-                      <span>{line}</span>
+            <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-[1fr_280px]">
+              <div className="overflow-hidden rounded-lg border border-border2">
+                <div className="border-b border-border2 bg-foreground/[0.02] px-3 py-1.5 text-[10px] text-muted">
+                  流动性筛选合约（{direction === "bull" ? "看涨 Call" : "看跌 Put"}，非异动榜）
+                </div>
+                <div className="grid grid-cols-[0.9fr_0.9fr_0.8fr_0.8fr_1fr] bg-foreground/[0.03] px-3 py-2 text-[11px] text-muted">
+                  <span>合约</span>
+                  <span>到期日</span>
+                  <span title="距离到期的交易日天数">剩余天数</span>
+                  <span title="隐含波动率 Implied Volatility">隐含波动率</span>
+                  <span title="当日成交量 / 未平仓合约数 Open Interest">成交量/持仓</span>
+                </div>
+                {optionCandidates.length > 0 ? (
+                  optionCandidates.slice(0, 6).map((row) => (
+                    <div key={`${row.side}-${row.expiration}-${row.strike}`} className="grid grid-cols-[0.9fr_0.9fr_0.8fr_0.8fr_1fr] border-t border-border2 px-3 py-2 text-xs">
+                      <span className={row.side === "call" ? "text-green" : "text-red"}>
+                        {row.side.toUpperCase()} {row.strike}
+                      </span>
+                      <span className="font-mono text-muted-foreground">{row.expiration.slice(5)}</span>
+                      <span className="font-mono text-foreground">{row.dte ?? "—"}</span>
+                      <span className="font-mono text-foreground">{row.ivPct !== null ? `${row.ivPct.toFixed(1)}%` : "—"}</span>
+                      <span className="font-mono text-muted-foreground">
+                        {row.volume ?? "—"}/{row.openInterest ?? "—"}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              </div>
-              <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-3">
-                <div className="text-[10px] font-medium uppercase tracking-wider text-muted">风险边界</div>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">{gammaRead.risk}</p>
-                <div className="mt-3 grid grid-cols-2 gap-2 text-[10px] text-muted">
-                  <span>距 Flip {pct(gammaRead.distances.flipPct)}</span>
-                  <span>距 Call Wall {pct(gammaRead.distances.callWallPct)}</span>
-                  <span>距 Put Wall {pct(gammaRead.distances.putWallPct)}</span>
-                  <span>距 Max Pain {pct(gammaRead.distances.maxPainPct)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setGammaChartOpen((open) => !open)}
-                className="rounded-lg border border-border2 px-3 py-2 text-xs text-muted-foreground transition hover:border-gold/40 hover:text-gold disabled:opacity-50"
-                disabled={gexStrikes.length === 0}
-              >
-                {gammaChartOpen ? "收起 Gamma 分布" : "展开 Gamma 分布"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setGammaModal("distribution")}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border2 px-3 py-2 text-xs text-muted-foreground transition hover:border-gold/40 hover:text-gold disabled:opacity-50"
-                disabled={gexStrikes.length === 0 || gexSpot === null}
-              >
-                <Maximize2 className="h-3.5 w-3.5" />
-                放大分布
-              </button>
-              <button
-                type="button"
-                onClick={() => setGammaTrendOpen((open) => !open)}
-                className="rounded-lg border border-border2 px-3 py-2 text-xs text-muted-foreground transition hover:border-gold/40 hover:text-gold disabled:opacity-50"
-                disabled={gexHistoryRows.length === 0}
-              >
-                {gammaTrendOpen ? "收起趋势" : "查看趋势"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setGammaModal("trend")}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border2 px-3 py-2 text-xs text-muted-foreground transition hover:border-gold/40 hover:text-gold disabled:opacity-50"
-                disabled={gexHistoryRows.length === 0}
-              >
-                <Maximize2 className="h-3.5 w-3.5" />
-                放大趋势
-              </button>
-            </div>
-
-            {gammaChartOpen ? (
-              <div className="mt-4 rounded-lg border border-border2 bg-foreground/[0.02] p-3">
-                {gexStrikes.length > 0 && gexSpot !== null ? (
-                  <GexChart
-                    ticker={symbol}
-                    strikes={gexStrikes}
-                    price={gexSpot}
-                    gammaFlip={num(gexProfile?.gammaFlip) ?? undefined}
-                  />
+                  ))
                 ) : (
-                  <EmptyLine text="暂无 Gamma 分布数据" />
+                  <div className="border-t border-border2 px-3 py-8 text-center text-sm text-muted">期权链暂不可用</div>
                 )}
               </div>
-            ) : null}
 
-            {gammaTrendOpen ? (
-              <div className="mt-4 rounded-lg border border-border2 bg-foreground/[0.02] p-3">
-                <GexTrendChart merged={gexHistoryRows} symbol={symbol} />
+              <div className="space-y-2">
+                <div>
+                  <div className="text-[10px] font-medium text-muted-foreground">结构 vs 预期波动</div>
+                  {gammaFlipLevel !== null && gexSpot !== null ? (
+                    <p className="mt-0.5 text-[10px] leading-4 text-muted">
+                      Gamma Flip {money(gammaFlipLevel)} · 对比各期限 Expected Move 范围
+                    </p>
+                  ) : (
+                    <p className="mt-0.5 text-[10px] text-muted">Gamma Flip 暂不可用</p>
+                  )}
+                </div>
+                {(stockOverview?.expectedMoves ?? []).slice(0, 3).map((move) => {
+                  const aiMove = expectedMoveReads.get(move.bucket);
+                  const flipCompare = compareFlipToExpectedMove(gexSpot, gammaFlipLevel, move.pct);
+                  const row: ExpectedMoveRow = {
+                    ...move,
+                    bucketZh: move.bucketZh ?? aiMove?.bucket_zh,
+                  };
+                  return (
+                  <button
+                    key={move.bucket}
+                    type="button"
+                    onClick={() => setSelectedExpectedMove(row)}
+                    className="w-full rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2 text-left transition hover:border-gold/40 hover:bg-gold/5 cursor-pointer"
+                  >
+                    <div className="text-[11px] font-medium text-foreground">
+                      {aiMove?.bucket_zh ?? expectedMoveBucketLabel(move.bucket)}
+                    </div>
+                    <div className="mt-0.5 text-[10px] text-muted">{expectedMoveBucketHint(move.bucket)}</div>
+                    <div className="mt-1 font-mono text-sm text-foreground">
+                      ±{move.pct.toFixed(2)}% · {money(move.straddleUsd)}
+                    </div>
+                    <div
+                      className={`mt-1.5 rounded-md border px-2 py-1 text-[10px] leading-4 ${
+                        flipCompare.inside === true
+                          ? "border-green/25 bg-green/10 text-green"
+                          : flipCompare.inside === false
+                            ? "border-gold/25 bg-gold/10 text-gold"
+                            : "border-border2 bg-foreground/[0.02] text-muted"
+                      }`}
+                    >
+                      {flipCompare.label}
+                    </div>
+                    <FlipEmRangeAxis
+                      spot={gexSpot}
+                      gammaFlip={gammaFlipLevel}
+                      expectedMovePct={move.pct}
+                      inside={flipCompare.inside}
+                    />
+                    <div className="mt-1 text-[10px] text-muted">到期 {move.expiration} · 点击查看详情</div>
+                    {aiMove?.interpretation ? (
+                      <p className="mt-2 line-clamp-2 text-[10px] leading-4 text-muted-foreground">{aiMove.interpretation}</p>
+                    ) : null}
+                  </button>
+                  );
+                })}
               </div>
-            ) : null}
+            </div>
           </Card>
+          </div>
 
           {gammaModal ? (
             <div
@@ -2123,97 +2925,6 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
               </div>
             </div>
           ) : null}
-
-          <Card className="p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <WalletCards className="h-4 w-4 text-gold" />
-                  期权合约筛选器
-                </div>
-                <p className="mt-1 max-w-3xl text-[11px] leading-5 text-muted">
-                  {optionsInsights?.framework_summary ?? OPTION_FRAMEWORK_INTRO}
-                </p>
-              </div>
-            </div>
-
-            {optionsInsights?.combined_insight ? (
-              <div className="mt-3 rounded-lg border border-gold/20 bg-gold/5 px-3 py-2">
-                <div className="text-[10px] font-medium text-gold">阿吉深度洞察</div>
-                <p className="mt-1 text-[11px] leading-5 text-muted-foreground">{optionsInsights.combined_insight}</p>
-              </div>
-            ) : reportLoading ? (
-              <p className="mt-2 text-[11px] text-muted">阿吉深度洞察生成中…</p>
-            ) : null}
-
-            <p className="mt-2 text-[10px] leading-5 text-muted">
-              {optionsInsights?.contracts_note ?? OPTION_TABLE_LEGEND}
-            </p>
-            <p className="mt-1 text-[10px] leading-5 text-muted">{PLAYBOOK_SCREENER_FOOTNOTE}</p>
-
-            <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-[1fr_220px]">
-              <div className="overflow-hidden rounded-lg border border-border2">
-                <div className="border-b border-border2 bg-foreground/[0.02] px-3 py-1.5 text-[10px] text-muted">
-                  流动性筛选合约（{direction === "bull" ? "看涨 Call" : "看跌 Put"}，非异动榜）
-                </div>
-                <div className="grid grid-cols-[0.9fr_0.9fr_0.8fr_0.8fr_1fr] bg-foreground/[0.03] px-3 py-2 text-[11px] text-muted">
-                  <span>合约</span>
-                  <span>到期日</span>
-                  <span title="距离到期的交易日天数">剩余天数</span>
-                  <span title="隐含波动率 Implied Volatility">隐含波动率</span>
-                  <span title="当日成交量 / 未平仓合约数 Open Interest">成交量/持仓</span>
-                </div>
-                {optionCandidates.length > 0 ? (
-                  optionCandidates.slice(0, 6).map((row) => (
-                    <div key={`${row.side}-${row.expiration}-${row.strike}`} className="grid grid-cols-[0.9fr_0.9fr_0.8fr_0.8fr_1fr] border-t border-border2 px-3 py-2 text-xs">
-                      <span className={row.side === "call" ? "text-green" : "text-red"}>
-                        {row.side.toUpperCase()} {row.strike}
-                      </span>
-                      <span className="font-mono text-muted-foreground">{row.expiration.slice(5)}</span>
-                      <span className="font-mono text-foreground">{row.dte ?? "—"}</span>
-                      <span className="font-mono text-foreground">{row.ivPct !== null ? `${row.ivPct.toFixed(1)}%` : "—"}</span>
-                      <span className="font-mono text-muted-foreground">
-                        {row.volume ?? "—"}/{row.openInterest ?? "—"}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="border-t border-border2 px-3 py-8 text-center text-sm text-muted">期权链暂不可用</div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <div className="text-[10px] font-medium text-muted-foreground">隐含预期波动（Expected Move）</div>
-                {(stockOverview?.expectedMoves ?? []).slice(0, 3).map((move) => {
-                  const aiMove = expectedMoveReads.get(move.bucket);
-                  const row: ExpectedMoveRow = {
-                    ...move,
-                    bucketZh: move.bucketZh ?? aiMove?.bucket_zh,
-                  };
-                  return (
-                  <button
-                    key={move.bucket}
-                    type="button"
-                    onClick={() => setSelectedExpectedMove(row)}
-                    className="w-full rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2 text-left transition hover:border-gold/40 hover:bg-gold/5 cursor-pointer"
-                  >
-                    <div className="text-[11px] font-medium text-foreground">
-                      {aiMove?.bucket_zh ?? expectedMoveBucketLabel(move.bucket)}
-                    </div>
-                    <div className="mt-0.5 text-[10px] text-muted">{expectedMoveBucketHint(move.bucket)}</div>
-                    <div className="mt-1 font-mono text-sm text-foreground">
-                      ±{move.pct.toFixed(2)}% · {money(move.straddleUsd)}
-                    </div>
-                    <div className="mt-1 text-[10px] text-muted">到期 {move.expiration} · 点击查看详情</div>
-                    {aiMove?.interpretation ? (
-                      <p className="mt-2 line-clamp-2 text-[10px] leading-4 text-muted-foreground">{aiMove.interpretation}</p>
-                    ) : null}
-                  </button>
-                  );
-                })}
-              </div>
-            </div>
-          </Card>
         </section>
         </LockedContent>
 

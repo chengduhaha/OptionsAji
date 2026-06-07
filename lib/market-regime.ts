@@ -17,6 +17,7 @@ export const MVP_REGIME_CODES: MvpMarketRegimeCode[] = [
 
 export type MvpRegimeMeta = {
   label: string;
+  english: string;
   tone: string;
   summaryFallback: string;
 };
@@ -24,30 +25,35 @@ export type MvpRegimeMeta = {
 export const MVP_REGIME_CATALOG: Record<MvpMarketRegimeCode, MvpRegimeMeta> = {
   risk_off: {
     label: "避险环境",
+    english: "Risk-Off",
     tone: "text-red",
     summaryFallback:
       "跨资产数据显示避险偏好抬升（Risk-Off），指数承压或波动率快速上行；期权侧宜先评估敞口与对冲。",
   },
   elevated_vol: {
     label: "高波动环境",
+    english: "High Vol",
     tone: "text-gold",
     summaryFallback:
       "波动率处于偏高区间，方向信号不一致；期权溢价、Gamma 与对冲成本对定价影响更大。",
   },
   risk_on: {
     label: "风险偏好",
+    english: "Risk-On",
     tone: "text-green",
     summaryFallback:
       "风险偏好处于偏积极区间（Risk-On），指数相对稳健且波动率未明显失控；宜观察结构而非预设方向。",
   },
   range_bound: {
     label: "中性震荡",
+    english: "Range-Bound",
     tone: "text-blue",
     summaryFallback:
       "指数与情绪指标波动有限，盘面呈区间震荡；突破方向需等待量价与波动率共同确认。",
   },
   transitional: {
     label: "过渡观察",
+    english: "Transitional",
     tone: "text-gold",
     summaryFallback:
       "指数、波动率与情绪指标存在分歧，处于过渡阶段；宜降低假设、等待更多交叉验证。",
