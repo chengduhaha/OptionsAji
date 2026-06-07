@@ -1,4 +1,5 @@
 import type { MvpMarketRegimeCode } from "@/lib/market-regime";
+import type { Locale } from "@/lib/i18n/types";
 
 export interface MarketPulseRow {
   symbol: string;
@@ -68,7 +69,9 @@ export interface DiscordKolHubItemContract {
   message_count: number;
   last_seen_utc: string;
   avatar_url: string | null;
+  bio?: string | null;
   bio_zh: string | null;
+  bio_en?: string | null;
   twitter_handle: string | null;
 }
 
@@ -87,8 +90,12 @@ export interface DiscordTimelineItemContract {
   tickers: string[];
   author?: string | null;
   raw_body?: string | null;
+  bullets?: string[] | null;
   bullets_zh?: string[] | null;
+  bullets_en?: string[] | null;
+  risk_note?: string | null;
   risk_note_zh?: string | null;
+  risk_note_en?: string | null;
   display_name?: string | null;
   avatar_url?: string | null;
 }
@@ -228,8 +235,43 @@ export interface FeedItemContract {
   priority?: string | null;
   raw_body?: string | null;
   original_lang?: string | null;
+  bullets?: string[] | null;
   bullets_zh?: string[] | null;
+  bullets_en?: string[] | null;
+  risk_note?: string | null;
   risk_note_zh?: string | null;
+  risk_note_en?: string | null;
+}
+
+type LocalizedNarrativeFields = {
+  bullets?: string[] | null;
+  bullets_zh?: string[] | null;
+  bullets_en?: string[] | null;
+  risk_note?: string | null;
+  risk_note_zh?: string | null;
+  risk_note_en?: string | null;
+};
+
+function filterStrings(values: string[] | null | undefined): string[] {
+  if (!values) return [];
+  return values.filter((value) => typeof value === "string" && value.trim());
+}
+
+export function localizedBullets(item: LocalizedNarrativeFields, locale: Locale): string[] {
+  if (locale === "en") {
+    const en = filterStrings(item.bullets_en ?? item.bullets);
+    if (en.length > 0) return en;
+  }
+  return filterStrings(item.bullets_zh ?? item.bullets);
+}
+
+export function localizedRiskNote(item: LocalizedNarrativeFields, locale: Locale): string | undefined {
+  if (locale === "en") {
+    const en = (item.risk_note_en ?? item.risk_note)?.trim();
+    if (en) return en;
+  }
+  const zh = (item.risk_note_zh ?? item.risk_note)?.trim();
+  return zh || undefined;
 }
 
 export interface FeedEnvelopeContract {

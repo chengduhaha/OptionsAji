@@ -2,11 +2,13 @@
 
 import { X, ExternalLink } from "lucide-react";
 import type { DiscordKolHubItemContract } from "@/lib/contracts";
+import { useI18n } from "@/lib/i18n/context";
+import type { Locale } from "@/lib/i18n/types";
 
-function formatTime(iso: string): string {
+function formatTime(iso: string, locale: Locale): string {
   if (!iso) return "—";
   try {
-    return new Date(iso).toLocaleString("zh-CN", { hour12: false });
+    return new Date(iso).toLocaleString(locale === "en" ? "en-US" : "zh-CN", { hour12: false });
   } catch {
     return iso;
   }
@@ -26,6 +28,7 @@ export default function KolDetailDrawer({
   entry: DiscordKolHubItemContract | null;
   onClose: () => void;
 }) {
+  const { locale, t } = useI18n();
   if (!entry) return null;
 
   const label = entry.display_name || entry.author;
@@ -36,13 +39,13 @@ export default function KolDetailDrawer({
     <>
       <button
         type="button"
-        aria-label="关闭"
+        aria-label={t("twitterKol.close")}
         className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[1px]"
         onClick={onClose}
       />
       <aside className="fixed bottom-0 right-0 top-0 z-50 flex w-full max-w-md flex-col border-l border-glass-border bg-panel shadow-2xl md:bottom-auto">
         <div className="flex items-center justify-between border-b border-glass-border px-4 py-3">
-          <h2 className="text-sm font-semibold text-foreground">博主详情</h2>
+          <h2 className="text-sm font-semibold text-foreground">{t("twitterKol.detailTitle")}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -74,27 +77,27 @@ export default function KolDetailDrawer({
                 rel="noopener noreferrer"
                 className="mt-2 inline-flex items-center gap-1 text-[12px] text-gold hover:underline"
               >
-                在 X 上查看
+                {t("twitterKol.viewOnX")}
                 <ExternalLink className="h-3 w-3" />
               </a>
             ) : null}
           </div>
 
-          {entry.bio_zh ? (
-            <p className="mt-5 text-[13px] leading-6 text-muted-foreground">{entry.bio_zh}</p>
+          {(entry.bio ?? entry.bio_zh) ? (
+            <p className="mt-5 text-[13px] leading-6 text-muted-foreground">{entry.bio ?? entry.bio_zh}</p>
           ) : (
-            <p className="mt-5 text-[13px] text-muted">暂无简介</p>
+            <p className="mt-5 text-[13px] text-muted">{t("twitterKol.noBio")}</p>
           )}
 
           <div className="mt-6 grid grid-cols-2 gap-3">
             <div className="rounded-lg border border-glass-border bg-glass px-3 py-2.5">
-              <p className="text-[10px] uppercase tracking-wide text-muted">消息数</p>
+              <p className="text-[10px] uppercase tracking-wide text-muted">{t("twitterKol.messageCount")}</p>
               <p className="mt-1 font-mono text-lg text-foreground">{entry.message_count}</p>
             </div>
             <div className="rounded-lg border border-glass-border bg-glass px-3 py-2.5">
-              <p className="text-[10px] uppercase tracking-wide text-muted">最近活跃</p>
+              <p className="text-[10px] uppercase tracking-wide text-muted">{t("twitterKol.lastActive")}</p>
               <p className="mt-1 font-mono text-[11px] text-foreground">
-                {formatTime(entry.last_seen_utc)}
+                {formatTime(entry.last_seen_utc, locale)}
               </p>
             </div>
           </div>

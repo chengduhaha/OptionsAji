@@ -1,3 +1,4 @@
+import { extraEn, extraZh } from "./namespaces";
 import type { DictionaryTree, Locale } from "./types";
 
 export const DEFAULT_LOCALE: Locale = "zh";
@@ -98,6 +99,7 @@ export const dictionary: Record<Locale, DictionaryTree> = {
       cannotConnect: "{message}，无法连接 Agent SSE。",
       elapsed: "耗时 {elapsed}",
     },
+    ...extraZh,
   },
   en: {
     language: {
@@ -192,6 +194,7 @@ export const dictionary: Record<Locale, DictionaryTree> = {
       cannotConnect: "{message}; cannot connect to Agent SSE.",
       elapsed: "elapsed {elapsed}",
     },
+    ...extraEn,
   },
 };
 

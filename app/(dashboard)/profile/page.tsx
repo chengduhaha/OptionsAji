@@ -8,6 +8,8 @@ import { useAccessKey } from "@/hooks/useAccessKey";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import { OPTIONS_AJI_API_KEY_LS, type AlertContract } from "@/lib/contracts";
+import { formatMessage } from "@/lib/i18n/dictionary";
+import { useI18n } from "@/lib/i18n/context";
 
 type CreemStatusPayload = {
   tier?: string;
@@ -20,6 +22,7 @@ type CreemStatusPayload = {
 };
 
 export default function ProfilePage() {
+  const { t } = useI18n();
   const { user, ready, token, refreshMe, loading: authLoading, isAdmin } = useAuth();
   const canManageIntegrations = user?.role === "admin";
   const {
@@ -79,12 +82,12 @@ export default function ProfilePage() {
       setWlSymbols(wl.symbols);
       setAlerts(al.data);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "加载失败";
+      const msg = e instanceof Error ? e.message : t("profile.loadFailed");
       setWlMsg(msg);
     } finally {
       setWlBusy(false);
     }
-  }, [apiKey, canManageIntegrations]);
+  }, [apiKey, canManageIntegrations, t]);
 
   useEffect(() => {
     void loadIntegration();
@@ -101,13 +104,13 @@ export default function ProfilePage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = (await res.json()) as CreemStatusPayload;
-      if (!res.ok) throw new Error("订阅状态读取失败");
+      if (!res.ok) throw new Error(t("profile.subscriptionReadFailed"));
       setCreemStatus(data);
     } catch (e) {
       setCreemStatus(null);
-      setCreemMsg(e instanceof Error ? e.message : "订阅状态读取失败");
+      setCreemMsg(e instanceof Error ? e.message : t("profile.subscriptionReadFailed"));
     }
-  }, [token, user]);
+  }, [token, user, t]);
 
   useEffect(() => {
     void refreshCreemStatus();
@@ -128,7 +131,7 @@ export default function ProfilePage() {
     const sym = newSym.trim().toUpperCase();
     const key = apiKey.trim();
     if (!sym || key.length < 8) {
-      setWlMsg("请输入标的，并确认 API Key 已保存（≥8 字符）");
+      setWlMsg(t("profile.addWatchlistNeedKey"));
       return;
     }
     setWlBusy(true);
@@ -138,7 +141,7 @@ export default function ProfilePage() {
       setNewSym("");
       await loadIntegration();
     } catch (e) {
-      setWlMsg(e instanceof Error ? e.message : "添加失败");
+      setWlMsg(e instanceof Error ? e.message : t("profile.addFailed"));
     } finally {
       setWlBusy(false);
     }
@@ -153,7 +156,7 @@ export default function ProfilePage() {
       await api.watchlist.remove(sym, key);
       await loadIntegration();
     } catch (e) {
-      setWlMsg(e instanceof Error ? e.message : "删除失败");
+      setWlMsg(e instanceof Error ? e.message : t("profile.removeFailed"));
     } finally {
       setWlBusy(false);
     }
@@ -162,7 +165,7 @@ export default function ProfilePage() {
   const createAlert = async () => {
     const key = apiKey.trim();
     if (key.length < 8) {
-      setAlertsMsg("请先在下方保存 Integration API Key");
+      setAlertsMsg(t("profile.saveKeyFirst"));
       return;
     }
     const sym = alertSymbol.trim().toUpperCase();
@@ -177,9 +180,9 @@ export default function ProfilePage() {
       });
       setAlertSymbol(sym);
       await loadIntegration();
-      setAlertsMsg("已创建");
+      setAlertsMsg(t("profile.alertCreated"));
     } catch (e) {
-      setAlertsMsg(e instanceof Error ? e.message : "创建失败");
+      setAlertsMsg(e instanceof Error ? e.message : t("profile.createFailed"));
     }
   };
 
@@ -205,11 +208,11 @@ export default function ProfilePage() {
       const data = (await res.json()) as { url?: string; detail?: { message?: string } | string };
       if (!res.ok) {
         const message = typeof data.detail === "string" ? data.detail : data.detail?.message;
-        throw new Error(message || "Creem 结账创建失败");
+        throw new Error(message || t("profile.checkoutFailed"));
       }
       if (data.url) window.location.href = data.url;
     } catch (e) {
-      setCreemMsg(e instanceof Error ? e.message : "Creem 结账创建失败");
+      setCreemMsg(e instanceof Error ? e.message : t("profile.checkoutFailed"));
     } finally {
       setCreemBusy(false);
     }
@@ -227,11 +230,11 @@ export default function ProfilePage() {
       const data = (await res.json()) as { url?: string; detail?: { message?: string } | string };
       if (!res.ok) {
         const message = typeof data.detail === "string" ? data.detail : data.detail?.message;
-        throw new Error(message || "订阅管理入口暂不可用");
+        throw new Error(message || t("profile.portalUnavailable"));
       }
       if (data.url) window.location.href = data.url;
     } catch (e) {
-      setCreemMsg(e instanceof Error ? e.message : "订阅管理入口暂不可用");
+      setCreemMsg(e instanceof Error ? e.message : t("profile.portalUnavailable"));
     } finally {
       setCreemBusy(false);
     }
@@ -241,7 +244,7 @@ export default function ProfilePage() {
     return (
       <div className="flex h-full items-center justify-center text-muted-foreground gap-2 text-[13px]">
         <Loader2 className="w-4 h-4 animate-spin" />
-        加载会话…
+        {t("profile.loadingSession")}
       </div>
     );
   }
@@ -253,9 +256,9 @@ export default function ProfilePage() {
           <UserCircle className="h-6 w-6 text-primary" />
         </div>
         <div>
-          <h1 className="heading-1 text-foreground">个人中心</h1>
+          <h1 className="heading-1 text-foreground">{t("profile.title")}</h1>
           <p className="mt-0.5 text-[13px] text-muted-foreground">
-            账户信息来自当前登录会话；部分集成管理能力仅管理员可见。
+            {t("profile.subtitle")}
           </p>
         </div>
       </header>
@@ -263,34 +266,34 @@ export default function ProfilePage() {
       {!user ? (
         <section className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-4 space-y-3 text-[13px]">
           <p className="text-foreground/95 leading-relaxed">
-            登录后可查看账户摘要。
+            {t("profile.loginPrompt")}
           </p>
           <div className="flex flex-wrap gap-3">
             <Link
               href="/login?next=/profile"
               className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary text-primary-foreground text-[13px] font-medium hover:opacity-95"
             >
-              登录
+              {t("profile.login")}
             </Link>
             <Link
               href="/register"
               className="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-border text-[13px] hover:border-primary/30"
             >
-              注册
+              {t("profile.register")}
             </Link>
           </div>
         </section>
       ) : (
         <section className="rounded-2xl border border-border bg-card p-5 space-y-3">
           <h2 className="text-[13px] font-semibold text-foreground flex items-center justify-between gap-2">
-            账户摘要
+            {t("profile.accountSummary")}
             <button
               type="button"
               onClick={() => void handleRefreshMe()}
               disabled={meBusy}
               className="text-[11px] text-primary hover:underline disabled:opacity-50"
             >
-              {meBusy ? "刷新中…" : "刷新 /me"}
+              {meBusy ? t("profile.refreshing") : t("profile.refreshMe")}
             </button>
           </h2>
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px] font-mono">
@@ -301,18 +304,18 @@ export default function ProfilePage() {
               </dd>
             </div>
             <div>
-              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">显示名</dt>
+              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">{t("profile.displayName")}</dt>
               <dd className="text-foreground">{user.display_name ?? "—"}</dd>
             </div>
             {canManageIntegrations ? (
               <div>
-                <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">角色</dt>
+                <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">{t("profile.role")}</dt>
                 <dd className="text-foreground">{user.role}</dd>
               </div>
             ) : null}
             <div>
-              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">邮箱验证</dt>
-              <dd className="text-foreground">{user.email_verified ? "已验证" : "未验证"}</dd>
+              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">{t("profile.emailVerified")}</dt>
+              <dd className="text-foreground">{user.email_verified ? t("profile.verified") : t("profile.unverified")}</dd>
             </div>
           </dl>
         </section>
@@ -321,37 +324,38 @@ export default function ProfilePage() {
       {user ? (
         <section className="rounded-2xl border border-primary/30 bg-primary/[0.06] p-5 space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-[13px] font-semibold text-foreground">订阅与用量 / Creem</h2>
+            <h2 className="text-[13px] font-semibold text-foreground">{t("profile.subscription")}</h2>
             <button
               type="button"
               onClick={() => void refreshCreemStatus()}
               disabled={creemBusy}
               className="text-[11px] text-primary hover:underline disabled:opacity-50"
             >
-              刷新状态
+              {t("profile.refreshStatus")}
             </button>
           </div>
           <p className="text-[12px] text-muted-foreground leading-relaxed">
-            Pro 订阅优先通过 Creem 支付与管理。OptionsAji 不保存银行卡信息，不执行交易，不接触资金。
-            Stripe 仅作为后续/备用支付通道保留。
+            {t("profile.subscriptionNote")}
           </p>
           <dl className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[12px]">
             <div>
-              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">权益</dt>
+              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">{t("profile.entitlement")}</dt>
               <dd className="text-foreground font-mono">{creemStatus?.tier ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">来源</dt>
+              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">{t("profile.source")}</dt>
               <dd className="text-foreground font-mono">{creemStatus?.source ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">状态</dt>
+              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">{t("profile.status")}</dt>
               <dd className="text-foreground font-mono">{creemStatus?.provider_status ?? "—"}</dd>
             </div>
           </dl>
           {creemStatus?.current_period_end_utc ? (
             <p className="text-[11px] text-muted-foreground">
-              当前周期结束：{new Date(creemStatus.current_period_end_utc).toLocaleString()}
+              {formatMessage(t("profile.periodEnd"), {
+                date: new Date(creemStatus.current_period_end_utc).toLocaleString(),
+              })}
             </p>
           ) : null}
           {creemMsg ? <p className="text-[12px] text-gold whitespace-pre-wrap">{creemMsg}</p> : null}
@@ -362,7 +366,7 @@ export default function ProfilePage() {
               disabled={creemBusy}
               className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-[12px] font-medium disabled:opacity-50"
             >
-              {creemBusy ? "处理中…" : "升级 Pro（Creem）"}
+              {creemBusy ? t("profile.processing") : t("profile.upgradePro")}
             </button>
             <button
               type="button"
@@ -370,13 +374,13 @@ export default function ProfilePage() {
               disabled={creemBusy}
               className="px-4 py-2 rounded-lg border border-primary/30 text-primary text-[12px] font-medium hover:bg-primary/10 disabled:opacity-50"
             >
-              管理订阅
+              {t("profile.manageSubscription")}
             </button>
             <Link
               href="/refund"
               className="px-4 py-2 rounded-lg border border-border text-[12px] text-muted-foreground hover:text-foreground"
             >
-              退款与取消政策
+              {t("profile.refundPolicy")}
             </Link>
           </div>
         </section>
@@ -385,34 +389,34 @@ export default function ProfilePage() {
       {user && (isAdmin || hasAccessKey) ? (
         <section className="rounded-2xl border border-border bg-card p-5 space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-[13px] font-semibold text-foreground">内部试用 Access Key</h2>
+            <h2 className="text-[13px] font-semibold text-foreground">{t("profile.accessKeyTitle")}</h2>
             <button
               type="button"
               onClick={() => void refreshStatus()}
               disabled={statusLoading}
               className="text-[11px] text-primary hover:underline disabled:opacity-50"
             >
-              {statusLoading ? "校验中…" : "刷新状态"}
+              {statusLoading ? t("profile.validating") : t("profile.refreshStatus")}
             </button>
           </div>
           {isAdmin ? (
             <p className="text-[12px] text-green leading-relaxed">
-              管理员账号可直接浏览市场洞察全部内容，无需内部试用 Key。
+              {t("profile.adminNoKey")}
             </p>
           ) : null}
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px]">
             <div>
-              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">是否已设置内部 Key</dt>
-              <dd className="text-foreground">{isAdmin ? "免 Key（管理员）" : hasAccessKey ? "是" : "否"}</dd>
+              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">{t("profile.keySet")}</dt>
+              <dd className="text-foreground">{isAdmin ? t("profile.adminExempt") : hasAccessKey ? t("profile.yes") : t("profile.no")}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">状态</dt>
-              <dd className="text-foreground">{hasAccessKey ? statusLabel : "未设置"}</dd>
+              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">{t("profile.keyStatus")}</dt>
+              <dd className="text-foreground">{hasAccessKey ? statusLabel : t("profile.notSet")}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">剩余有效期</dt>
+              <dt className="text-muted-foreground text-[10px] uppercase tracking-wide">{t("profile.daysRemaining")}</dt>
               <dd className="text-foreground font-mono">
-                {daysRemaining !== null ? `${daysRemaining} 天` : hasAccessKey ? "—" : "—"}
+                {daysRemaining !== null ? formatMessage(t("profile.days"), { count: daysRemaining }) : "—"}
               </dd>
             </div>
           </dl>
@@ -422,17 +426,17 @@ export default function ProfilePage() {
               busy={accessKeyBusy}
               message={accessKeyMsg}
               messageTone={accessKeyMsgTone}
-              submitLabel="保存并校验"
+              submitLabel={t("profile.saveAndValidate")}
               onSave={async (raw) => {
                 setAccessKeyBusy(true);
                 setAccessKeyMsg(null);
                 const result = await saveKey(raw);
                 setAccessKeyBusy(false);
                 if (result.ok) {
-                  setAccessKeyMsg("Access Key 已启用");
+                  setAccessKeyMsg(t("profile.keyEnabled"));
                   setAccessKeyMsgTone("success");
                 } else {
-                  setAccessKeyMsg(result.error ?? "校验失败");
+                  setAccessKeyMsg(result.error ?? t("profile.validateFailed"));
                   setAccessKeyMsgTone("error");
                 }
               }}
@@ -443,16 +447,16 @@ export default function ProfilePage() {
               type="button"
               onClick={() => {
                 clearKey();
-                setAccessKeyMsg("已清除本地 Access Key");
+                setAccessKeyMsg(t("profile.keyCleared"));
                 setAccessKeyMsgTone("success");
               }}
               className="text-[12px] text-muted-foreground hover:text-red"
             >
-              清除本地 Key
+              {t("profile.clearKey")}
             </button>
           ) : null}
           <p className="text-[11px] text-muted-foreground leading-relaxed">
-            Access Key 仅用于内部、线下或早期试用；正式 Pro 付费请使用上方 Creem 订阅入口。
+            {t("profile.accessKeyNote")}
           </p>
         </section>
       ) : null}
@@ -460,16 +464,14 @@ export default function ProfilePage() {
       {canManageIntegrations ? (
         <>
           <section className="rounded-2xl border border-border bg-card p-5 space-y-3">
-            <h2 className="text-[13px] font-semibold text-foreground">Integration API Key</h2>
+            <h2 className="text-[13px] font-semibold text-foreground">{t("profile.integrationKey")}</h2>
             <p className="text-[11px] text-muted-foreground leading-relaxed">
-              用于自选、提醒与推送设置；与「设置」页共用{" "}
-              <span className="font-mono text-foreground/90">{OPTIONS_AJI_API_KEY_LS}</span>{" "}
-              本地存储。
+              {formatMessage(t("profile.integrationNote"), { storageKey: OPTIONS_AJI_API_KEY_LS })}
             </p>
             <input
               value={apiKey}
               onChange={(e) => persistKey(e.target.value)}
-              placeholder="至少 8 位"
+              placeholder={t("profile.apiKeyPlaceholder")}
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-[13px] font-mono"
             />
             <button
@@ -478,13 +480,13 @@ export default function ProfilePage() {
               disabled={wlBusy}
               className="text-[12px] px-3 py-1.5 rounded-lg border border-primary/30 text-primary hover:bg-primary/10 disabled:opacity-50"
             >
-              重新加载自选 / 提醒
+              {t("profile.reloadWatchlist")}
             </button>
           </section>
 
           <section className="rounded-2xl border border-border bg-card p-5 space-y-3">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="text-[13px] font-semibold text-foreground">自选列表</h2>
+          <h2 className="text-[13px] font-semibold text-foreground">{t("profile.watchlist")}</h2>
           {wlBusy ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /> : null}
         </div>
         {wlMsg ? <p className="text-[12px] text-red">{wlMsg}</p> : null}
@@ -492,7 +494,7 @@ export default function ProfilePage() {
           <input
             value={newSym}
             onChange={(e) => setNewSym(e.target.value.toUpperCase())}
-            placeholder="例如 NVDA"
+            placeholder={t("profile.symbolPlaceholder")}
             className="flex-1 min-w-[120px] rounded-lg border border-border bg-background px-3 py-2 text-[13px] font-mono uppercase"
           />
           <button
@@ -501,11 +503,11 @@ export default function ProfilePage() {
             disabled={wlBusy}
             className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-[12px] font-medium disabled:opacity-50"
           >
-            添加
+            {t("profile.add")}
           </button>
         </div>
         {wlSymbols.length === 0 ? (
-          <p className="text-[12px] text-muted-foreground">暂无自选（或 API Key 未配置）。</p>
+          <p className="text-[12px] text-muted-foreground">{t("profile.watchlistEmpty")}</p>
         ) : (
           <ul className="flex flex-wrap gap-2">
             {wlSymbols.map((s) => (
@@ -532,17 +534,17 @@ export default function ProfilePage() {
           </section>
 
           <section className="rounded-2xl border border-border bg-card p-5 space-y-3">
-        <h2 className="text-[13px] font-semibold text-foreground">提醒</h2>
+        <h2 className="text-[13px] font-semibold text-foreground">{t("profile.alerts")}</h2>
         {alertsMsg ? (
           <p
-            className={`text-[12px] ${alertsMsg.startsWith("已") ? "text-green" : "text-red"}`}
+            className={`text-[12px] ${alertsMsg === t("profile.alertCreated") ? "text-green" : "text-red"}`}
           >
             {alertsMsg}
           </p>
         ) : null}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px]">
           <label className="space-y-1 block">
-            <span className="text-[10px] text-muted-foreground uppercase">类型</span>
+            <span className="text-[10px] text-muted-foreground uppercase">{t("profile.alertType")}</span>
             <input
               value={alertType}
               onChange={(e) => setAlertType(e.target.value)}
@@ -550,7 +552,7 @@ export default function ProfilePage() {
             />
           </label>
           <label className="space-y-1 block">
-            <span className="text-[10px] text-muted-foreground uppercase">标的</span>
+            <span className="text-[10px] text-muted-foreground uppercase">{t("profile.alertSymbol")}</span>
             <input
               value={alertSymbol}
               onChange={(e) => setAlertSymbol(e.target.value.toUpperCase())}
@@ -558,7 +560,7 @@ export default function ProfilePage() {
             />
           </label>
           <label className="space-y-1 block sm:col-span-2">
-            <span className="text-[10px] text-muted-foreground uppercase">阈值（可选）</span>
+            <span className="text-[10px] text-muted-foreground uppercase">{t("profile.alertThreshold")}</span>
             <input
               value={alertThreshold}
               onChange={(e) => setAlertThreshold(e.target.value)}
@@ -571,10 +573,10 @@ export default function ProfilePage() {
           onClick={() => void createAlert()}
           className="px-4 py-2 rounded-lg border border-accent/40 text-accent text-[12px] font-medium hover:bg-accent/10"
         >
-          创建提醒
+          {t("profile.createAlert")}
         </button>
         {alerts.length === 0 ? (
-          <p className="text-[12px] text-muted-foreground">暂无提醒。</p>
+          <p className="text-[12px] text-muted-foreground">{t("profile.noAlerts")}</p>
         ) : (
           <ul className="space-y-1.5 max-h-48 overflow-y-auto text-[12px] font-mono">
             {alerts.map((a) => (
@@ -596,17 +598,16 @@ export default function ProfilePage() {
 
           <section className="rounded-2xl border border-border bg-card p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="text-[13px] font-semibold text-foreground">更多</h2>
+          <h2 className="text-[13px] font-semibold text-foreground">{t("profile.more")}</h2>
           <p className="text-[11px] text-muted-foreground mt-1">
-            部署基线与预发布检查清单见后端仓库{" "}
-            <code className="text-foreground/90">RELEASE_CHECKLIST.md</code>。
+            {t("profile.moreNote")}
           </p>
         </div>
         <Link
           href="/settings"
           className="inline-flex items-center gap-2 self-start sm:self-center px-4 py-2 rounded-lg bg-primary/10 border border-primary/25 text-primary text-[12px] font-medium hover:bg-primary/15"
         >
-          前往设置 / 集成
+          {t("profile.goSettings")}
           <ExternalLink className="w-3.5 h-3.5 opacity-80" />
         </Link>
           </section>

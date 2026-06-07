@@ -5,33 +5,43 @@ import { RefreshCw, AtSign } from "lucide-react";
 import KolAvatarStrip from "@/components/twitter-kol/KolAvatarStrip";
 import KolDetailDrawer from "@/components/twitter-kol/KolDetailDrawer";
 import KolTimelineCard from "@/components/twitter-kol/KolTimelineCard";
+import { api } from "@/lib/api";
 import type {
   DiscordKolHubItemContract,
   DiscordTimelineItemContract,
 } from "@/lib/contracts";
+import { LOCALE_CHANGE_EVENT } from "@/lib/i18n/context";
+import { formatMessage } from "@/lib/i18n/dictionary";
+import { useI18n } from "@/lib/i18n/context";
+import type { Locale } from "@/lib/i18n/types";
 
-function formatTime(iso: string): string {
+const KOL_CACHE_TTL_MS = 3 * 60 * 1000;
+const hubCache = new Map<string, { data: DiscordKolHubItemContract[]; cachedAt: number }>();
+const timelineCache = new Map<
+  string,
+  {
+    items: DiscordTimelineItemContract[];
+    updatedAt: string | null;
+    nextBefore: string | null;
+    hasMore: boolean;
+    cachedAt: number;
+  }
+>();
+
+function cacheFresh(cachedAt: number): boolean {
+  return Date.now() - cachedAt < KOL_CACHE_TTL_MS;
+}
+
+function formatTime(iso: string, locale: Locale): string {
   try {
-    return new Date(iso).toLocaleString("zh-CN", { hour12: false });
+    return new Date(iso).toLocaleString(locale === "en" ? "en-US" : "zh-CN", { hour12: false });
   } catch {
     return iso;
   }
 }
 
-function parseError(payload: unknown): string {
-  if (!payload || typeof payload !== "object") return "加载失败";
-  const detail = (payload as { detail?: unknown }).detail;
-  if (typeof detail === "object" && detail && "message" in detail) {
-    return String((detail as { message: unknown }).message);
-  }
-  if ("error" in (payload as object)) {
-    const err = (payload as { error?: { message?: string } }).error;
-    if (err?.message) return err.message;
-  }
-  return "加载失败";
-}
-
 export default function TwitterKolPage() {
+  const { locale, t } = useI18n();
   const [hubEntries, setHubEntries] = useState<DiscordKolHubItemContract[]>([]);
   const [items, setItems] = useState<DiscordTimelineItemContract[]>([]);
   const [selectedAuthors, setSelectedAuthors] = useState<Set<string>>(new Set());
@@ -51,72 +61,92 @@ export default function TwitterKolPage() {
     return map;
   }, [hubEntries]);
 
-  const loadHub = useCallback(async () => {
-    setLoadingHub(true);
+  const loadHub = useCallback(async (opts?: { silent?: boolean }) => {
+    const cacheKey = `hub:${locale}`;
+    const cached = hubCache.get(cacheKey);
+    if (cached && cacheFresh(cached.cachedAt)) {
+      setHubEntries(cached.data);
+      if (!opts?.silent) setLoadingHub(false);
+    } else if (!opts?.silent) {
+      setLoadingHub(true);
+    }
     try {
-      const params = new URLSearchParams({ menu_slot: "twitter_kol", hours: "168" });
-      const res = await fetch(`/api/discord/kol-hub?${params}`, { cache: "no-store" });
-      const raw = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(parseError(raw));
-      const list = Array.isArray((raw as { items?: unknown }).items)
-        ? ((raw as { items: DiscordKolHubItemContract[] }).items)
-        : [];
+      const data = await api.discord.kolHub({ menu_slot: "twitter_kol", hours: 168, locale });
+      const list = data.items ?? [];
+      hubCache.set(cacheKey, { data: list, cachedAt: Date.now() });
       setHubEntries(list);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "加载博主列表失败");
-      setHubEntries([]);
+      if (!cached) {
+        setError(e instanceof Error ? e.message : t("twitterKol.loadHubFailed"));
+        setHubEntries([]);
+      }
     } finally {
       setLoadingHub(false);
     }
-  }, []);
+  }, [locale, t]);
 
   const fetchTimeline = useCallback(
-    async (opts?: { append?: boolean; before?: string | null }) => {
+    async (opts?: { append?: boolean; before?: string | null; silent?: boolean }) => {
       const append = opts?.append ?? false;
-      if (append) setLoadingMore(true);
-      else setLoadingTimeline(true);
+      const authorsKey = Array.from(selectedAuthors).sort().join(",");
+      const cacheKey = `timeline:${locale}:${authorsKey}:${opts?.before ?? "head"}`;
+      const cached = !append ? timelineCache.get(cacheKey) : undefined;
+      if (cached && cacheFresh(cached.cachedAt)) {
+        setItems(cached.items);
+        setUpdatedAt(cached.updatedAt);
+        setNextBefore(cached.nextBefore);
+        setHasMore(cached.hasMore);
+        if (!opts?.silent) setLoadingTimeline(false);
+      } else if (append) {
+        setLoadingMore(true);
+      } else if (!opts?.silent) {
+        setLoadingTimeline(true);
+      }
 
       try {
-        const params = new URLSearchParams({
+        const data = await api.discord.timeline({
           menu_slot: "twitter_kol",
-          hours: "168",
-          limit: "30",
+          hours: 168,
+          limit: 30,
+          authors: Array.from(selectedAuthors),
+          before_timestamp: opts?.before ?? undefined,
+          locale,
         });
-        const authors = Array.from(selectedAuthors);
-        if (authors.length > 0) params.set("authors", authors.join(","));
-        if (opts?.before) params.set("before_timestamp", opts.before);
-
-        const res = await fetch(`/api/discord/timeline?${params}`, { cache: "no-store" });
-        const raw = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(parseError(raw));
-
-        const data = raw as {
-          items?: DiscordTimelineItemContract[];
-          generated_at_utc?: string;
-          next_before?: string | null;
-          has_more?: boolean;
-        };
         const page = Array.isArray(data.items) ? data.items : [];
-        setItems((prev) => (append ? [...prev, ...page] : page));
+        if (append) {
+          setItems((prev) => [...prev, ...page]);
+        } else {
+          setItems(page);
+          timelineCache.set(cacheKey, {
+            items: page,
+            updatedAt: data.generated_at_utc ?? null,
+            nextBefore: data.next_before ?? null,
+            hasMore: Boolean(data.has_more),
+            cachedAt: Date.now(),
+          });
+        }
         setUpdatedAt(data.generated_at_utc ?? null);
         setNextBefore(data.next_before ?? null);
         setHasMore(Boolean(data.has_more));
         setError(null);
       } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : "加载动态失败");
-        if (!append) setItems([]);
+        if (!cached) {
+          setError(e instanceof Error ? e.message : t("twitterKol.loadTimelineFailed"));
+          if (!append) setItems([]);
+        }
       } finally {
         if (append) setLoadingMore(false);
         else setLoadingTimeline(false);
       }
     },
-    [selectedAuthors],
+    [locale, selectedAuthors, t],
   );
 
   const refreshAll = useCallback(async () => {
-    await loadHub();
-    await fetchTimeline();
-  }, [loadHub, fetchTimeline]);
+    hubCache.delete(`hub:${locale}`);
+    timelineCache.clear();
+    await Promise.all([loadHub(), fetchTimeline()]);
+  }, [fetchTimeline, loadHub, locale]);
 
   useEffect(() => {
     void loadHub();
@@ -125,6 +155,14 @@ export default function TwitterKolPage() {
   useEffect(() => {
     void fetchTimeline();
   }, [fetchTimeline]);
+
+  useEffect(() => {
+    const onLocaleChange = () => {
+      void refreshAll();
+    };
+    window.addEventListener(LOCALE_CHANGE_EVENT, onLocaleChange);
+    return () => window.removeEventListener(LOCALE_CHANGE_EVENT, onLocaleChange);
+  }, [refreshAll]);
 
   function toggleAuthor(author: string) {
     setSelectedAuthors((prev) => {
@@ -163,11 +201,13 @@ export default function TwitterKolPage() {
           <div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <AtSign className="h-4 w-4 text-gold" />
-              美股大牛追踪
+              {t("twitterKol.eyebrow")}
             </div>
-            <h1 className="mt-2 text-xl font-semibold text-foreground">精选市场观点</h1>
+            <h1 className="mt-2 text-xl font-semibold text-foreground">{t("twitterKol.title")}</h1>
             {updatedAt ? (
-              <p className="mt-1 text-[10px] text-muted">更新于 {formatTime(updatedAt)}</p>
+              <p className="mt-1 text-[10px] text-muted">
+                {formatMessage(t("twitterKol.updatedAt"), { time: formatTime(updatedAt, locale) })}
+              </p>
             ) : null}
           </div>
           <button
@@ -177,7 +217,7 @@ export default function TwitterKolPage() {
             className="inline-flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/10 px-3 py-2 text-sm text-gold hover:bg-gold/15 disabled:opacity-50"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            刷新
+            {t("twitterKol.refresh")}
           </button>
         </div>
       </header>
@@ -201,10 +241,10 @@ export default function TwitterKolPage() {
       ) : null}
 
       {loadingTimeline && items.length === 0 ? (
-        <p className="text-[13px] text-muted-foreground">加载中…</p>
+        <p className="text-[13px] text-muted-foreground">{t("twitterKol.loading")}</p>
       ) : items.length === 0 ? (
         <div className="rounded-xl border border-glass-border bg-panel/60 px-4 py-8 text-center">
-          <p className="text-[14px] text-muted-foreground">暂无动态，请稍后再来。</p>
+          <p className="text-[14px] text-muted-foreground">{t("twitterKol.empty")}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -223,7 +263,7 @@ export default function TwitterKolPage() {
                 onClick={() => void fetchTimeline({ append: true, before: nextBefore })}
                 className="rounded-lg border border-glass-border px-4 py-2 text-[13px] text-muted-foreground hover:border-gold/40 hover:text-gold disabled:opacity-50"
               >
-                {loadingMore ? "加载中…" : "加载更多"}
+                {loadingMore ? t("twitterKol.loading") : t("twitterKol.loadMore")}
               </button>
             </div>
           ) : null}

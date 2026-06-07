@@ -38,7 +38,6 @@ import { useI18n } from "@/lib/i18n/context";
 import { useNavVisibility } from "@/lib/nav-visibility-context";
 import type { NavMenuId } from "@/lib/nav-visibility";
 import { Menu } from "lucide-react";
-import LanguageToggle from "@/components/LanguageToggle";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const NAV_GROUPS = [
@@ -299,8 +298,7 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div className="px-4 py-4 border-t border-glass-border">
-        <div className="mb-3 space-y-2">
-          <LanguageToggle />
+        <div className="mb-3">
           <ThemeToggle />
         </div>
         {user ? (

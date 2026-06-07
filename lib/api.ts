@@ -31,9 +31,27 @@ import type {
   WatchlistRemoveContract,
 } from "@/lib/contracts";
 import { buildMvpRequestHeaders } from "@/lib/access-key";
+import { DEFAULT_LOCALE, LOCALE_STORAGE_KEY } from "@/lib/i18n/dictionary";
+import type { Locale } from "@/lib/i18n/types";
 import { unwrapMvpEnvelope } from "@/lib/mvp-tier";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE || "";
+
+export function getClientLocale(): Locale {
+  if (typeof window === "undefined") return DEFAULT_LOCALE;
+  try {
+    const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
+    return stored === "en" ? "en" : DEFAULT_LOCALE;
+  } catch {
+    return DEFAULT_LOCALE;
+  }
+}
+
+function withLocale(params: URLSearchParams, locale?: Locale): URLSearchParams {
+  const next = new URLSearchParams(params);
+  next.set("locale", locale ?? getClientLocale());
+  return next;
+}
 
 type JsonPrimitive = string | number | boolean | null;
 type JsonValue = JsonPrimitive | JsonObject | JsonValue[];
@@ -128,12 +146,15 @@ export const api = {
     indices: () => fetchJSON("/api/market/indices"),
     overview: () => fetchJSON<MarketOverviewContract>("/api/market/overview"),
     aiSummary: () => fetchJSON("/api/market/ai-summary"),
-    brief: () => fetchJSON<AgentBriefContract>("/api/agent/brief"),
-    signalsFeed: () => fetchJSON<SignalsFeedEnvelopeContract>("/api/signals/feed"),
-    mvpMarketInsights: async (authToken?: string | null) => {
-      const raw = await fetchJSON<Record<string, unknown>>("/api/mvp/market-insights", {
-        headers: buildMvpRequestHeaders(undefined, authToken),
-      });
+    brief: (locale?: Locale) =>
+      fetchJSON<AgentBriefContract>(`/api/agent/brief?${withLocale(new URLSearchParams(), locale)}`),
+    signalsFeed: (locale?: Locale) =>
+      fetchJSON<SignalsFeedEnvelopeContract>(`/api/signals/feed?${withLocale(new URLSearchParams(), locale)}`),
+    mvpMarketInsights: async (authToken?: string | null, locale?: Locale) => {
+      const raw = await fetchJSON<Record<string, unknown>>(
+        `/api/mvp/market-insights?${withLocale(new URLSearchParams(), locale)}`,
+        { headers: buildMvpRequestHeaders(undefined, authToken) },
+      );
       return unwrapMvpEnvelope(raw).data as unknown as MvpMarketInsightsContract;
     },
     mvpMacroCalendarInsights: async (
@@ -141,8 +162,12 @@ export const api = {
       to: string,
       country = "US",
       authToken?: string | null,
+      locale?: Locale,
     ) => {
-      const params = new URLSearchParams({ from_date: from, to_date: to, country });
+      const params = withLocale(
+        new URLSearchParams({ from_date: from, to_date: to, country }),
+        locale,
+      );
       const raw = await fetchJSON<Record<string, unknown>>(
         `/api/mvp/macro-calendar-insights?${params}`,
         { headers: buildMvpRequestHeaders(undefined, authToken) },
@@ -159,13 +184,16 @@ export const api = {
       unusual_items?: Array<Record<string, unknown>>;
       market_regime_code?: string | null;
       market_regime_label?: string | null;
-    }, authToken?: string | null) =>
+    }, authToken?: string | null, locale?: Locale) =>
       (async () => {
-        const raw = await fetchJSON<Record<string, unknown>>("/api/mvp/stock-options-insights", {
-          method: "POST",
-          headers: buildMvpRequestHeaders(undefined, authToken),
-          body: JSON.stringify(payload),
-        });
+        const raw = await fetchJSON<Record<string, unknown>>(
+          `/api/mvp/stock-options-insights?${withLocale(new URLSearchParams(), locale)}`,
+          {
+            method: "POST",
+            headers: buildMvpRequestHeaders(undefined, authToken),
+            body: JSON.stringify(payload),
+          },
+        );
         return unwrapMvpEnvelope(raw).data as unknown as StockOptionsInsightsContract;
       })(),
   },
@@ -285,17 +313,17 @@ export const api = {
         params.set("hours", String(filters.hours));
       }
       if (filters?.menu_slot) params.set("menu_slot", filters.menu_slot);
-      return fetchJSON<FeedEnvelopeContract>(`/api/feed/unified?${params}`);
+      return fetchJSON<FeedEnvelopeContract>(`/api/feed/unified?${withLocale(params)}`);
     },
   },
 
   discord: {
-    kolHub: (opts?: { menu_slot?: string; hours?: number }) => {
+    kolHub: (opts?: { menu_slot?: string; hours?: number; locale?: Locale }) => {
       const params = new URLSearchParams();
       params.set("menu_slot", opts?.menu_slot ?? "twitter_kol");
       params.set("hours", String(opts?.hours ?? 168));
       return fetchJSON<import("@/lib/contracts").DiscordKolHubContract>(
-        `/api/discord/kol-hub?${params}`,
+        `/api/discord/kol-hub?${withLocale(params, opts?.locale)}`,
       );
     },
     timeline: (opts?: {
@@ -305,6 +333,7 @@ export const api = {
       ticker?: string;
       authors?: string[];
       before_timestamp?: string;
+      locale?: Locale;
     }) => {
       const params = new URLSearchParams();
       params.set("menu_slot", opts?.menu_slot ?? "twitter_kol");
@@ -316,7 +345,7 @@ export const api = {
       }
       if (opts?.before_timestamp) params.set("before_timestamp", opts.before_timestamp);
       return fetchJSON<import("@/lib/contracts").DiscordTimelineContract>(
-        `/api/discord/timeline?${params}`,
+        `/api/discord/timeline?${withLocale(params, opts?.locale)}`,
       );
     },
   },
@@ -330,14 +359,15 @@ export const api = {
   },
 
   social: {
-    radar: (limit = 10) => fetchJSON<SocialRadarContract>(`/api/social/radar?limit=${limit}`),
+    radar: (limit = 10, locale?: Locale) =>
+      fetchJSON<SocialRadarContract>(`/api/social/radar?${withLocale(new URLSearchParams({ limit: String(limit) }), locale)}`),
     smartVsRetail: (symbol: string) =>
       fetchJSON<SmartVsRetailContract>(`/api/social/smart-vs-retail/${symbol}`),
     kolDirectory: () => fetchJSON<KolDirectoryContract>("/api/social/kol"),
-    resonanceStream: (limit = 30, symbol?: string) => {
+    resonanceStream: (limit = 30, symbol?: string, locale?: Locale) => {
       const qs = new URLSearchParams({ limit: String(limit) });
       if (symbol?.trim()) qs.set("symbol", symbol.trim().toUpperCase());
-      return fetchJSON<ResonanceStreamContract>(`/api/social/resonance?${qs}`);
+      return fetchJSON<ResonanceStreamContract>(`/api/social/resonance?${withLocale(qs, locale)}`);
     },
   },
 

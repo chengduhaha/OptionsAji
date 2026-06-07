@@ -29,8 +29,6 @@ import {
 import {
   Area,
   AreaChart,
-  Bar,
-  BarChart,
   CartesianGrid,
   ReferenceLine,
   ResponsiveContainer,
@@ -42,6 +40,13 @@ import GexChart from "@/components/gex/GexChart";
 import GexTrendChart, { type HistRow } from "@/components/gex/GexTrendChart";
 import { interpretPCR, interpretVix } from "@/components/shared/DataLabel";
 import { api } from "@/lib/api";
+import {
+  localizedBullets,
+  localizedRiskNote,
+} from "@/lib/contracts";
+import { formatMessage, resolveDictionaryValue } from "@/lib/i18n/dictionary";
+import { LOCALE_CHANGE_EVENT, useI18n } from "@/lib/i18n/context";
+import type { Locale } from "@/lib/i18n/types";
 import { CHART, tooltipStyle } from "@/lib/chart-theme";
 import { buildMvpRequestHeaders } from "@/lib/access-key";
 import { AccessKeyModal } from "@/components/access-key/AccessKeyModal";
@@ -61,6 +66,9 @@ import {
 } from "@/lib/option-framework";
 import {
   formatWarRoomImpactLabel,
+  impactIsBearishOrRisk,
+  impactIsBullish,
+  localizedImpactScopeFallback,
   mergeRelatedAssets,
   normalizeWarRoomImpact,
   normalizeWarRoomImpactScope,
@@ -74,7 +82,12 @@ import {
   normalizeRegimeCode,
   regimeMeta,
 } from "@/lib/market-regime";
-import { buildGammaStructureRead, selectGammaStructureSpot } from "@/lib/gex-decision";
+import {
+  buildGammaStructureRead,
+  isMeanReversion,
+  isVolatilityExpansion,
+  selectGammaStructureSpot,
+} from "@/lib/gex-decision";
 import type {
   AnalystPriceTargetContract,
   FeedEnvelopeContract,
@@ -102,7 +115,6 @@ type WarRoomData = {
   marketInsights: AsyncSlot<MvpMarketInsightsContract>;
   brief: AsyncSlot<{ brief?: string }>;
   macro: AsyncSlot<JsonRecord>;
-  treasury: AsyncSlot<JsonRecord>;
   news: AsyncSlot<JsonRecord>;
   feed: AsyncSlot<FeedEnvelopeContract>;
   signals: AsyncSlot<SignalsFeedEnvelopeContract>;
@@ -154,20 +166,20 @@ type EventItem = {
   detail: EventDetail;
 };
 
-function eventDetailFromFeed(item: FeedItemContract): EventDetail {
-  const bullets = (item.bullets_zh ?? []).filter((b) => typeof b === "string" && b.trim());
+function eventDetailFromFeed(item: FeedItemContract, locale: Locale): EventDetail {
+  const bullets = localizedBullets(item, locale);
   const tickers = item.tickers ?? [];
   return {
     source: "",
-    timeLabel: zhTime(item.created_at_utc),
+    timeLabel: zhTime(item.created_at_utc, locale),
     title: item.title,
     summary: item.body.trim() || undefined,
     bullets,
-    riskNote: item.risk_note_zh?.trim() || undefined,
+    riskNote: localizedRiskNote(item, locale),
     rawOriginal: item.raw_body?.trim() || undefined,
     tickers,
     relatedAssets: tickers,
-    impactScopeLabel: "美股大盘",
+    impactScopeLabel: localizedImpactScopeFallback(locale),
   };
 }
 
@@ -189,6 +201,7 @@ function EventDetailModal({
   impactLabel: string;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -214,16 +227,18 @@ function EventDetailModal({
           type="button"
           onClick={onClose}
           className="absolute right-3 top-3 rounded-md p-1 text-muted-foreground transition hover:bg-foreground/10 hover:text-foreground"
-          aria-label="关闭"
+          aria-label={t("mvp.close")}
         >
           <X className="h-5 w-5" />
         </button>
 
         <div className="flex flex-wrap items-center gap-2 pr-8">
-          <Pill tone={impact === "利好" ? "green" : impact === "利空" || impact === "风险" ? "red" : "muted"}>
+          <Pill tone={impactIsBullish(impact) ? "green" : impactIsBearishOrRisk(impact) ? "red" : "muted"}>
             {impactLabel}
           </Pill>
-          <span className="text-[10px] text-muted-foreground">评判对象：{detail.impactScopeLabel}</span>
+          <span className="text-[10px] text-muted-foreground">
+            {formatMessage(t("mvp.eventDetail.scopeLabel"), { scope: detail.impactScopeLabel })}
+          </span>
           <span className="ml-auto font-mono text-xs text-gold">{detail.timeLabel}</span>
         </div>
 
@@ -247,7 +262,7 @@ function EventDetailModal({
 
         {detail.watchZh ? (
           <section className="mt-3 rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
-            <h3 className="text-[11px] uppercase tracking-wider text-muted">观察要点</h3>
+            <h3 className="text-[11px] uppercase tracking-wider text-muted">{t("mvp.eventDetail.watchPoints")}</h3>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">{detail.watchZh}</p>
           </section>
         ) : null}
@@ -256,25 +271,25 @@ function EventDetailModal({
           <section className="mt-4 grid grid-cols-1 gap-2">
             {detail.deepDive ? (
               <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
-                <h3 className="text-[11px] uppercase tracking-wider text-muted">深度解析</h3>
+                <h3 className="text-[11px] uppercase tracking-wider text-muted">{t("mvp.eventDetail.deepDive")}</h3>
                 <p className="mt-1 text-sm leading-6 text-muted-foreground whitespace-pre-wrap">{detail.deepDive}</p>
               </div>
             ) : null}
             {detail.tradeImplications ? (
               <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
-                <h3 className="text-[11px] uppercase tracking-wider text-muted">交易影响</h3>
+                <h3 className="text-[11px] uppercase tracking-wider text-muted">{t("mvp.eventDetail.tradeImpact")}</h3>
                 <p className="mt-1 text-sm leading-6 text-muted-foreground whitespace-pre-wrap">{detail.tradeImplications}</p>
               </div>
             ) : null}
             {detail.scenario ? (
               <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
-                <h3 className="text-[11px] uppercase tracking-wider text-muted">情景推演</h3>
+                <h3 className="text-[11px] uppercase tracking-wider text-muted">{t("mvp.eventDetail.scenario")}</h3>
                 <p className="mt-1 text-sm leading-6 text-muted-foreground whitespace-pre-wrap">{detail.scenario}</p>
               </div>
             ) : null}
             {detail.riskWatch ? (
               <div className="rounded-lg border border-red/20 bg-red/10 px-3 py-2">
-                <h3 className="text-[11px] uppercase tracking-wider text-red">失效条件</h3>
+                <h3 className="text-[11px] uppercase tracking-wider text-red">{t("mvp.eventDetail.invalidation")}</h3>
                 <p className="mt-1 text-sm leading-6 text-red/90 whitespace-pre-wrap">{detail.riskWatch}</p>
               </div>
             ) : null}
@@ -283,14 +298,14 @@ function EventDetailModal({
 
         {detail.summary ? (
           <section className="mt-4">
-            <h3 className="text-[11px] uppercase tracking-wider text-muted">摘要</h3>
+            <h3 className="text-[11px] uppercase tracking-wider text-muted">{t("mvp.eventDetail.summary")}</h3>
             <p className="mt-2 text-sm leading-6 text-muted-foreground whitespace-pre-wrap">{detail.summary}</p>
           </section>
         ) : null}
 
         {detail.bullets.length > 0 ? (
           <section className="mt-4">
-            <h3 className="text-[11px] uppercase tracking-wider text-muted">要点解读</h3>
+            <h3 className="text-[11px] uppercase tracking-wider text-muted">{t("mvp.eventDetail.bullets")}</h3>
             <ul className="mt-2 space-y-2">
               {detail.bullets.map((bullet) => (
                 <li key={bullet} className="flex gap-2 text-sm leading-6 text-foreground">
@@ -304,14 +319,14 @@ function EventDetailModal({
 
         {detail.riskNote ? (
           <section className="mt-4 rounded-lg border border-red/20 bg-red/10 px-3 py-2">
-            <h3 className="text-[11px] uppercase tracking-wider text-red">风险提示</h3>
+            <h3 className="text-[11px] uppercase tracking-wider text-red">{t("mvp.eventDetail.riskNote")}</h3>
             <p className="mt-1 text-sm leading-6 text-red/90 whitespace-pre-wrap">{detail.riskNote}</p>
           </section>
         ) : null}
 
         {detail.rawOriginal ? (
           <section className="mt-4">
-            <h3 className="text-[11px] uppercase tracking-wider text-muted">原文</h3>
+            <h3 className="text-[11px] uppercase tracking-wider text-muted">{t("mvp.eventDetail.original")}</h3>
             <p className="mt-2 rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2 text-xs leading-6 text-muted-foreground whitespace-pre-wrap">
               {detail.rawOriginal}
             </p>
@@ -319,7 +334,7 @@ function EventDetailModal({
         ) : null}
 
         {!detail.summary && detail.bullets.length === 0 && !detail.rawOriginal ? (
-          <p className="mt-4 text-sm text-muted">暂无 AI 增强内容，请稍后刷新或查看其他消息。</p>
+          <p className="mt-4 text-sm text-muted">{t("mvp.eventDetail.noAiContent")}</p>
         ) : null}
       </div>
     </div>
@@ -364,19 +379,19 @@ const EMPTY_WAR_ROOM: WarRoomData = {
   marketInsights: { data: null, error: null },
   brief: { data: null, error: null },
   macro: { data: null, error: null },
-  treasury: { data: null, error: null },
   news: { data: null, error: null },
   feed: { data: null, error: null },
   signals: { data: null, error: null },
 };
 
-let cachedWarRoom:
-  | {
-      data: WarRoomData;
-      updatedAt: string | null;
-      cachedAt: number;
-    }
-  | null = null;
+const cachedWarRoom = new Map<
+  Locale,
+  {
+    data: WarRoomData;
+    updatedAt: string | null;
+    cachedAt: number;
+  }
+>();
 
 const cachedStockReports = new Map<
   string,
@@ -390,8 +405,9 @@ function isFresh(cachedAt: number): boolean {
   return Date.now() - cachedAt < PAGE_CACHE_TTL_MS;
 }
 
-function getFreshWarRoomCache() {
-  return cachedWarRoom && isFresh(cachedWarRoom.cachedAt) ? cachedWarRoom : null;
+function getFreshWarRoomCache(locale: Locale) {
+  const cached = cachedWarRoom.get(locale);
+  return cached && isFresh(cached.cachedAt) ? cached : null;
 }
 
 function reportCacheKey(symbol: string, direction: Direction, regimeCode?: string | null): string {
@@ -436,12 +452,12 @@ function money(value: unknown, digits = 2): string {
   return `$${n.toFixed(digits)}`;
 }
 
-function zhTime(value: unknown): string {
+function zhTime(value: unknown, locale: Locale = "zh"): string {
   const raw = text(value);
   if (!raw) return "";
   const d = new Date(raw);
   if (Number.isNaN(d.getTime())) return raw;
-  return d.toLocaleString("zh-CN", {
+  return d.toLocaleString(locale === "en" ? "en-US" : "zh-CN", {
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
@@ -515,8 +531,14 @@ async function settle<T>(fn: () => Promise<T>): Promise<AsyncSlot<T>> {
   }
 }
 
-async function fetchJson(path: string, authToken?: string | null): Promise<JsonRecord> {
-  const res = await fetch(path, {
+async function fetchJson(
+  path: string,
+  authToken?: string | null,
+  locale: Locale = "zh",
+): Promise<JsonRecord> {
+  const url = new URL(path, typeof window !== "undefined" ? window.location.origin : "http://localhost");
+  url.searchParams.set("locale", locale);
+  const res = await fetch(`${url.pathname}${url.search}`, {
     cache: "no-store",
     headers: path.startsWith("/api/mvp") ? buildMvpRequestHeaders(undefined, authToken) : undefined,
   });
@@ -538,11 +560,6 @@ function getEvents(payload: JsonRecord | null): JsonRecord[] {
   return asArray(payload.events).map(asRecord);
 }
 
-function getTreasuryRows(payload: JsonRecord | null): JsonRecord[] {
-  if (!payload) return [];
-  return asArray(payload.rates).map(asRecord);
-}
-
 type MarketStateView = {
   code: MvpMarketRegimeCode;
   label: string;
@@ -553,7 +570,11 @@ type MarketStateView = {
   engineNote: string;
 };
 
-function classifyMarket(overview: MarketOverviewContract | null, signals: SignalCardContract[]): MarketStateView {
+function classifyMarket(
+  overview: MarketOverviewContract | null,
+  signals: SignalCardContract[],
+  locale: Locale,
+): MarketStateView {
   const spy = overview?.pulse.find((p) => p.symbol === "SPY")?.changePct ?? null;
   const qqq = overview?.pulse.find((p) => p.symbol === "QQQ")?.changePct ?? null;
   const vix = overview?.volatility.vix ?? null;
@@ -573,15 +594,20 @@ function classifyMarket(overview: MarketOverviewContract | null, signals: Signal
     `信号综合得分 ${signalScore}（上涨情景加分、下跌情景减分，来自 /api/signals/feed）`,
   ];
 
-  const engineNote = "阿吉深度洞察暂不可用，以下为盘面依据供对照。";
-  const classified = classifyRegimeFromMetrics({
-    avgIndex,
-    vix,
-    vixChange,
-    vixBand,
-    signalScore,
-  });
-  const meta = regimeMeta(classified.code);
+  const engineNote =
+    resolveDictionaryValue(locale, "mvp.engineNoteUnavailable") ??
+    "阿吉深度洞察暂不可用，以下为盘面依据供对照。";
+  const classified = classifyRegimeFromMetrics(
+    {
+      avgIndex,
+      vix,
+      vixChange,
+      vixBand,
+      signalScore,
+    },
+    locale,
+  );
+  const meta = regimeMeta(classified.code, locale);
   return {
     code: classified.code,
     label: classified.label,
@@ -617,35 +643,43 @@ function regimeAccentBar(code: MvpMarketRegimeCode): string {
   return "bg-gold/70";
 }
 
-function indexDirectionRead(avgIndex: number): { label: string; tone: string; hint: string } {
+function indexDirectionRead(avgIndex: number, locale: Locale): { label: string; tone: string; hint: string } {
   if (avgIndex >= 0.35) {
     return {
-      label: "偏强",
+      label: resolveDictionaryValue(locale, "mvp.index.strong") ?? "偏强",
       tone: "text-green",
       hint: `SPY/QQQ 平均涨 ${pct(avgIndex)}，宽基指数方向向上`,
     };
   }
   if (avgIndex <= -0.35) {
     return {
-      label: "偏弱",
+      label: resolveDictionaryValue(locale, "mvp.index.weak") ?? "偏弱",
       tone: "text-red",
       hint: `SPY/QQQ 平均跌 ${Math.abs(avgIndex).toFixed(2)}%，宽基指数承压`,
     };
   }
   return {
-    label: "震荡",
+    label: resolveDictionaryValue(locale, "mvp.index.range") ?? "震荡",
     tone: "text-blue",
     hint: `指数涨跌有限（均值 ${pct(avgIndex)}），方向待确认`,
   };
 }
 
-function pcrMoodRead(pcr: number | null): { label: string; tone: string; barPct: number } {
+function pcrMoodRead(pcr: number | null, locale: Locale): { label: string; tone: string; barPct: number } {
   if (pcr === null) return { label: "—", tone: "text-muted", barPct: 50 };
-  if (pcr > 1.2) return { label: "极度看跌", tone: "text-red", barPct: 85 };
-  if (pcr > 1) return { label: "偏谨慎", tone: "text-gold", barPct: 65 };
-  if (pcr < 0.5) return { label: "极度看涨", tone: "text-green", barPct: 15 };
-  if (pcr < 0.7) return { label: "偏乐观", tone: "text-green", barPct: 35 };
-  return { label: "均衡", tone: "text-blue", barPct: 50 };
+  if (pcr > 1.2) {
+    return { label: resolveDictionaryValue(locale, "mvp.pcr.extremeBear") ?? "极度看跌", tone: "text-red", barPct: 85 };
+  }
+  if (pcr > 1) {
+    return { label: resolveDictionaryValue(locale, "mvp.pcr.cautious") ?? "偏谨慎", tone: "text-gold", barPct: 65 };
+  }
+  if (pcr < 0.5) {
+    return { label: resolveDictionaryValue(locale, "mvp.pcr.extremeBull") ?? "极度看涨", tone: "text-green", barPct: 15 };
+  }
+  if (pcr < 0.7) {
+    return { label: resolveDictionaryValue(locale, "mvp.pcr.optimistic") ?? "偏乐观", tone: "text-green", barPct: 35 };
+  }
+  return { label: resolveDictionaryValue(locale, "mvp.pcr.balanced") ?? "均衡", tone: "text-blue", barPct: 50 };
 }
 
 function buildPlainLanguageBasis(args: {
@@ -655,9 +689,10 @@ function buildPlainLanguageBasis(args: {
   vixBand: string;
   pcr: number | null;
   regimeLabel: string;
+  locale: Locale;
 }): string[] {
   const lines: string[] = [];
-  const indexRead = indexDirectionRead(args.avgIndex);
+  const indexRead = indexDirectionRead(args.avgIndex, args.locale);
   lines.push(indexRead.hint);
 
   if (args.vix !== null) {
@@ -673,9 +708,10 @@ function buildPlainLanguageBasis(args: {
   }
 
   if (args.pcr !== null) {
-    const mood = pcrMoodRead(args.pcr);
+    const mood = pcrMoodRead(args.pcr, args.locale);
+    const balanced = resolveDictionaryValue(args.locale, "mvp.pcr.balanced") ?? "均衡";
     lines.push(
-      mood.label === "均衡"
+      mood.label === balanced
         ? `P/C ${args.pcr.toFixed(2)}，Put/Call 成交均衡，无极端情绪`
         : `P/C ${args.pcr.toFixed(2)}，期权成交情绪${mood.label}`,
     );
@@ -868,18 +904,21 @@ function useMediaQuery(query: string): boolean {
   return matches;
 }
 
-function engineNoteFromInsights(insights: MvpMarketInsightsContract | null): string {
-  if (!insights) return "阿吉深度洞察暂不可用";
-  return "阿吉深度洞察 · 每 5 分钟更新";
+function engineNoteFromInsights(insights: MvpMarketInsightsContract | null, locale: Locale): string {
+  if (!insights) {
+    return resolveDictionaryValue(locale, "mvp.engineNoteMissing") ?? "阿吉深度洞察暂不可用";
+  }
+  return resolveDictionaryValue(locale, "mvp.engineNoteActive") ?? "阿吉深度洞察 · 每 5 分钟更新";
 }
 
 function marketStateFromInsights(
   insights: MvpMarketInsightsContract,
   fallback: MarketStateView,
+  locale: Locale,
 ): MarketStateView {
   const code =
     normalizeRegimeCode(insights.regime.code, insights.regime.label) ?? fallback.code;
-  const meta = regimeMeta(code);
+  const meta = regimeMeta(code, locale);
   return {
     code,
     label: insights.regime.label || meta.label,
@@ -887,7 +926,7 @@ function marketStateFromInsights(
     icon: regimeIcon(code),
     summary: insights.regime.summary || fallback.summary,
     basis: insights.regime.basis?.length ? insights.regime.basis : fallback.basis,
-    engineNote: engineNoteFromInsights(insights),
+    engineNote: engineNoteFromInsights(insights, locale),
   };
 }
 
@@ -899,19 +938,22 @@ function feedItemImpact(item: FeedItemContract): WarRoomImpact {
   return "中性";
 }
 
-function makeWarRoomEventItem(params: {
-  id: string;
-  title: string;
-  body: string;
-  tag: string;
-  timeLabel: string;
-  impact: WarRoomImpact;
-  impactScope: WarRoomImpactScope;
-  relatedAssets: string[];
-  impactNote?: string;
-  watchZh?: string;
-  detailExtras?: Partial<EventDetail>;
-}): EventItem {
+function makeWarRoomEventItem(
+  params: {
+    id: string;
+    title: string;
+    body: string;
+    tag: string;
+    timeLabel: string;
+    impact: WarRoomImpact;
+    impactScope: WarRoomImpactScope;
+    relatedAssets: string[];
+    impactNote?: string;
+    watchZh?: string;
+    detailExtras?: Partial<EventDetail>;
+  },
+  locale: Locale,
+): EventItem {
   const {
     id,
     title,
@@ -925,7 +967,7 @@ function makeWarRoomEventItem(params: {
     watchZh,
     detailExtras,
   } = params;
-  const impactScopeLabel = warRoomImpactScopeLabel(impactScope);
+  const impactScopeLabel = warRoomImpactScopeLabel(impactScope, locale);
   const detail: EventDetail = {
     source: tag,
     timeLabel,
@@ -946,7 +988,7 @@ function makeWarRoomEventItem(params: {
     tag,
     impact,
     impactScope,
-    impactLabel: formatWarRoomImpactLabel(impact, impactScope),
+    impactLabel: formatWarRoomImpactLabel(impact, impactScope, locale),
     impactNote,
     relatedAssets,
     watchZh,
@@ -956,15 +998,15 @@ function makeWarRoomEventItem(params: {
 }
 
 /** Prefer backend war-room events (LLM impact labels); fallback to unified feed + macro + news. */
-function eventsFromMvpWarRoom(mvp: JsonRecord | null): EventItem[] {
+function eventsFromMvpWarRoom(mvp: JsonRecord | null, locale: Locale): EventItem[] {
   const rows = getEvents(mvp);
   if (rows.length === 0) return [];
 
   return rows.map((ev) => {
-    const title = text(ev.title, "市场事件");
+    const title = text(ev.title, resolveDictionaryValue(locale, "mvp.event.market") ?? "市场事件");
     const body = text(ev.body);
     const timeRaw = text(ev.time) || text(ev.created_at_utc);
-    const timeLabel = timeRaw ? zhTime(timeRaw) : "—";
+    const timeLabel = timeRaw ? zhTime(timeRaw, locale) : "—";
     const impact = normalizeWarRoomImpact(text(ev.impact, "中性"));
     const impactScope = normalizeWarRoomImpactScope(text(ev.impact_scope, "equity_broad"));
     const relatedAssets = mergeRelatedAssets(ev.related_assets, ev.tickers);
@@ -974,29 +1016,32 @@ function eventsFromMvpWarRoom(mvp: JsonRecord | null): EventItem[] {
     const tradeImplications = text(ev.trade_implications_zh) || undefined;
     const scenario = text(ev.scenario_zh) || undefined;
     const riskWatch = text(ev.risk_watch_zh) || undefined;
-    return makeWarRoomEventItem({
-      id: text(ev.id, `${timeLabel}-${title}`),
-      title,
-      body,
-      tag: text(ev.tag, "Discord"),
-      timeLabel,
-      impact,
-      impactScope,
-      relatedAssets,
-      impactNote,
-      watchZh,
-      detailExtras: {
-        deepDive,
-        tradeImplications,
-        scenario,
-        riskWatch,
+    return makeWarRoomEventItem(
+      {
+        id: text(ev.id, `${timeLabel}-${title}`),
+        title,
+        body,
+        tag: text(ev.tag, "Discord"),
+        timeLabel,
+        impact,
+        impactScope,
+        relatedAssets,
+        impactNote,
+        watchZh,
+        detailExtras: {
+          deepDive,
+          tradeImplications,
+          scenario,
+          riskWatch,
+        },
       },
-    });
+      locale,
+    );
   });
 }
 
-function buildWarRoomEvents(data: WarRoomData): EventItem[] {
-  const fromMvp = eventsFromMvpWarRoom(data.mvp.data);
+function buildWarRoomEvents(data: WarRoomData, locale: Locale): EventItem[] {
+  const fromMvp = eventsFromMvpWarRoom(data.mvp.data, locale);
   if (fromMvp.length > 0) return fromMvp.slice(0, 8);
 
   const events: EventItem[] = [];
@@ -1007,22 +1052,27 @@ function buildWarRoomEvents(data: WarRoomData): EventItem[] {
     .sort((a, b) => new Date(b.created_at_utc).getTime() - new Date(a.created_at_utc).getTime());
 
   for (const item of feedItems) {
-    const detail = eventDetailFromFeed(item);
+    const detail = eventDetailFromFeed(item, locale);
     const preview = eventPreviewBody(detail);
     const impact = feedItemImpact(item);
     const scope: WarRoomImpactScope = item.kind === "macro" ? "macro_geo" : "equity_broad";
+    const tagKey =
+      item.kind === "discord" ? "mvp.tag.discord" : item.kind === "macro" ? "mvp.tag.macro" : "mvp.tag.news";
     events.push(
-      makeWarRoomEventItem({
-        id: item.id,
-        title: item.title,
-        body: preview,
-        tag: item.kind === "discord" ? "Discord" : item.kind === "macro" ? "宏观" : "新闻",
-        timeLabel: detail.timeLabel,
-        impact,
-        impactScope: scope,
-        relatedAssets: detail.relatedAssets,
-        detailExtras: detail,
-      }),
+      makeWarRoomEventItem(
+        {
+          id: item.id,
+          title: item.title,
+          body: preview,
+          tag: resolveDictionaryValue(locale, tagKey) ?? item.kind,
+          timeLabel: detail.timeLabel,
+          impact,
+          impactScope: scope,
+          relatedAssets: detail.relatedAssets,
+          detailExtras: detail,
+        },
+        locale,
+      ),
     );
   }
 
@@ -1045,48 +1095,57 @@ function buildWarRoomEvents(data: WarRoomData): EventItem[] {
     ]
       .filter(Boolean)
       .join(" · ");
-    const timeLabel = zhTime(ev.date);
+    const timeLabel = zhTime(ev.date, locale);
     events.push(
-      makeWarRoomEventItem({
-        id: `macro-${timeLabel}-${title}`,
-        title,
-        body: summary.slice(0, 160),
-        tag: text(ev.impact) === "High" ? "高影响" : "中影响",
-        timeLabel,
-        impact: impact as WarRoomImpact,
-        impactScope: "macro_geo",
-        relatedAssets: [],
-        detailExtras: {
-          source: "",
-          summary,
-          bullets: [],
-          rawOriginal: eventName,
+      makeWarRoomEventItem(
+        {
+          id: `macro-${timeLabel}-${title}`,
+          title,
+          body: summary.slice(0, 160),
+          tag:
+            text(ev.impact) === "High"
+              ? resolveDictionaryValue(locale, "mvp.tag.highImpact") ?? "高影响"
+              : resolveDictionaryValue(locale, "mvp.tag.mediumImpact") ?? "中影响",
+          timeLabel,
+          impact: impact as WarRoomImpact,
+          impactScope: "macro_geo",
+          relatedAssets: [],
+          detailExtras: {
+            source: "",
+            summary,
+            bullets: [],
+            rawOriginal: eventName,
+          },
         },
-      }),
+        locale,
+      ),
     );
   }
 
   for (const article of getArticles(data.news.data).slice(0, 3)) {
     const title = text(article.title_zh) || text(article.title, "市场新闻");
     const summary = text(article.summary_zh) || text(article.content);
-    const timeLabel = zhTime(article.published_at ?? article.publishedDate ?? article.date);
+    const timeLabel = zhTime(article.published_at ?? article.publishedDate ?? article.date, locale);
     const symbols = asArray(article.symbols).map((s) => String(s)).filter(Boolean);
     events.push(
-      makeWarRoomEventItem({
-        id: `news-${timeLabel}-${title}`,
-        title,
-        body: summary.slice(0, 160),
-        tag: "新闻",
-        timeLabel,
-        impact: "中性",
-        impactScope: symbols.length === 1 ? "single_stock" : "equity_broad",
-        relatedAssets: symbols,
-        detailExtras: {
-          source: "",
-          summary: summary || undefined,
-          rawOriginal: text(article.content) || undefined,
+      makeWarRoomEventItem(
+        {
+          id: `news-${timeLabel}-${title}`,
+          title,
+          body: summary.slice(0, 160),
+          tag: resolveDictionaryValue(locale, "mvp.tag.news") ?? "新闻",
+          timeLabel,
+          impact: "中性",
+          impactScope: symbols.length === 1 ? "single_stock" : "equity_broad",
+          relatedAssets: symbols,
+          detailExtras: {
+            source: "",
+            summary: summary || undefined,
+            rawOriginal: text(article.content) || undefined,
+          },
         },
-      }),
+        locale,
+      ),
     );
   }
 
@@ -1297,56 +1356,10 @@ function mergeGexHistory(payload: JsonRecord | null, profile: JsonRecord | null)
     .slice(-90);
 }
 
-function buildTreasuryRead(latest: JsonRecord) {
-  const oneMonth = num(latest.month1 ?? latest["1M"]);
-  const twoYear = num(latest.year2 ?? latest["2Y"]);
-  const tenYear = num(latest.year10 ?? latest["10Y"]);
-  const thirtyYear = num(latest.year30 ?? latest["30Y"]);
-  const spread10y2y = tenYear !== null && twoYear !== null ? tenYear - twoYear : null;
-  const spread30y10y = thirtyYear !== null && tenYear !== null ? thirtyYear - tenYear : null;
-  const spread10y1m = tenYear !== null && oneMonth !== null ? tenYear - oneMonth : null;
-
-  if (spread10y2y === null) {
-    return {
-      label: "等待利率数据",
-      summary: "国债曲线缺少关键期限，暂时只把柱状图作为利率水平参考。",
-      spreads: { spread10y2y, spread30y10y, spread10y1m },
-    };
-  }
-
-  if (spread10y2y < -0.25) {
-    return {
-      label: "曲线深度倒挂",
-      summary: "2Y 高于 10Y，市场仍在交易降息和增长放缓预期；成长股反弹更依赖利率回落和风险偏好修复。",
-      spreads: { spread10y2y, spread30y10y, spread10y1m },
-    };
-  }
-  if (spread10y2y < 0) {
-    return {
-      label: "曲线轻度倒挂",
-      summary: "短端仍高于长端，但倒挂不深；盘中重点看 10Y 是否继续上行，长端上行会压制 QQQ/NVDA 这类久期资产。",
-      spreads: { spread10y2y, spread30y10y, spread10y1m },
-    };
-  }
-  if (spread30y10y !== null && spread30y10y > 0.25) {
-    return {
-      label: "长端偏陡",
-      summary: "30Y 相对 10Y 偏高，长端期限溢价抬升；如果同时伴随美元走强，成长股追高需要降低仓位。",
-      spreads: { spread10y2y, spread30y10y, spread10y1m },
-    };
-  }
-  return {
-    label: "曲线相对正常",
-    summary: "2Y/10Y 未明显倒挂，利率曲线对风险资产的压制相对有限，盘中更应关注指数和波动率确认。",
-    spreads: { spread10y2y, spread30y10y, spread10y1m },
-  };
-}
-
 function buildTradePlan(args: {
   brief?: string;
   marketCode: MvpMarketRegimeCode;
   events: EventItem[];
-  treasurySummary: string;
   vix: number | null;
   vixChange: number | null;
 }): string[] {
@@ -1374,7 +1387,6 @@ function buildTradePlan(args: {
   } else {
     plan.push("波动率未明显失控时，正股看关键区间，期权看 DTE、成交量、OI 和买卖价差。");
   }
-  plan.push(args.treasurySummary);
   return plan.slice(0, 5);
 }
 
@@ -1530,14 +1542,20 @@ function compareFlipToExpectedMove(
   };
 }
 
-function entryGammaHint(structureBias: string): string {
-  if (structureBias === "波动放大") {
-    return "负 Gamma 环境下价格波动易放大，入场宜缩小仓位并设好止损。";
+function entryGammaHint(biasCode: import("@/lib/gex-decision").GammaStructureBiasCode, locale: Locale): string {
+  if (isVolatilityExpansion(biasCode)) {
+    return (
+      resolveDictionaryValue(locale, "mvp.gamma.entryHint.volatility_expansion") ??
+      "负 Gamma 环境下价格波动易放大，入场宜缩小仓位并设好止损。"
+    );
   }
-  if (structureBias === "震荡吸附") {
-    return "正 Gamma 环境下价格倾向被结构吸附，适合区间思路或卖波动策略。";
+  if (isMeanReversion(biasCode)) {
+    return (
+      resolveDictionaryValue(locale, "mvp.gamma.entryHint.mean_reversion") ??
+      "正 Gamma 环境下价格倾向被结构吸附，适合区间思路或卖波动策略。"
+    );
   }
-  return "Gamma 结构尚未确认，建议等 Flip/Wall 方向明朗后再入场。";
+  return resolveDictionaryValue(locale, "mvp.gamma.bias.pending") ?? "等待确认";
 }
 
 function GlanceStat({
@@ -1652,6 +1670,7 @@ export type MvpInsightsPageProps = {
 };
 
 export default function MvpInsightsPage({ variant = "standalone", section = "all" }: MvpInsightsPageProps) {
+  const { locale, t } = useI18n();
   const isDashboard = variant === "dashboard";
   const showMarket = section !== "ticker";
   const showTicker = section !== "market";
@@ -1667,7 +1686,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
   const rootClassName = isDashboard
     ? "h-full overflow-y-auto bg-background text-foreground"
     : "min-h-screen bg-background text-foreground";
-  const initialWarRoomCache = isPro ? getFreshWarRoomCache() : null;
+  const initialWarRoomCache = isPro ? getFreshWarRoomCache(locale) : null;
   const initialRegimeCode = initialWarRoomCache?.data.marketInsights.data?.regime?.code ?? null;
   const initialReportCache = isPro ? getFreshReportCache("SPY", "bull", initialRegimeCode) : null;
   const [warRoom, setWarRoom] = useState<WarRoomData>(initialWarRoomCache?.data ?? EMPTY_WAR_ROOM);
@@ -1700,7 +1719,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
 
   const loadWarRoom = useCallback(async (opts?: { silent?: boolean; force?: boolean }) => {
     if (isPro && !opts?.force) {
-      const cached = getFreshWarRoomCache();
+      const cached = getFreshWarRoomCache(locale);
       if (cached) {
         setWarRoom(cached.data);
         setWarRoomUpdatedAt(cached.updatedAt);
@@ -1714,13 +1733,14 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
     const authToken = tier === "guest" ? null : token;
     const baseTasks = [
       ["overview", settle<MarketOverviewContract>(() => api.market.overview())],
-      ["signals", settle<SignalsFeedEnvelopeContract>(() => api.market.signalsFeed())],
+      ["signals", settle<SignalsFeedEnvelopeContract>(() => api.market.signalsFeed(locale))],
       [
         "mvp",
         settle<JsonRecord>(() =>
           fetchJson(
             `/api/mvp/war-room?hours=${DISCORD_EVENT_HOURS}&menu_slot=aji_insights`,
             authToken,
+            locale,
           ),
         ),
       ],
@@ -1729,10 +1749,12 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
       tier === "guest"
         ? ([] as const)
         : ([
-            ["marketInsights", settle<MvpMarketInsightsContract>(() => api.market.mvpMarketInsights(authToken))],
-            ["brief", settle<{ brief?: string }>(() => api.market.brief() as Promise<{ brief?: string }>)],
+            [
+              "marketInsights",
+              settle<MvpMarketInsightsContract>(() => api.market.mvpMarketInsights(authToken, locale)),
+            ],
+            ["brief", settle<{ brief?: string }>(() => api.market.brief(locale) as Promise<{ brief?: string }>)],
             ["macro", settle<JsonRecord>(() => api.macro.calendar(today, tomorrow, "US") as Promise<JsonRecord>)],
-            ["treasury", settle<JsonRecord>(() => api.macro.treasury(30) as Promise<JsonRecord>)],
             ["news", settle<JsonRecord>(() => api.news.latest() as Promise<JsonRecord>)],
             [
               "feed",
@@ -1746,14 +1768,14 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
             ],
           ] as const);
     const tasks = [...baseTasks, ...trialTasks] as const;
-    let latestWarRoom = cachedWarRoom?.data ?? EMPTY_WAR_ROOM;
+    let latestWarRoom = cachedWarRoom.get(locale)?.data ?? EMPTY_WAR_ROOM;
     let loadingCleared = Boolean(opts?.silent);
     const applySlot = (key: keyof WarRoomData, slot: AsyncSlot<unknown>) => {
       latestWarRoom = { ...latestWarRoom, [key]: slot } as WarRoomData;
       const mvpGenerated = text(latestWarRoom.mvp.data?.generated_at_utc);
       const insightsGenerated = text(latestWarRoom.marketInsights.data?.generated_at_utc);
       const updatedAt = insightsGenerated || mvpGenerated || new Date().toISOString();
-      cachedWarRoom = { data: latestWarRoom, updatedAt, cachedAt: Date.now() };
+      cachedWarRoom.set(locale, { data: latestWarRoom, updatedAt, cachedAt: Date.now() });
       setWarRoom(latestWarRoom);
       setWarRoomUpdatedAt(updatedAt);
       if (!loadingCleared) {
@@ -1768,16 +1790,24 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
       }),
     );
     if (!opts?.silent) setWarLoading(false);
-  }, [isPro, tier, token]);
+  }, [isPro, locale, tier, token]);
 
   useEffect(() => {
     if (!ready) return;
-    void loadWarRoom();
+    void loadWarRoom({ force: true });
     const timer = window.setInterval(() => {
       void loadWarRoom({ silent: true });
     }, WAR_ROOM_REFRESH_MS);
     return () => window.clearInterval(timer);
   }, [loadWarRoom, ready]);
+
+  useEffect(() => {
+    const onLocaleChange = () => {
+      void loadWarRoom({ force: true });
+    };
+    window.addEventListener(LOCALE_CHANGE_EVENT, onLocaleChange);
+    return () => window.removeEventListener(LOCALE_CHANGE_EVENT, onLocaleChange);
+  }, [loadWarRoom]);
 
   const currentMarketRegime = warRoom.marketInsights.data?.regime ?? null;
 
@@ -1855,32 +1885,13 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
   }, [runStockReport, tier]);
 
   const signals = warRoom.signals.data?.signals ?? [];
-  const ruleMarketState = classifyMarket(warRoom.overview.data, signals);
+  const ruleMarketState = classifyMarket(warRoom.overview.data, signals, locale);
   const aiInsights = warRoom.marketInsights.data;
   const marketState = aiInsights
-    ? marketStateFromInsights(aiInsights, ruleMarketState)
+    ? marketStateFromInsights(aiInsights, ruleMarketState, locale)
     : ruleMarketState;
   const MarketIcon = marketState.icon;
-  const events = useMemo(() => buildWarRoomEvents(warRoom), [warRoom]);
-  const treasuryRows = getTreasuryRows(warRoom.treasury.data);
-  const latestTreasury = treasuryRows[0] ?? {};
-  const ruleTreasuryRead = buildTreasuryRead(latestTreasury);
-  const treasuryRead = aiInsights?.treasury?.summary
-    ? {
-        label: aiInsights.treasury.label || "阿吉解读",
-        summary: aiInsights.treasury.summary,
-        spreads: aiInsights.treasury.spreads ?? ruleTreasuryRead.spreads,
-      }
-    : ruleTreasuryRead;
-  const treasurySpreads = asRecord(treasuryRead.spreads);
-  const spread10y2y = num(treasurySpreads.spread10y2y ?? treasurySpreads["10y_2y"]);
-  const spread30y10y = num(treasurySpreads.spread30y10y ?? treasurySpreads["30y_10y"]);
-  const yieldBars = [
-    { term: "1M", rate: num(latestTreasury.month1 ?? latestTreasury["1M"]) },
-    { term: "2Y", rate: num(latestTreasury.year2 ?? latestTreasury["2Y"]) },
-    { term: "10Y", rate: num(latestTreasury.year10 ?? latestTreasury["10Y"]) },
-    { term: "30Y", rate: num(latestTreasury.year30 ?? latestTreasury["30Y"]) },
-  ].filter((row): row is { term: string; rate: number } => row.rate !== null);
+  const events = useMemo(() => buildWarRoomEvents(warRoom, locale), [warRoom, locale]);
   const overview = warRoom.overview.data;
   const pulseRows = overview?.pulse ?? [];
   const vixHistory = overview?.volatility.vixSeries ?? [];
@@ -1907,8 +1918,8 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
         : qqqChange !== null
           ? qqqChange
           : 0;
-  const indexRead = indexDirectionRead(avgIndexChange);
-  const pcrMood = pcrMoodRead(pcr);
+  const indexRead = indexDirectionRead(avgIndexChange, locale);
+  const pcrMood = pcrMoodRead(pcr, locale);
   const plainBasis = useMemo(
     () =>
       buildPlainLanguageBasis({
@@ -1918,13 +1929,14 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
         vixBand: overview?.volatility.band ?? "—",
         pcr,
         regimeLabel: marketState.label,
+        locale,
       }),
-    [avgIndexChange, vixLevel, vixChangePct, overview?.volatility.band, pcr, marketState.label],
+    [avgIndexChange, vixLevel, vixChangePct, overview?.volatility.band, pcr, marketState.label, locale],
   );
   const visibleEvents = showAllEvents ? events : events.slice(0, 3);
   const regimeBorder = regimeAccentBorder(marketState.code);
   const regimeBar = regimeAccentBar(marketState.code);
-  const regimeEnglish = regimeMeta(marketState.code).english;
+  const regimeEnglish = regimeMeta(marketState.code, locale).english;
   const marketSessionLabel = overview?.marketSessionLabel ?? null;
   const headlineSummary = useMemo(
     () =>
@@ -1969,16 +1981,19 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
   const ptAvg = priceTarget?.summary?.lastMonthAvgPriceTarget ?? priceTarget?.consensus?.priceTarget ?? null;
   const spot = num(realtimeQuote?.price) ?? num(stockOverview?.bar?.price);
   const gexSpot = selectGammaStructureSpot({ overviewSpot: spot, gexSpot: num(gexProfile?.underlyingPrice) });
-  const gammaRead = buildGammaStructureRead({
-    symbol,
-    spot: gexSpot,
-    netGex: num(gexProfile?.netGex),
-    gammaFlip: num(gexProfile?.gammaFlip),
-    callWall: num(gexProfile?.callWall),
-    putWall: num(gexProfile?.putWall),
-    maxPain: num(gexProfile?.maxPain),
-    regime: text(gexProfile?.regime),
-  });
+  const gammaRead = buildGammaStructureRead(
+    {
+      symbol,
+      spot: gexSpot,
+      netGex: num(gexProfile?.netGex),
+      gammaFlip: num(gexProfile?.gammaFlip),
+      callWall: num(gexProfile?.callWall),
+      putWall: num(gexProfile?.putWall),
+      maxPain: num(gexProfile?.maxPain),
+      regime: text(gexProfile?.regime),
+    },
+    locale,
+  );
   const upside = spot !== null && ptAvg ? ((ptAvg - spot) / spot) * 100 : null;
   const gammaFlipLevel = num(gexProfile?.gammaFlip);
   const callWallLevel = num(gexProfile?.callWall);
@@ -2013,7 +2028,6 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
         brief: warRoom.brief.data?.brief,
         marketCode: marketState.code,
         events,
-        treasurySummary: treasuryRead.summary,
         vix: overview?.volatility.vix ?? null,
         vixChange: overview?.volatility.vixChangePct ?? null,
       });
@@ -2027,17 +2041,17 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted">
               {isDashboard ? (
-                <Pill tone="gold">阿吉</Pill>
+                <Pill tone="gold">{t("mvp.brand")}</Pill>
               ) : (
                 <>
-                  <Pill tone="gold">MVP</Pill>
+                  <Pill tone="gold">{t("mvp.mvpPill")}</Pill>
                   <span className="hidden md:inline">/mvp</span>
                 </>
               )}
-              <span>美股市场分析</span>
+              <span>{t("mvp.usMarketAnalysis")}</span>
             </div>
             <h1 className="display-1 mt-2 text-foreground">
-              {section === "ticker" ? "标的深析" : "市场洞察"}
+              {section === "ticker" ? t("mvp.tickerDeepDive") : t("mvp.marketInsights")}
             </h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -2051,11 +2065,11 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
               <button
                 type="button"
                 onClick={() => void loadWarRoom({ force: true })}
-                title="立即刷新市场总览"
+                title={t("mvp.refreshMarketTitle")}
                 className="inline-flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/10 px-3 py-2 text-sm text-gold transition hover:bg-gold/15"
               >
                 <RefreshCw className={`h-4 w-4 ${warLoading ? "animate-spin" : ""}`} />
-                刷新
+                {t("mvp.refresh")}
               </button>
             ) : null}
           </div>
@@ -2073,30 +2087,30 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
           onClose={() => setAccessKeyModalOpen(false)}
           onSaved={() => {
             setAccessKeyModalOpen(false);
-            cachedWarRoom = null;
+            cachedWarRoom.delete(locale);
             void loadWarRoom({ force: true });
           }}
           saveKey={saveKey}
         />
 
         {showMarket ? (
-        <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_320px]">
+        <section className="grid grid-cols-1 gap-4">
           <Card className="p-5">
             {/* Section header + meta */}
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                   <CalendarClock className="h-4 w-4 text-gold" />
-                  市场总览
+                  {t("mvp.marketOverview")}
                 </div>
                 {warRoomUpdatedAt ? (
                   <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
-                    <MetaHint label="每 5 分钟自动刷新" hint="指数、VIX、P/C 等盘面数据每 5 分钟从后端拉取一次。" />
+                    <MetaHint label={t("mvp.autoRefreshLabel")} hint={t("mvp.autoRefreshHint")} />
                     <MetaHint
-                      label={`事件来源：近 ${DISCORD_EVENT_HOURS} 小时`}
-                      hint="关键事件来自过去 6 小时的 Discord 推文、新闻与宏观日历，用于解释环境变化。"
+                      label={formatMessage(t("mvp.eventSourceLabel"), { hours: DISCORD_EVENT_HOURS })}
+                      hint={t("mvp.eventSourceHint")}
                     />
-                    <span>上次更新 {zhTime(warRoomUpdatedAt)}</span>
+                    <span>{formatMessage(t("mvp.lastUpdated"), { time: zhTime(warRoomUpdatedAt, locale) })}</span>
                   </div>
                 ) : null}
               </div>
@@ -2158,7 +2172,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                             : "text-muted-foreground hover:text-foreground"
                         }`}
                       >
-                        阿吉 AI 解读
+                        {t("mvp.aiInterpretation")}
                       </button>
                       <button
                         type="button"
@@ -2169,7 +2183,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                             : "text-muted-foreground hover:text-foreground"
                         }`}
                       >
-                        规则引擎
+                        {t("mvp.rulesEngine")}
                       </button>
                     </div>
                   ) : null}
@@ -2177,7 +2191,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                   {showDivergenceAlert ? (
                     <div className="mt-3 flex items-start gap-2 rounded-lg border border-gold/30 bg-gold/10 px-3 py-2.5 text-sm leading-6 text-gold">
                       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                      <span>矛盾信号：指数上涨但 VIX 急升，不宜盲目追涨，优先关注对冲与仓位。</span>
+                      <span>{t("mvp.divergenceAlert")}</span>
                     </div>
                   ) : null}
                   <ul className="mt-4 space-y-1.5 rounded-lg market-surface-strong px-3 py-3">
@@ -2192,8 +2206,8 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                   <LockedContent
                     required="trial"
                     currentTier={tier}
-                    title="登录后查看 AI 深度解读"
-                    onUnlock={(reason) => openUnlock(reason, "登录后查看 AI 市场解读")}
+                    title={t("mvp.loginForAi")}
+                    onUnlock={(reason) => openUnlock(reason, t("mvp.loginForAiUnlock"))}
                   >
                     {aiInsights?.regime.reasoning ? (
                       <p className="mt-3 text-sm leading-6 text-muted-foreground">{aiInsights.regime.reasoning}</p>
@@ -2204,7 +2218,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                       className="mt-3 inline-flex items-center gap-1.5 text-xs text-gold transition hover:text-gold/80"
                     >
                       {showTechnicalBasis ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                      {showTechnicalBasis ? "收起技术细节" : "展开：阿吉如何判断"}
+                      {showTechnicalBasis ? t("mvp.collapseTechnical") : t("mvp.expandTechnical")}
                     </button>
                     {showTechnicalBasis ? (
                       <ul className="mt-2 space-y-1 rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2">
@@ -2225,10 +2239,10 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
 
             {/* Layer 3 · Three evidence cards */}
             <div>
-              <h3 className="mb-3 text-sm font-medium text-muted-foreground">支撑判断的数据</h3>
+              <h3 className="mb-3 text-sm font-medium text-muted-foreground">{t("mvp.evidenceTitle")}</h3>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                 <EvidenceCard
-                  title="指数方向"
+                  title={t("mvp.indexDirection")}
                   icon={TrendingUp}
                   accentBar={regimeBar}
                   borderClass={regimeBorder}
@@ -2263,7 +2277,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                 </EvidenceCard>
 
                 <EvidenceCard
-                  title="波动率"
+                  title={t("mvp.volatility")}
                   icon={Gauge}
                   accentBar={regimeBar}
                   borderClass={regimeBorder}
@@ -2314,7 +2328,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                 </EvidenceCard>
 
                 <EvidenceCard
-                  title="期权情绪"
+                  title={t("mvp.optionsSentiment")}
                   icon={BarChart3}
                   accentBar={regimeBar}
                   borderClass={regimeBorder}
@@ -2341,9 +2355,11 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                 <div>
                   <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                     <Newspaper className="h-4 w-4 text-blue" />
-                    什么在驱动市场？
+                    {t("mvp.drivingEvents")}
                   </div>
-                  <p className="mt-1 text-xs text-muted">以下事件可能解释了上面的环境判断 · 近 {DISCORD_EVENT_HOURS} 小时</p>
+                  <p className="mt-1 text-xs text-muted">
+                    {formatMessage(t("mvp.drivingEventsHint"), { hours: DISCORD_EVENT_HOURS })}
+                  </p>
                 </div>
                 {events.length > 3 ? (
                   <button
@@ -2351,16 +2367,16 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                     onClick={() => setShowAllEvents((v) => !v)}
                     className="text-xs text-gold transition hover:text-gold/80"
                   >
-                    {showAllEvents ? "收起" : `查看全部 ${events.length} 条 →`}
+                    {showAllEvents ? t("mvp.collapse") : formatMessage(t("mvp.viewAllEvents"), { count: events.length })}
                   </button>
                 ) : null}
               </div>
               <div className="relative mt-3 space-y-0 pl-4">
                 <div className="absolute bottom-2 left-[7px] top-2 w-px bg-border2" aria-hidden="true" />
                 {warLoading && events.length === 0 ? (
-                  <EmptyLine text="正在载入关键事件…" />
+                  <EmptyLine text={t("mvp.loadingEvents")} />
                 ) : events.length === 0 ? (
-                  <EmptyLine text="暂无高优先级事件，先观察上方指数、VIX 与 P/C 数据。" />
+                  <EmptyLine text={t("mvp.noEvents")} />
                 ) : (
                   visibleEvents.map((event) => (
                     <button
@@ -2368,7 +2384,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                       type="button"
                       onClick={() => {
                         if (!tierMeetsRequired(tier, "trial")) {
-                          openUnlock("login", "登录后查看事件详情与阿吉解读");
+                          openUnlock("login", t("mvp.loginForEventDetail"));
                           return;
                         }
                         setSelectedEvent(event);
@@ -2377,12 +2393,12 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                     >
                       <span
                         className={`absolute -left-4 top-4 h-2.5 w-2.5 rounded-full border-2 border-background ${
-                          event.impact === "利好" ? "bg-green" : event.impact === "利空" || event.impact === "风险" ? "bg-red" : "bg-muted"
+                          impactIsBullish(event.impact) ? "bg-green" : impactIsBearishOrRisk(event.impact) ? "bg-red" : "bg-muted"
                         }`}
                         aria-hidden="true"
                       />
                       <div className="flex flex-wrap items-center gap-2">
-                        <Pill tone={event.impact === "利好" ? "green" : event.impact === "利空" || event.impact === "风险" ? "red" : "muted"}>
+                        <Pill tone={impactIsBullish(event.impact) ? "green" : impactIsBearishOrRisk(event.impact) ? "red" : "muted"}>
                           {event.impactLabel}
                         </Pill>
                         {event.relatedAssets.slice(0, 2).map((sym) => (
@@ -2399,7 +2415,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                         </p>
                       ) : null}
                       {!tierMeetsRequired(tier, "trial") ? (
-                        <p className="mt-2 text-xs text-gold">登录查看阿吉解读 →</p>
+                        <p className="mt-2 text-xs text-gold">{t("mvp.loginForEventDetailLink")}</p>
                       ) : null}
                     </button>
                   ))
@@ -2411,9 +2427,9 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
             <div className="mt-6 border-t border-border2 pt-5">
               <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                 <Target className="h-4 w-4 text-green" />
-                今日观察清单
+                {t("mvp.watchListTitle")}
               </div>
-              <p className="mt-1 text-xs text-muted">基于当前环境，接下来建议重点盯住的要点</p>
+              <p className="mt-1 text-xs text-muted">{t("mvp.watchListHint")}</p>
               {watchPreview ? (
                 <div className="mt-4 flex items-start gap-2 rounded-lg border border-green/20 bg-green/5 px-3 py-2.5 text-sm leading-6 text-muted-foreground">
                   <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-green" />
@@ -2424,8 +2440,8 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                 <LockedContent
                   required="pro"
                   currentTier={tier}
-                  title="Pro：完整观察清单"
-                  onUnlock={(reason) => openUnlock(reason, "Pro：今日观察清单")}
+                  title={t("mvp.proWatchList")}
+                  onUnlock={(reason) => openUnlock(reason, t("mvp.proWatchListUnlock"))}
                 >
                   <div className="mt-3 space-y-3">
                     {watchRemainder.map((item) => (
@@ -2445,39 +2461,6 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                 <span>{allWarErrors.slice(0, 2).join(" · ")}</span>
               </div>
             ) : null}
-          </Card>
-
-          <Card className="p-4 xl:sticky xl:top-4 xl:self-start">
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <GitBranch className="h-4 w-4 text-blue" />
-              国债曲线
-            </div>
-            <p className="mt-1 text-xs text-muted">利率环境 · {treasuryRead.label}</p>
-            <div className="mt-4 rounded-lg border border-border2 market-surface p-3">
-              {yieldBars.length > 0 ? (
-                <ResponsiveContainer width="100%" height={140}>
-                  <BarChart data={yieldBars}>
-                    <CartesianGrid stroke="rgba(255,255,255,.06)" vertical={false} />
-                    <XAxis dataKey="term" tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                    <YAxis hide domain={["auto", "auto"]} />
-                    <Tooltip contentStyle={{ background: "#0f1c30", border: "1px solid rgba(255,255,255,.1)" }} />
-                    <Bar dataKey="rate" fill="#22d3ee" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-[140px] items-center justify-center text-sm text-muted">收益率暂不可用</div>
-              )}
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">{treasuryRead.summary}</p>
-              {spread10y2y !== null ? (
-                <div className="mt-2 text-xs text-muted">
-                  10Y-2Y {spread10y2y.toFixed(2)}%
-                  {spread30y10y !== null ? ` · 30Y-10Y ${spread30y10y.toFixed(2)}%` : ""}
-                </div>
-              ) : null}
-              {!tierMeetsRequired(tier, "trial") && aiInsights?.treasury?.summary ? (
-                <p className="mt-2 text-xs text-gold">登录解锁阿吉 AI 利率解读 →</p>
-              ) : null}
-            </div>
           </Card>
         </section>
         ) : null}
@@ -2585,9 +2568,9 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
               label="结构偏向"
               value={gammaRead.structureBias}
               tone={
-                gammaRead.structureBias === "波动放大"
+                isVolatilityExpansion(gammaRead.structureBiasCode)
                   ? "red"
-                  : gammaRead.structureBias === "震荡吸附"
+                  : isMeanReversion(gammaRead.structureBiasCode)
                     ? "green"
                     : "default"
               }
@@ -2623,7 +2606,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                 </div>
                 <Pill tone="gold">平台核心</Pill>
                 <Pill tone={gammaRead.tone}>{gammaRead.regimeLabel}</Pill>
-                <Pill tone={gammaRead.structureBias === "波动放大" ? "red" : gammaRead.structureBias === "震荡吸附" ? "green" : "muted"}>
+                <Pill tone={isVolatilityExpansion(gammaRead.structureBiasCode) ? "red" : isMeanReversion(gammaRead.structureBiasCode) ? "green" : "muted"}>
                   {gammaRead.structureBias}
                 </Pill>
                 {gexSpot !== null ? <Pill tone="blue">现价 {money(gexSpot)}</Pill> : null}
@@ -2756,9 +2739,9 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                     <Pill tone={gammaRead.tone}>{gammaRead.regimeLabel}</Pill>
                     <Pill
                       tone={
-                        gammaRead.structureBias === "波动放大"
+                        isVolatilityExpansion(gammaRead.structureBiasCode)
                           ? "red"
-                          : gammaRead.structureBias === "震荡吸附"
+                          : isMeanReversion(gammaRead.structureBiasCode)
                             ? "green"
                             : "muted"
                       }
@@ -2771,7 +2754,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-2 text-[11px] leading-5 text-muted-foreground">{entryGammaHint(gammaRead.structureBias)}</p>
+                  <p className="mt-2 text-[11px] leading-5 text-muted-foreground">{entryGammaHint(gammaRead.structureBiasCode, locale)}</p>
                   <div className="mt-3 flex items-center gap-3">
                     <div className={`text-lg font-semibold ${stockBias.tone}`}>{stockBias.label}</div>
                     {spot !== null ? <Pill tone="blue">{money(spot)}</Pill> : null}
@@ -3055,10 +3038,10 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
         ) : null}
 
         <footer className="flex flex-wrap items-center justify-between gap-3 pb-6 text-xs text-muted">
-          <span>教育和分析用途，不构成投资建议。</span>
+          <span>{t("mvp.disclaimer")}</span>
           <div className="flex items-center gap-3">
-            <Link href="/macro" className="hover:text-gold">宏观</Link>
-            <Link href="/stock/SPY/overview" className="hover:text-gold">个股深挖</Link>
+            <Link href="/macro" className="hover:text-gold">{t("mvp.macroLink")}</Link>
+            <Link href="/stock/SPY/overview" className="hover:text-gold">{t("mvp.stockLink")}</Link>
           </div>
         </footer>
       </div>

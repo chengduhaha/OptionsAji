@@ -12,3 +12,5 @@ export type I18nContextValue = {
   t: (key: string, fallback?: string) => string;
   translateText: (text: string) => string;
 };
+
+export type TranslateFn = I18nContextValue["t"];

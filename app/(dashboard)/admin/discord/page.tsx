@@ -357,7 +357,7 @@ export default function AdminDiscordPage() {
   }
 
   return (
-    <div className="p-6 max-w-4xl space-y-6">
+    <div className="h-full overflow-y-auto p-6 max-w-4xl space-y-6">
       <div>
         <h1 className="text-lg font-semibold text-foreground">Discord 来源管理</h1>
         <p className="mt-1 text-[12px] text-muted-foreground leading-relaxed">
@@ -432,7 +432,7 @@ export default function AdminDiscordPage() {
             {profiles.length === 0 ? (
               <p className="text-[12px] text-muted">无可用 author</p>
             ) : (
-              <div className="space-y-1.5 max-h-48 overflow-y-auto">
+              <div className="space-y-1.5">
                 {profiles.map((row) => (
                   <label
                     key={`${slot}-${row.author}`}

@@ -16,7 +16,7 @@ test("positive gamma above flip warns against chasing calls near call wall", () 
   });
 
   assert.equal(read.regimeLabel, "正 Gamma");
-  assert.equal(read.structureBias, "震荡吸附");
+  assert.equal(read.structureBiasCode, "mean_reversion");
   assert.match(read.summary, /Call Wall/);
   assert.ok(read.actions.some((line) => line.includes("Call") && line.includes("追")));
 });
@@ -34,7 +34,7 @@ test("negative gamma below flip highlights volatility expansion and put validati
   });
 
   assert.equal(read.regimeLabel, "负 Gamma");
-  assert.equal(read.structureBias, "波动放大");
+  assert.equal(read.structureBiasCode, "volatility_expansion");
   assert.match(read.summary, /Gamma Flip/);
   assert.ok(read.actions.some((line) => line.includes("Put") && line.includes("跌破")));
 });

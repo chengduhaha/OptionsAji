@@ -1,6 +1,7 @@
 "use client";
 
 import type { DiscordKolHubItemContract } from "@/lib/contracts";
+import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 
 function initials(name: string): string {
@@ -77,18 +78,19 @@ export default function KolAvatarStrip({
   onToggleMode: () => void;
   onOpenDetail: (entry: DiscordKolHubItemContract) => void;
 }) {
+  const { t } = useI18n();
   const allSelected = selectedAuthors.size === 0;
 
   return (
     <section className="glass rounded-xl border border-glass-border p-3">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[11px] text-muted-foreground">按大牛筛选</p>
+        <p className="text-[11px] text-muted-foreground">{t("twitterKol.filterLabel")}</p>
         <button
           type="button"
           onClick={onToggleMode}
           className="rounded-md border border-glass-border px-2 py-0.5 text-[10px] text-muted-foreground hover:text-gold"
         >
-          {singleSelectMode ? "单选模式" : "多选模式"}
+          {singleSelectMode ? t("twitterKol.singleSelect") : t("twitterKol.multiSelect")}
         </button>
       </div>
       <div className="flex gap-3 overflow-x-auto pb-1">
@@ -103,9 +105,9 @@ export default function KolAvatarStrip({
                 : "border-glass-border text-muted-foreground hover:border-gold/40",
             )}
           >
-            全部
+            {t("twitterKol.all")}
           </button>
-          <span className="text-[10px] text-muted">全部</span>
+          <span className="text-[10px] text-muted">{t("twitterKol.all")}</span>
         </div>
         {entries.map((entry) => (
           <KolAvatar

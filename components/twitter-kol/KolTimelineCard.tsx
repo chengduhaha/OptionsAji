@@ -1,10 +1,12 @@
 "use client";
 
-import type { DiscordTimelineItemContract } from "@/lib/contracts";
+import { localizedBullets, localizedRiskNote, type DiscordTimelineItemContract } from "@/lib/contracts";
+import { useI18n } from "@/lib/i18n/context";
+import type { Locale } from "@/lib/i18n/types";
 
-function formatTime(iso: string): string {
+function formatTime(iso: string, locale: Locale): string {
   try {
-    return new Date(iso).toLocaleString("zh-CN", { hour12: false });
+    return new Date(iso).toLocaleString(locale === "en" ? "en-US" : "zh-CN", { hour12: false });
   } catch {
     return iso;
   }
@@ -24,7 +26,10 @@ export default function KolTimelineCard({
   item: DiscordTimelineItemContract;
   onAuthorClick?: (author: string) => void;
 }) {
-  const label = item.display_name || item.author || "未知来源";
+  const { locale, t } = useI18n();
+  const label = item.display_name || item.author || t("twitterKol.unknownSource");
+  const bullets = localizedBullets(item, locale);
+  const riskNote = localizedRiskNote(item, locale);
 
   return (
     <article className="flex gap-3 rounded-xl border border-glass-border bg-panel/80 p-4">
@@ -51,7 +56,7 @@ export default function KolTimelineCard({
           >
             {label}
           </button>
-          <time className="font-mono text-[10px] text-muted">{formatTime(item.created_at_utc)}</time>
+          <time className="font-mono text-[10px] text-muted">{formatTime(item.created_at_utc, locale)}</time>
         </div>
         {item.title && item.title !== label ? (
           <h2 className="mt-1.5 text-[14px] font-medium text-foreground">{item.title}</h2>
@@ -59,15 +64,15 @@ export default function KolTimelineCard({
         <p className="mt-2 whitespace-pre-wrap text-[13px] leading-6 text-muted-foreground">
           {item.body}
         </p>
-        {item.bullets_zh && item.bullets_zh.length > 0 ? (
+        {bullets.length > 0 ? (
           <ul className="mt-3 list-disc space-y-1 pl-4 text-[12px] text-muted-foreground">
-            {item.bullets_zh.map((b) => (
+            {bullets.map((b) => (
               <li key={b}>{b}</li>
             ))}
           </ul>
         ) : null}
-        {item.risk_note_zh ? (
-          <p className="mt-2 text-[11px] text-muted">{item.risk_note_zh}</p>
+        {riskNote ? (
+          <p className="mt-2 text-[11px] text-muted">{riskNote}</p>
         ) : null}
         {item.tickers.length > 0 ? (
           <div className="mt-3 flex flex-wrap gap-1.5">
