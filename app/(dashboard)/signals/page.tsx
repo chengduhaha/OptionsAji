@@ -363,6 +363,7 @@ export default function SignalsPage() {
       const params = new URLSearchParams({
         hours: "72",
         limit: "60",
+        menu_slot: "messages",
       });
       const nr = await fetch(`/api/messages?${params.toString()}`, { cache: "no-store" });
       const ntxt = await nr.text();

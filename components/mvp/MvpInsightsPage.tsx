@@ -1715,7 +1715,15 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
     const baseTasks = [
       ["overview", settle<MarketOverviewContract>(() => api.market.overview())],
       ["signals", settle<SignalsFeedEnvelopeContract>(() => api.market.signalsFeed())],
-      ["mvp", settle<JsonRecord>(() => fetchJson(`/api/mvp/war-room?hours=${DISCORD_EVENT_HOURS}`, authToken))],
+      [
+        "mvp",
+        settle<JsonRecord>(() =>
+          fetchJson(
+            `/api/mvp/war-room?hours=${DISCORD_EVENT_HOURS}&menu_slot=aji_insights`,
+            authToken,
+          ),
+        ),
+      ],
     ] as const;
     const trialTasks =
       tier === "guest"
@@ -1729,7 +1737,11 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
             [
               "feed",
               settle<FeedEnvelopeContract>(() =>
-                api.feed.unified(80, undefined, { kind: "discord", hours: DISCORD_EVENT_HOURS }),
+                api.feed.unified(80, undefined, {
+                  kind: "discord",
+                  hours: DISCORD_EVENT_HOURS,
+                  menu_slot: "aji_insights",
+                }),
               ),
             ],
           ] as const);

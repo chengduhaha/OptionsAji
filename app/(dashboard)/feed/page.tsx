@@ -66,6 +66,7 @@ export default function FeedPage() {
           sentiment: sentimentFilter === "all" ? undefined : sentimentFilter,
           priority: priorityFilter === "all" ? undefined : priorityFilter,
           kol_only: kolOnly,
+          menu_slot: "feed",
         },
       );
       if (!c && j.items) setItems(j.items as FeedItem[]);

@@ -3,6 +3,7 @@
 export const KNOWN_NAV_IDS = [
   "aji_insights",
   "ticker_insights",
+  "twitter_kol",
   "dash",
   "scanner",
   "stock",
@@ -45,6 +46,7 @@ export const NAV_GROUP_LABELS: Record<string, { label: string; childIds: NavMenu
 export const NAV_ITEM_LABELS: Record<NavMenuId, string> = {
   aji_insights: "市场洞察",
   ticker_insights: "标的深析",
+  twitter_kol: "Twitter美股大牛追踪",
   dash: "市场总览",
   scanner: "期权数据筛选器",
   stock: "个股深度",
@@ -87,10 +89,11 @@ export function initialNavVisibilityForRole(role?: string | null): Record<string
 /** Resolve pathname to a single menu id (first match). */
 export function pathnameToMenuId(
   pathname: string,
-): NavMenuId | "admin_users" | "admin_menu" | "admin_access_keys" | "admin_llm_usage" | null {
+): NavMenuId | "admin_users" | "admin_menu" | "admin_access_keys" | "admin_llm_usage" | "admin_discord" | null {
   const p = pathname.split("?")[0] ?? "/";
   if (p === "/" || p === "/mvp") return "aji_insights";
   if (p === "/ticker" || p.startsWith("/ticker/")) return "ticker_insights";
+  if (p === "/twitter-kol" || p.startsWith("/twitter-kol/")) return "twitter_kol";
   if (p === "/market" || p.startsWith("/market/")) return "dash";
   if (p === "/scanner/divergence" || p.startsWith("/scanner/divergence/")) return "divergence";
   if (p === "/scanner") return "scanner";
@@ -114,6 +117,7 @@ export function pathnameToMenuId(
   if (p.startsWith("/admin/menu")) return "admin_menu";
   if (p.startsWith("/admin/access-keys")) return "admin_access_keys";
   if (p.startsWith("/admin/llm-usage")) return "admin_llm_usage";
+  if (p.startsWith("/admin/discord")) return "admin_discord";
   return null;
 }
 
@@ -129,7 +133,8 @@ export function isPathAllowed(
     menuId === "admin_users" ||
     menuId === "admin_menu" ||
     menuId === "admin_access_keys" ||
-    menuId === "admin_llm_usage"
+    menuId === "admin_llm_usage" ||
+    menuId === "admin_discord"
   ) return false;
   return visibility[menuId] !== false;
 }

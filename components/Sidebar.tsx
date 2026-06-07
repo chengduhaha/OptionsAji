@@ -26,6 +26,7 @@ import {
   User,
   Zap,
   Activity,
+  AtSign,
   Shield,
   KeyRound,
   WalletCards,
@@ -44,6 +45,7 @@ const NAV_GROUPS = [
     items: [
       { id: "aji_insights", label: "市场洞察", href: "/", icon: Zap },
       { id: "ticker_insights", label: "标的深析", href: "/ticker", icon: Crosshair },
+      { id: "twitter_kol", label: "Twitter大牛", href: "/twitter-kol", icon: AtSign, badge: "NEW" },
       { id: "dash", label: "市场总览", href: "/market", icon: LayoutDashboard },
       { id: "scanner", label: "期权数据筛选器", href: "/scanner", icon: ScanLine },
       { id: "stock", label: "个股深度", href: "/stock/SPY", icon: LineChart },
@@ -86,7 +88,9 @@ function NavItem({
   const isActive =
     item.id === "aji_insights"
       ? pathname === "/"
-      : item.id === "dash"
+      : item.id === "twitter_kol"
+        ? pathname === "/twitter-kol" || pathname.startsWith("/twitter-kol/")
+        : item.id === "dash"
         ? pathname === "/market" || pathname.startsWith("/market/")
         : item.id === "stock"
         ? pathname.startsWith("/stock")
@@ -112,6 +116,8 @@ function NavItem({
             ? pathname.startsWith("/admin/llm-usage")
             : item.id === "admin_menu"
             ? pathname.startsWith("/admin/menu")
+            : item.id === "admin_discord"
+            ? pathname.startsWith("/admin/discord")
             : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
   return (
@@ -236,6 +242,15 @@ export default function Sidebar() {
                           label: "菜单管理",
                           href: "/admin/menu",
                           icon: Menu,
+                        }}
+                        pathname={pathname}
+                      />
+                      <NavItem
+                        item={{
+                          id: "admin_discord",
+                          label: "Discord 来源",
+                          href: "/admin/discord",
+                          icon: AtSign,
                         }}
                         pathname={pathname}
                       />

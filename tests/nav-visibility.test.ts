@@ -13,6 +13,7 @@ test("regular users do not start with every sidebar menu visible while permissio
   assert.equal(initial.ontology_copilot, false);
   assert.equal(initial.ontology_inspector, false);
   assert.equal(initial.aji_insights, true);
+  assert.equal(initial.twitter_kol, false);
   assert.notDeepEqual(initial, defaultNavVisibility());
 });
 

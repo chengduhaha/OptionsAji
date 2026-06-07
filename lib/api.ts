@@ -271,6 +271,8 @@ export const api = {
         kol_only?: boolean;
         /** Rolling window for Discord/macro rows (default 72 on backend). */
         hours?: number;
+        /** Discord author whitelist menu slot (default feed). */
+        menu_slot?: string;
       },
     ) => {
       const params = new URLSearchParams({ limit: String(limit) });
@@ -282,7 +284,31 @@ export const api = {
       if (filters?.hours != null && filters.hours > 0) {
         params.set("hours", String(filters.hours));
       }
+      if (filters?.menu_slot) params.set("menu_slot", filters.menu_slot);
       return fetchJSON<FeedEnvelopeContract>(`/api/feed/unified?${params}`);
+    },
+  },
+
+  discord: {
+    timeline: (opts?: { menu_slot?: string; hours?: number; limit?: number; ticker?: string }) => {
+      const params = new URLSearchParams();
+      params.set("menu_slot", opts?.menu_slot ?? "twitter_kol");
+      params.set("hours", String(opts?.hours ?? 72));
+      params.set("limit", String(opts?.limit ?? 50));
+      if (opts?.ticker) params.set("ticker", opts.ticker);
+      return fetchJSON<{
+        generated_at_utc: string;
+        menu_slot: string;
+        items: Array<{
+          id: string;
+          kind: string;
+          created_at_utc: string;
+          title: string;
+          body: string;
+          tickers: string[];
+          author?: string | null;
+        }>;
+      }>(`/api/discord/timeline?${params}`);
     },
   },
 
