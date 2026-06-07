@@ -1,48 +1,20 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { 
-  Send, Plus, RefreshCw, ChevronRight, ChevronLeft, 
-  Sparkles, Brain, Zap, Target, TrendingUp, BarChart3 
-} from "lucide-react";
+import { Send, Plus, RefreshCw, Sparkles } from "lucide-react";
 import { clsx } from "clsx";
 import MessageBubble from "./MessageBubble";
-import RightPanel from "./RightPanel";
 import { runAgentViaSseStream, type AgentChatMessage } from "@/lib/agentSse";
 
 type Message = AgentChatMessage;
 
-const QUICK_PROMPTS = [
-  { label: "分析期权环境", icon: BarChart3, build: (symbol: string) => `分析 ${symbol} 当前的期权环境，给出情景说明` },
-  { label: "扫描高 IV", icon: Target, build: () => "找到本周 IV Rank 最高的 10 只股票" },
-  {
-    label: "比较价差情景",
-    icon: TrendingUp,
-    build: (symbol: string) => `拆解这个情景的风险：Sell ${symbol} 250P 5/16, Buy 240P 5/16`,
-  },
-  { label: "财报事件研究", icon: Zap, build: () => "下周有哪些重要财报？哪些值得关注 IV Crush 情景？" },
-  { label: "对比指数波动", icon: Brain, build: () => "对比 SPY 和 QQQ 的波动率环境" },
-];
-
 const TICKERS = ["SPY", "QQQ", "AAPL", "TSLA", "NVDA", "AMZN", "MSFT", "META", "GOOGL"];
-const PRESET_TEMPLATES = [
-  (symbol: string) => `分析 ${symbol} 当前的期权环境，给出情景说明`,
-  () => "找到本周 IV Rank 最高的 10 只股票",
-  () => "拆解这个情景的风险：Sell TSLA 250P 5/16, Buy 240P 5/16",
-  () => "下周有哪些重要财报？哪些值得关注 IV Crush 情景？",
-  () => "对比 SPY 和 QQQ 的波动率环境",
+
+const WELCOME_SUGGESTIONS = (ticker: string) => [
+  `${ticker} 现在的 GEX 环境怎么样？`,
+  `分析 ${ticker} 当前的 IV 水平，是否适合卖方策略？`,
+  `帮我评估 ${ticker} Credit Put Spread 的风险收益比`,
 ];
-
-/** Backend expects `^(fast|analysis|strategy)$`; UI labels stay Chinese. */
-const MODES = ["fast", "analysis", "strategy"] as const;
-type AgentMode = (typeof MODES)[number];
-const MODE_LABELS: Record<AgentMode, string> = {
-  fast: "快速问答",
-  analysis: "深度分析",
-  strategy: "风险情景拆解",
-};
-
-const USE_AGENT_SSE = process.env.NEXT_PUBLIC_USE_AGENT_SSE === "1";
 
 function readOptionalBearerToken(): string | null {
   const fromPublicEnv = process.env.NEXT_PUBLIC_AGENT_BEARER?.trim();
@@ -62,8 +34,6 @@ export default function ChatWindow() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [ticker, setTicker] = useState("SPY");
-  const [mode, setMode] = useState<AgentMode>("fast");
-  const [rightOpen, setRightOpen] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const sessionRef = useRef<string>(crypto.randomUUID());
@@ -94,38 +64,14 @@ export default function ChatWindow() {
     setLoading(true);
 
     try {
-      if (USE_AGENT_SSE) {
-        await runAgentViaSseStream({
-          question,
-          ticker,
-          mode,
-          bearerToken: readOptionalBearerToken(),
-          thinkingMsgId: thinkingMsg.id,
-          setMessages,
-          sessionRef,
-        });
-        return;
-      }
-
-      const history = [...messages, userMsg]
-        .filter((member) => !member.thinking)
-        .map((member) => ({ role: member.role, content: member.content }));
-
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history, symbol: ticker }),
+      await runAgentViaSseStream({
+        question,
+        ticker,
+        bearerToken: readOptionalBearerToken(),
+        thinkingMsgId: thinkingMsg.id,
+        setMessages,
+        sessionRef,
       });
-
-      const data = await res.json();
-
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === thinkingMsg.id
-            ? { ...m, content: data.content ?? data.error ?? "未知错误", thinking: false }
-            : m
-        )
-      );
     } catch {
       setMessages((prev) =>
         prev.map((m) =>
@@ -154,11 +100,8 @@ export default function ChatWindow() {
 
   return (
     <div className="flex h-full overflow-hidden">
-      {/* Center chat column */}
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        {/* Toolbar */}
         <div className="flex items-center gap-4 px-5 py-3 border-b border-glass-border glass flex-shrink-0">
-          {/* Ticker selector */}
           <div className="flex items-center gap-2">
             <span className="text-[10px] text-muted uppercase tracking-wider">标的</span>
             <select
@@ -172,24 +115,6 @@ export default function ChatWindow() {
             </select>
           </div>
 
-          {/* Mode tabs */}
-          <div className="flex gap-1 p-1 rounded-lg bg-glass border border-glass-border">
-            {MODES.map((m) => (
-              <button
-                key={m}
-                onClick={() => setMode(m)}
-                className={clsx(
-                  "px-3 py-1.5 rounded-md text-[12px] font-medium transition-all",
-                  mode === m
-                    ? "bg-primary/20 text-primary border border-primary/30"
-                    : "text-muted-foreground hover:text-foreground hover:bg-glass"
-                )}
-              >
-                {MODE_LABELS[m]}
-              </button>
-            ))}
-          </div>
-
           <div className="ml-auto flex items-center gap-2">
             <button
               onClick={newChat}
@@ -198,17 +123,9 @@ export default function ChatWindow() {
               <Plus className="w-4 h-4" />
               新对话
             </button>
-            <button
-              onClick={() => setRightOpen((v) => !v)}
-              className="p-2 rounded-lg glass-subtle text-muted-foreground hover:text-foreground transition-all"
-              title={rightOpen ? "收起右侧面板" : "展开右侧面板"}
-            >
-              {rightOpen ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-            </button>
           </div>
         </div>
 
-        {/* Messages */}
         <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
           {messages.length === 0 && (
             <WelcomeScreen ticker={ticker} onPrompt={sendMessage} />
@@ -219,37 +136,7 @@ export default function ChatWindow() {
           <div ref={bottomRef} />
         </div>
 
-        {/* Input area */}
         <div className="px-5 pb-5 flex-shrink-0">
-          <div className="flex flex-wrap gap-2 mb-3">
-            {PRESET_TEMPLATES.map((buildPrompt, idx) => (
-              <button
-                key={`preset-${idx}`}
-                onClick={() => sendMessage(buildPrompt(ticker))}
-                disabled={loading}
-                className="text-[10px] px-2.5 py-1 rounded-[6px] border border-gold/30 text-gold hover:bg-gold/10 disabled:opacity-50"
-              >
-                模板 {idx + 1}
-              </button>
-            ))}
-          </div>
-          {/* Quick prompts */}
-          <div className="flex gap-2 mb-3 flex-wrap">
-            {QUICK_PROMPTS.map((p) => {
-              const Icon = p.icon;
-              return (
-                <button
-                  key={p.label}
-                  onClick={() => setInput(p.build(ticker))}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-subtle text-[11px] text-muted-foreground hover:text-primary hover:border-primary/30 transition-all"
-                >
-                  <Icon className="w-3 h-3" />
-                  {p.label}
-                </button>
-              );
-            })}
-          </div>
-
           <div className="flex gap-3 items-end">
             <div className="flex-1 relative">
               <textarea
@@ -257,7 +144,7 @@ export default function ChatWindow() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={`问任何关于 ${ticker} 的期权问题...`}
+                placeholder={`问我任何期权问题，例如「${ticker} 现在的 GEX 环境如何？」`}
                 rows={1}
                 className="w-full glass text-foreground text-[14px] px-4 py-4 pr-14 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted transition-all min-h-[56px] max-h-[160px]"
                 style={{ height: "auto" }}
@@ -291,9 +178,6 @@ export default function ChatWindow() {
           </p>
         </div>
       </div>
-
-      {/* Right panel */}
-      {rightOpen && <RightPanel ticker={ticker} />}
     </div>
   );
 }
@@ -305,16 +189,10 @@ function WelcomeScreen({
   ticker: string;
   onPrompt: (p: string) => void;
 }) {
-  const suggestions = [
-    `${ticker} 现在的 GEX 环境怎么样？适合做什么策略？`,
-    `分析 ${ticker} 当前的 IV 水平，是否适合卖方策略？`,
-    `${ticker} 的 Put Wall 和 Call Wall 在哪里？`,
-    `帮我评估 Credit Put Spread 的风险收益比`,
-  ];
+  const suggestions = WELCOME_SUGGESTIONS(ticker);
 
   return (
     <div className="flex flex-col items-center justify-center h-full py-12 animate-fade-up">
-      {/* Logo */}
       <div className="relative mb-6">
         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-bold text-xl shadow-lg shadow-primary/30">
           OA
@@ -328,28 +206,9 @@ function WelcomeScreen({
         OptionsAji AI 分析师
       </h2>
       <p className="text-[14px] text-muted mb-8 text-center max-w-md">
-        GEX 数据整理 · 期权链分析 · 教育性情景说明 · 风险提示
+        基于平台缓存数据，综合回答你的期权与市场结构问题
       </p>
 
-      {/* Feature pills */}
-      <div className="flex flex-wrap justify-center gap-2 mb-8">
-        {[
-          { icon: BarChart3, label: "GEX 分析" },
-          { icon: TrendingUp, label: "趋势预测" },
-          { icon: Target, label: "情景分析" },
-          { icon: Zap, label: "实时解读" },
-        ].map((f) => (
-          <div 
-            key={f.label}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-glass border border-glass-border text-[11px] text-muted-foreground"
-          >
-            <f.icon className="w-3 h-3 text-primary" />
-            {f.label}
-          </div>
-        ))}
-      </div>
-
-      {/* Suggestions */}
       <div className="grid grid-cols-1 gap-2 w-full max-w-xl">
         {suggestions.map((s, idx) => (
           <button

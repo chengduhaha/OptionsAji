@@ -120,7 +120,6 @@ async function consumeSse(
 export async function runAgentViaSseStream(params: {
   question: string;
   ticker: string;
-  mode?: string;
   bearerToken?: string | null;
   thinkingMsgId: string;
   setMessages: Dispatch<SetStateAction<AgentChatMessage[]>>;
@@ -160,7 +159,6 @@ export async function runAgentViaSseStream(params: {
       body: JSON.stringify({
         question: params.question,
         ticker: params.ticker,
-        mode: params.mode || "fast",
         session_id: params.sessionRef.current,
       }),
     });
