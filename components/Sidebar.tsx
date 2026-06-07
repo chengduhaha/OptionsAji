@@ -71,7 +71,7 @@ const NAV_GROUPS = [
     label: "跨市场",
     items: [
       { id: "cross_market", label: "跨市场总览", href: "/cross-market", icon: Globe2 },
-      { id: "cross_scanner", label: "套利扫描", href: "/cross-market/scanner", icon: ScanSearch },
+      { id: "cross_scanner", label: "定价差异扫描", href: "/cross-market/scanner", icon: ScanSearch },
       { id: "cross_feed", label: "跨市场信息流", href: "/cross-market/feed", icon: Newspaper },
       { id: "ontology_copilot", label: "本体 Copilot", href: "/copilot", icon: Bot, badge: "NEW" },
       { id: "ontology_inspector", label: "本体调试台", href: "/inspector", icon: Layers },

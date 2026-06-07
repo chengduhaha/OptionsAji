@@ -27,10 +27,10 @@ export default async function CrossMarketHomePage() {
       hint: "来自 Polymarket 与多源融合",
     },
     {
-      title: "高背离机会",
+      title: "高背离观察项",
       subtitle: "背离 > 15% ",
       value: `${highRiskCount}`,
-      hint: "可优先查看套利扫描",
+      hint: "可优先查看定价差异扫描",
     },
     {
       title: "预测市场热度",
@@ -48,6 +48,9 @@ export default async function CrossMarketHomePage() {
         <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
           一览预测市场与多源概率结构。数据经 Next.js 代理至后端；生产环境请配置{" "}
           <span className="font-mono text-primary">OPTIONS_AJI_BACKEND_URL</span>。
+        </p>
+        <p className="text-xs text-muted-foreground/80 max-w-3xl leading-relaxed">
+          仅供教育与研究用途，不构成投资建议、交易建议、荐股、投顾服务或收益承诺；不提供经纪、订单执行、资金托管或资产管理服务。
         </p>
       </header>
 
@@ -105,7 +108,7 @@ export default async function CrossMarketHomePage() {
           href="/cross-market/scanner"
           className="inline-flex items-center px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90"
         >
-          套利扫描
+          定价差异扫描
         </Link>
         <Link
           href="/cross-market/feed"

@@ -200,7 +200,7 @@ export function OpportunityRow({ opportunity, isTopThree }: OpportunityRowProps)
             </button>
             <button className="flex items-center gap-1.5 px-3 py-2 rounded-md bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors">
               <MessageSquare className="w-3.5 h-3.5" />
-              立即让 AI 制定操作策略
+              让 AI 整理风险情景
             </button>
           </div>
         </div>

@@ -36,7 +36,7 @@ export function TopBar({ activeFilter, onFilterChange }: TopBarProps) {
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-3">
             <h1 className="text-lg font-semibold text-foreground tracking-tight">
-              今日跨市场背离机会
+              今日跨市场定价差异观察
             </h1>
             <span className="flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full bg-signal-green/10 text-signal-green border border-signal-green/20 font-mono">
               <span className="w-1.5 h-1.5 rounded-full bg-signal-green animate-pulse" />
@@ -44,7 +44,10 @@ export function TopBar({ activeFilter, onFilterChange }: TopBarProps) {
             </span>
           </div>
           <p className="text-xs text-muted-foreground">
-            AI 在 4 个市场实时扫描概率定价错误，以下是按机会强度排序的 TOP 信号
+            AI 汇总 4 个市场的概率定价差异，以下按背离程度排序，仅用于研究观察
+          </p>
+          <p className="text-[11px] text-muted-foreground/80 leading-relaxed max-w-3xl">
+            仅供教育与研究用途，不构成投资建议、交易建议、荐股、投顾服务或收益承诺；不提供经纪、订单执行、资金托管或资产管理服务。
           </p>
         </div>
 

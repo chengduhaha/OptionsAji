@@ -1,4 +1,4 @@
-/** 客观市场状态分类（对标 Risk-On / Risk-Off / Range-Bound，非交易喊单） */
+/** 客观市场状态分类（对标 Risk-On / Risk-Off / Range-Bound，非方向性交易建议） */
 
 export type MvpMarketRegimeCode =
   | "risk_off"

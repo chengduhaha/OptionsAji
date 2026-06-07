@@ -53,7 +53,7 @@ export function ScannerPage({
 
           {filtered.length === 0 ? (
             <div className="text-sm text-muted-foreground py-12 text-center border border-dashed border-border rounded-lg">
-              暂无符合筛选条件的机会，或后端未返回足够背离形态。
+              暂无符合筛选条件的观察项，或后端未返回足够背离形态。
             </div>
           ) : (
             filtered.map((opportunity) => (

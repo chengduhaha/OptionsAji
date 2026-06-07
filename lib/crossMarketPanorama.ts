@@ -297,7 +297,7 @@ export function adaptHotEventToPanorama(event: HotEvent): EventPanoramaViewModel
       position: "按账户风险",
       maxPL: "见经纪商执行",
       plColor: "#3DBF7A",
-      risk: `套利方向: ${event.arbitrage_direction}`,
+      risk: `定价差异方向: ${event.arbitrage_direction}`,
     },
     {
       leg: "腿 2",
@@ -370,7 +370,7 @@ export function adaptHotEventToPanorama(event: HotEvent): EventPanoramaViewModel
     timeSeries: buildSyntheticTimeSeries(event.event_id, p),
     strategyLegs,
     strategySummary: {
-      tagline: `组合特点 · 套利方向 ${event.arbitrage_direction.replace(/_/g, " ")}`,
+      tagline: `组合特点 · 定价差异方向 ${event.arbitrage_direction.replace(/_/g, " ")}`,
       maxProfit: "见执行路径",
       maxRisk: "见各腿说明",
       evAnnual: "示意",
@@ -402,7 +402,7 @@ function actionFromArb(arb: string): string {
   if (arb.includes("polymarket_underpriced")) return "买 Poly YES + 现货/期权表达";
   if (arb.includes("options_underpriced")) return "买期权波动率 / 日历价差";
   if (arb.includes("options_overpriced")) return "卖期权收租 + Poly 对冲";
-  return "多源对冲 · 详见套利方向字段";
+  return "多源对照 · 详见定价差异方向字段";
 }
 
 export function adaptBackendScannerRows(rows: BackendArbitrageOpportunity[]): UiArbitrageOpportunity[] {
@@ -479,7 +479,7 @@ export function computeScannerStats(opportunities: UiArbitrageOpportunity[]): Sc
     },
     {
       icon: "trend",
-      label: "平均潜在收益分",
+      label: "平均定价差异分",
       value: evStr,
       unit: "",
       color: "text-signal-green",

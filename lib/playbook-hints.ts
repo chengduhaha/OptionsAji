@@ -9,7 +9,7 @@ export const PLAYBOOK_HINTS_FALLBACK: Record<string, string[]> = {
   unusual_flow: [
     "异动五步法：市值>200亿、单笔权利金>50万、14<DTE<60 过滤噪音。",
     "当日 Volume >> 昨日 OI 且成交价在 Ask 侧，更似主力新开仓。",
-    "散户跟单勿抄极虚值行权价，优先 ATM 或轻微 ITM / 看涨价差。",
+    "普通用户不应照搬极虚值行权价，优先 ATM 或轻微 ITM / 看涨价差。",
   ],
   screener: [
     "合约筛选器按方向+流动性筛选，不是异动榜；结合 DTE、IV、量/OI 阅读。",

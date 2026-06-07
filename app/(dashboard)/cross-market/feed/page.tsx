@@ -40,8 +40,11 @@ export default async function CrossMarketFeedPage() {
         <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Cross-market feed</p>
         <h1 className="text-2xl md:text-3xl font-semibold text-foreground">跨市场信息流</h1>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          聚合热点事件与套利扫描信号。加载较慢时多为后端在拉取 Polymarket / 融合数据；请确认{" "}
+          聚合热点事件与跨市场定价差异观察。加载较慢时多为后端在拉取 Polymarket / 融合数据；请确认{" "}
           <span className="font-mono text-primary">OPTIONS_AJI_BACKEND_URL</span> 可访问。
+        </p>
+        <p className="text-xs text-muted-foreground/80 leading-relaxed">
+          仅供教育与研究用途，不构成投资建议、交易建议、荐股、投顾服务或收益承诺；不提供经纪、订单执行、资金托管或资产管理服务。
         </p>
       </header>
 

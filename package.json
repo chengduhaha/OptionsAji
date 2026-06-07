@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "check:compliance-copy": "node scripts/check-compliance-copy.mjs",
     "start": "next start",
     "lint": "next lint"
   },

@@ -168,7 +168,7 @@ export function ProbabilityPanorama({
           <div className="rounded-xl border border-[#E8842A]/30 bg-gradient-to-br from-[#1A1208] to-[#131E35] p-5">
             <div className="flex items-center gap-2 mb-3">
               <TrendingDown className="w-4 h-4 text-[#E8842A]" />
-              <span className="text-xs font-semibold text-[#E8842A] uppercase tracking-wider">套利机会</span>
+              <span className="text-xs font-semibold text-[#E8842A] uppercase tracking-wider">定价差异观察</span>
             </div>
             <div className="flex items-center gap-2 mb-1">
               <span className="font-terminal text-xs font-medium text-[#E8842A]/95 leading-snug">{arbitrationHeadline}</span>

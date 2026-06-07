@@ -49,7 +49,7 @@ export const dictionary: Record<Locale, DictionaryTree> = {
       congress: "国会山追踪",
       crossMarket: "跨市场",
       cross_market: "跨市场总览",
-      cross_scanner: "套利扫描",
+      cross_scanner: "定价差异扫描",
       cross_feed: "跨市场信息流",
       ontology_copilot: "本体 Copilot",
       ontology_inspector: "本体调试台",

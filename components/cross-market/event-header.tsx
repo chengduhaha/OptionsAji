@@ -86,7 +86,7 @@ export function EventHeader({
               <div className="flex items-center gap-1.5 bg-[#D44A4A]/10 border border-[#D44A4A]/30 rounded-lg px-3 py-2.5">
                 <Zap className="w-3.5 h-3.5 text-[#D44A4A]" />
                 <span className="font-terminal text-xs font-semibold text-[#D44A4A] uppercase tracking-wider">
-                  套利信号
+                  定价差异观察
                 </span>
               </div>
             ) : null}

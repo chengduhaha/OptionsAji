@@ -78,7 +78,7 @@ export function RightSidebar({ opportunities }: { opportunities: ArbitrageOpport
           </div>
           <p className="text-[11px] text-muted-foreground leading-relaxed">
             当 4 个市场对同一事件的概率估计差距越大，意味着至少一方在错误定价。
-            <span className="text-primary font-semibold"> 背离度 {'>'} 25</span> 通常代表强烈的套利机会。
+            <span className="text-primary font-semibold"> 背离度 {'>'} 25</span> 通常代表显著的定价差异观察项。
           </p>
         </div>
 
