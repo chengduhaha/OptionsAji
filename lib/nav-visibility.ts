@@ -2,6 +2,7 @@
 
 export const KNOWN_NAV_IDS = [
   "aji_insights",
+  "ticker_insights",
   "dash",
   "scanner",
   "stock",
@@ -42,9 +43,10 @@ export const NAV_GROUP_LABELS: Record<string, { label: string; childIds: NavMenu
 };
 
 export const NAV_ITEM_LABELS: Record<NavMenuId, string> = {
-  aji_insights: "阿吉市场洞察",
+  aji_insights: "市场洞察",
+  ticker_insights: "标的深析",
   dash: "市场总览",
-  scanner: "期权扫描器",
+  scanner: "期权数据筛选器",
   stock: "个股深度",
   feed: "统一信息流",
   ai: "AI 分析师",
@@ -71,6 +73,7 @@ export function defaultNavVisibility(): Record<string, boolean> {
 
 const SAFE_REGULAR_INITIAL_VISIBLE = new Set<NavMenuId>([
   "aji_insights",
+  "ticker_insights",
   "profile",
 ]);
 
@@ -87,6 +90,7 @@ export function pathnameToMenuId(
 ): NavMenuId | "admin_users" | "admin_menu" | "admin_access_keys" | "admin_llm_usage" | null {
   const p = pathname.split("?")[0] ?? "/";
   if (p === "/" || p === "/mvp") return "aji_insights";
+  if (p === "/ticker" || p.startsWith("/ticker/")) return "ticker_insights";
   if (p === "/market" || p.startsWith("/market/")) return "dash";
   if (p === "/scanner/divergence" || p.startsWith("/scanner/divergence/")) return "divergence";
   if (p === "/scanner") return "scanner";

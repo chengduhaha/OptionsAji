@@ -1644,12 +1644,17 @@ function EmptyLine({ text: value }: { text: string }) {
 
 export type MvpInsightsPageVariant = "dashboard" | "standalone";
 
+export type MvpInsightsSection = "all" | "market" | "ticker";
+
 export type MvpInsightsPageProps = {
   variant?: MvpInsightsPageVariant;
+  section?: MvpInsightsSection;
 };
 
-export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsPageProps) {
+export default function MvpInsightsPage({ variant = "standalone", section = "all" }: MvpInsightsPageProps) {
   const isDashboard = variant === "dashboard";
+  const showMarket = section !== "ticker";
+  const showTicker = section !== "market";
   const { tier, ready, token, isPro, saveKey } = useMvpTier();
   const nextPath = variant === "standalone" ? "/mvp" : "/";
   const [accessKeyModalOpen, setAccessKeyModalOpen] = useState(false);
@@ -1847,12 +1852,6 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
   const events = useMemo(() => buildWarRoomEvents(warRoom), [warRoom]);
   const treasuryRows = getTreasuryRows(warRoom.treasury.data);
   const latestTreasury = treasuryRows[0] ?? {};
-  const yieldBars = [
-    { term: "1M", rate: num(latestTreasury.month1 ?? latestTreasury["1M"]) },
-    { term: "2Y", rate: num(latestTreasury.year2 ?? latestTreasury["2Y"]) },
-    { term: "10Y", rate: num(latestTreasury.year10 ?? latestTreasury["10Y"]) },
-    { term: "30Y", rate: num(latestTreasury.year30 ?? latestTreasury["30Y"]) },
-  ].filter((row): row is { term: string; rate: number } => row.rate !== null);
   const ruleTreasuryRead = buildTreasuryRead(latestTreasury);
   const treasuryRead = aiInsights?.treasury?.summary
     ? {
@@ -1864,6 +1863,12 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
   const treasurySpreads = asRecord(treasuryRead.spreads);
   const spread10y2y = num(treasurySpreads.spread10y2y ?? treasurySpreads["10y_2y"]);
   const spread30y10y = num(treasurySpreads.spread30y10y ?? treasurySpreads["30y_10y"]);
+  const yieldBars = [
+    { term: "1M", rate: num(latestTreasury.month1 ?? latestTreasury["1M"]) },
+    { term: "2Y", rate: num(latestTreasury.year2 ?? latestTreasury["2Y"]) },
+    { term: "10Y", rate: num(latestTreasury.year10 ?? latestTreasury["10Y"]) },
+    { term: "30Y", rate: num(latestTreasury.year30 ?? latestTreasury["30Y"]) },
+  ].filter((row): row is { term: string; rate: number } => row.rate !== null);
   const overview = warRoom.overview.data;
   const pulseRows = overview?.pulse ?? [];
   const vixHistory = overview?.volatility.vixSeries ?? [];
@@ -2020,25 +2025,27 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
               <span>美股市场分析</span>
             </div>
             <h1 className="display-1 mt-2 text-foreground">
-              阿吉市场洞察
+              {section === "ticker" ? "标的深析" : "市场洞察"}
             </h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {marketSessionLabel ? (
+            {showMarket && marketSessionLabel ? (
               <span className="inline-flex items-center gap-1.5 rounded-lg border border-green/25 bg-green/10 px-3 py-2 text-xs font-medium text-green">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green" />
                 {marketSessionLabel}
               </span>
             ) : null}
-            <button
-              type="button"
-              onClick={() => void loadWarRoom({ force: true })}
-              title="立即刷新市场总览"
-              className="inline-flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/10 px-3 py-2 text-sm text-gold transition hover:bg-gold/15"
-            >
-              <RefreshCw className={`h-4 w-4 ${warLoading ? "animate-spin" : ""}`} />
-              刷新
-            </button>
+            {showMarket ? (
+              <button
+                type="button"
+                onClick={() => void loadWarRoom({ force: true })}
+                title="立即刷新市场总览"
+                className="inline-flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/10 px-3 py-2 text-sm text-gold transition hover:bg-gold/15"
+              >
+                <RefreshCw className={`h-4 w-4 ${warLoading ? "animate-spin" : ""}`} />
+                刷新
+              </button>
+            ) : null}
           </div>
         </header>
 
@@ -2060,6 +2067,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
           saveKey={saveKey}
         />
 
+        {showMarket ? (
         <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_320px]">
           <Card className="p-5">
             {/* Section header + meta */}
@@ -2433,7 +2441,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
               国债曲线
             </div>
             <p className="mt-1 text-xs text-muted">利率环境 · {treasuryRead.label}</p>
-            <div className="mt-4 rounded-lg border border-border2 bg-foreground/[0.02] p-3">
+            <div className="mt-4 rounded-lg border border-border2 market-surface p-3">
               {yieldBars.length > 0 ? (
                 <ResponsiveContainer width="100%" height={140}>
                   <BarChart data={yieldBars}>
@@ -2460,7 +2468,10 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
             </div>
           </Card>
         </section>
+        ) : null}
 
+        {showTicker ? (
+        <>
         <LockedContent
           required="trial"
           currentTier={tier}
@@ -3011,6 +3022,8 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
           ) : null}
         </section>
         </LockedContent>
+        </>
+        ) : null}
 
         {selectedEvent ? (
           <EventDetailModal

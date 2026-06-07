@@ -69,28 +69,28 @@ function ChartSection({ chart }: { chart: AgentChart }) {
       <ResponsiveContainer width="100%" height={180}>
         {chart.type === "bar" ? (
           <BarChart data={chart.data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(100,116,139,0.15)" />
             <XAxis dataKey={chart.xKey} tick={{ fontSize: 9, fill: "#64748b" }} />
             <YAxis tick={{ fontSize: 9, fill: "#64748b" }} width={36} />
-            <Tooltip contentStyle={{ background: "#0f1c30", border: "1px solid rgba(240,180,41,0.2)", fontSize: 12 }} />
+            <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid rgba(240,180,41,0.2)", fontSize: 12 }} />
             <Legend wrapperStyle={{ fontSize: 10, color: "#94a3b8" }} />
             {chart.yKeys.map((key, i) => <Bar key={key} {...shared(key, i)} />)}
           </BarChart>
         ) : chart.type === "area" ? (
           <AreaChart data={chart.data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(100,116,139,0.15)" />
             <XAxis dataKey={chart.xKey} tick={{ fontSize: 9, fill: "#64748b" }} />
             <YAxis tick={{ fontSize: 9, fill: "#64748b" }} width={36} />
-            <Tooltip contentStyle={{ background: "#0f1c30", border: "1px solid rgba(240,180,41,0.2)", fontSize: 12 }} />
+            <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid rgba(240,180,41,0.2)", fontSize: 12 }} />
             <Legend wrapperStyle={{ fontSize: 10, color: "#94a3b8" }} />
             {chart.yKeys.map((key, i) => <Area key={key} type="monotone" fillOpacity={0.2} {...shared(key, i)} />)}
           </AreaChart>
         ) : (
           <LineChart data={chart.data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(100,116,139,0.15)" />
             <XAxis dataKey={chart.xKey} tick={{ fontSize: 9, fill: "#64748b" }} />
             <YAxis tick={{ fontSize: 9, fill: "#64748b" }} width={36} />
-            <Tooltip contentStyle={{ background: "#0f1c30", border: "1px solid rgba(240,180,41,0.2)", fontSize: 12 }} />
+            <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid rgba(240,180,41,0.2)", fontSize: 12 }} />
             <Legend wrapperStyle={{ fontSize: 10, color: "#94a3b8" }} />
             {chart.yKeys.map((key, i) => <Line key={key} type="monotone" dot={false} {...shared(key, i)} />)}
           </LineChart>

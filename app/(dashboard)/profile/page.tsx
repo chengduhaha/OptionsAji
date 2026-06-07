@@ -247,15 +247,17 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto p-6 space-y-8 max-w-3xl">
-      <header className="space-y-1">
-        <h1 className="text-xl font-semibold text-foreground tracking-tight flex items-center gap-2">
-          <UserCircle className="w-6 h-6 text-primary" />
-          个人中心
-        </h1>
-        <p className="text-[12px] text-muted-foreground">
-          账户信息来自当前登录会话；部分集成管理能力仅管理员可见。
-        </p>
+    <div className="mx-auto h-full max-w-4xl space-y-6 overflow-y-auto p-6 md:p-8">
+      <header className="flex items-center gap-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
+          <UserCircle className="h-6 w-6 text-primary" />
+        </div>
+        <div>
+          <h1 className="heading-1 text-foreground">个人中心</h1>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">
+            账户信息来自当前登录会话；部分集成管理能力仅管理员可见。
+          </p>
+        </div>
       </header>
 
       {!user ? (
@@ -272,14 +274,14 @@ export default function ProfilePage() {
             </Link>
             <Link
               href="/register"
-              className="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-glass-border text-[13px] hover:border-primary/30"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-border text-[13px] hover:border-primary/30"
             >
               注册
             </Link>
           </div>
         </section>
       ) : (
-        <section className="rounded-xl border border-glass-border bg-glass/40 p-4 space-y-3">
+        <section className="rounded-2xl border border-border bg-card p-5 space-y-3">
           <h2 className="text-[13px] font-semibold text-foreground flex items-center justify-between gap-2">
             账户摘要
             <button
@@ -317,7 +319,7 @@ export default function ProfilePage() {
       )}
 
       {user ? (
-        <section className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+        <section className="rounded-2xl border border-primary/30 bg-primary/[0.06] p-5 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-[13px] font-semibold text-foreground">订阅与用量 / Creem</h2>
             <button
@@ -372,7 +374,7 @@ export default function ProfilePage() {
             </button>
             <Link
               href="/refund"
-              className="px-4 py-2 rounded-lg border border-glass-border text-[12px] text-muted-foreground hover:text-foreground"
+              className="px-4 py-2 rounded-lg border border-border text-[12px] text-muted-foreground hover:text-foreground"
             >
               退款与取消政策
             </Link>
@@ -381,7 +383,7 @@ export default function ProfilePage() {
       ) : null}
 
       {user && (isAdmin || hasAccessKey) ? (
-        <section className="rounded-xl border border-glass-border bg-glass/40 p-4 space-y-3">
+        <section className="rounded-2xl border border-border bg-card p-5 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-[13px] font-semibold text-foreground">内部试用 Access Key</h2>
             <button
@@ -395,7 +397,7 @@ export default function ProfilePage() {
           </div>
           {isAdmin ? (
             <p className="text-[12px] text-green leading-relaxed">
-              管理员账号可直接浏览阿吉市场洞察全部内容，无需内部试用 Key。
+              管理员账号可直接浏览市场洞察全部内容，无需内部试用 Key。
             </p>
           ) : null}
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px]">
@@ -457,7 +459,7 @@ export default function ProfilePage() {
 
       {canManageIntegrations ? (
         <>
-          <section className="rounded-xl border border-glass-border bg-glass/40 p-4 space-y-3">
+          <section className="rounded-2xl border border-border bg-card p-5 space-y-3">
             <h2 className="text-[13px] font-semibold text-foreground">Integration API Key</h2>
             <p className="text-[11px] text-muted-foreground leading-relaxed">
               用于自选、提醒与推送设置；与「设置」页共用{" "}
@@ -468,7 +470,7 @@ export default function ProfilePage() {
               value={apiKey}
               onChange={(e) => persistKey(e.target.value)}
               placeholder="至少 8 位"
-              className="w-full rounded-lg border border-glass-border bg-background/80 px-3 py-2 text-[13px] font-mono"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-[13px] font-mono"
             />
             <button
               type="button"
@@ -480,7 +482,7 @@ export default function ProfilePage() {
             </button>
           </section>
 
-          <section className="rounded-xl border border-glass-border bg-glass/40 p-4 space-y-3">
+          <section className="rounded-2xl border border-border bg-card p-5 space-y-3">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-[13px] font-semibold text-foreground">自选列表</h2>
           {wlBusy ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /> : null}
@@ -491,7 +493,7 @@ export default function ProfilePage() {
             value={newSym}
             onChange={(e) => setNewSym(e.target.value.toUpperCase())}
             placeholder="例如 NVDA"
-            className="flex-1 min-w-[120px] rounded-lg border border-glass-border bg-background/80 px-3 py-2 text-[13px] font-mono uppercase"
+            className="flex-1 min-w-[120px] rounded-lg border border-border bg-background px-3 py-2 text-[13px] font-mono uppercase"
           />
           <button
             type="button"
@@ -509,7 +511,7 @@ export default function ProfilePage() {
             {wlSymbols.map((s) => (
               <li
                 key={s}
-                className="flex items-center gap-1 pl-2 pr-1 py-1 rounded-lg bg-background/60 border border-glass-border text-[12px] font-mono"
+                className="flex items-center gap-1 pl-2 pr-1 py-1 rounded-lg surface-1 border border-border text-[12px] font-mono"
               >
                 <Link href={`/stock/${s}/overview`} className="text-primary hover:underline">
                   {s}
@@ -529,7 +531,7 @@ export default function ProfilePage() {
         )}
           </section>
 
-          <section className="rounded-xl border border-glass-border bg-glass/40 p-4 space-y-3">
+          <section className="rounded-2xl border border-border bg-card p-5 space-y-3">
         <h2 className="text-[13px] font-semibold text-foreground">提醒</h2>
         {alertsMsg ? (
           <p
@@ -544,7 +546,7 @@ export default function ProfilePage() {
             <input
               value={alertType}
               onChange={(e) => setAlertType(e.target.value)}
-              className="w-full rounded-lg border border-glass-border bg-background/80 px-2 py-1.5 font-mono"
+              className="w-full rounded-lg border border-border bg-background px-2 py-1.5 font-mono"
             />
           </label>
           <label className="space-y-1 block">
@@ -552,7 +554,7 @@ export default function ProfilePage() {
             <input
               value={alertSymbol}
               onChange={(e) => setAlertSymbol(e.target.value.toUpperCase())}
-              className="w-full rounded-lg border border-glass-border bg-background/80 px-2 py-1.5 font-mono uppercase"
+              className="w-full rounded-lg border border-border bg-background px-2 py-1.5 font-mono uppercase"
             />
           </label>
           <label className="space-y-1 block sm:col-span-2">
@@ -560,7 +562,7 @@ export default function ProfilePage() {
             <input
               value={alertThreshold}
               onChange={(e) => setAlertThreshold(e.target.value)}
-              className="w-full rounded-lg border border-glass-border bg-background/80 px-2 py-1.5 font-mono"
+              className="w-full rounded-lg border border-border bg-background px-2 py-1.5 font-mono"
             />
           </label>
         </div>
@@ -578,7 +580,7 @@ export default function ProfilePage() {
             {alerts.map((a) => (
               <li
                 key={a.id}
-                className="flex flex-wrap gap-x-3 gap-y-0.5 border-b border-glass-border/60 pb-1.5"
+                className="flex flex-wrap gap-x-3 gap-y-0.5 border-b border-border/60 pb-1.5"
               >
                 <span className="text-foreground">{a.symbol}</span>
                 <span className="text-muted-foreground">{a.alert_type}</span>
@@ -592,7 +594,7 @@ export default function ProfilePage() {
         )}
           </section>
 
-          <section className="rounded-xl border border-glass-border bg-glass/40 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <section className="rounded-2xl border border-border bg-card p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 className="text-[13px] font-semibold text-foreground">更多</h2>
           <p className="text-[11px] text-muted-foreground mt-1">

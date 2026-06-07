@@ -9,6 +9,7 @@ import {
   Building2,
   ChevronDown,
   ChevronRight,
+  Crosshair,
   Eye,
   Globe2,
   LayoutDashboard,
@@ -41,7 +42,8 @@ const NAV_GROUPS = [
   {
     label: null,
     items: [
-      { id: "aji_insights", label: "阿吉市场洞察", href: "/", icon: Zap },
+      { id: "aji_insights", label: "市场洞察", href: "/", icon: Zap },
+      { id: "ticker_insights", label: "标的深析", href: "/ticker", icon: Crosshair },
       { id: "dash", label: "市场总览", href: "/market", icon: LayoutDashboard },
       { id: "scanner", label: "期权数据筛选器", href: "/scanner", icon: ScanLine },
       { id: "stock", label: "个股深度", href: "/stock/SPY", icon: LineChart },
