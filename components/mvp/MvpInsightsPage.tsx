@@ -768,7 +768,7 @@ function MetaHint({ label, hint }: { label: string; hint: string }) {
 
 function PulseSkeleton() {
   return (
-    <div className="mt-4 flex gap-2 overflow-hidden rounded-xl border border-gold/15 bg-foreground/[0.02] p-2">
+    <div className="mt-4 flex gap-2 overflow-hidden rounded-xl border border-gold/20 market-surface market-pulse-scroll p-2">
       {Array.from({ length: 5 }).map((_, i) => (
         <div key={i} className="h-14 min-w-[120px] flex-1 animate-pulse rounded-lg bg-foreground/[0.06]" />
       ))}
@@ -804,6 +804,9 @@ function EvidenceCard({
   valueTone,
   sub,
   children,
+  collapsible = false,
+  open = true,
+  onToggle,
 }: {
   title: string;
   icon: typeof TrendingUp;
@@ -813,11 +816,13 @@ function EvidenceCard({
   valueTone?: string;
   sub?: React.ReactNode;
   children?: React.ReactNode;
+  collapsible?: boolean;
+  open?: boolean;
+  onToggle?: () => void;
 }) {
-  return (
-    <div className={`relative overflow-hidden rounded-xl border bg-foreground/[0.02] p-4 ${borderClass}`}>
-      <div className={`absolute inset-x-0 top-0 h-0.5 ${accentBar}`} />
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+  const header = (
+    <>
+      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
         <Icon className="h-4 w-4 text-gold" />
         {title}
       </div>
@@ -825,9 +830,42 @@ function EvidenceCard({
         {value}
       </div>
       {sub ? <div className="mt-1 text-sm">{sub}</div> : null}
-      {children ? <div className="mt-3">{children}</div> : null}
+    </>
+  );
+
+  return (
+    <div className={`relative overflow-hidden rounded-xl border market-surface p-4 ${borderClass}`}>
+      <div className={`absolute inset-x-0 top-0 h-0.5 ${accentBar}`} />
+      {collapsible && onToggle ? (
+        <button
+          type="button"
+          onClick={onToggle}
+          className="flex w-full items-start justify-between gap-2 text-left md:pointer-events-none md:cursor-default"
+          aria-expanded={open}
+        >
+          <div className="min-w-0 flex-1">{header}</div>
+          <ChevronDown className={`mt-1 h-4 w-4 shrink-0 text-muted md:hidden ${open ? "rotate-180" : ""} transition-transform`} />
+        </button>
+      ) : (
+        header
+      )}
+      {(!collapsible || open) ? (
+        children ? <div className={`${collapsible ? "mt-3" : "mt-3"} max-md:pt-0`}>{children}</div> : null
+      ) : null}
     </div>
   );
+}
+
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const update = () => setMatches(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, [query]);
+  return matches;
 }
 
 function engineNoteFromInsights(insights: MvpMarketInsightsContract | null): string {
@@ -1641,6 +1679,9 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
   const [gammaModal, setGammaModal] = useState<"distribution" | "trend" | null>(null);
   const [showTechnicalBasis, setShowTechnicalBasis] = useState(false);
   const [showAllEvents, setShowAllEvents] = useState(false);
+  const [summarySource, setSummarySource] = useState<"ai" | "rules">("ai");
+  const [mobileEvidenceOpen, setMobileEvidenceOpen] = useState<string | null>("index");
+  const isMobileEvidence = useMediaQuery("(max-width: 767px)");
   const initialReportLoadedRef = useRef(Boolean(initialReportCache));
   const gammaHeroRef = useRef<HTMLDivElement>(null);
 
@@ -1871,15 +1912,17 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
   const headlineSummary = useMemo(
     () =>
       buildHeadlineSummary({
-        hasAiSummary: Boolean(aiInsights?.regime.summary),
+        hasAiSummary: false,
         fallbackSummary: marketState.summary,
         code: marketState.code,
         avgIndex: avgIndexChange,
         vix: vixLevel,
         vixChange: vixChangePct,
       }),
-    [aiInsights?.regime.summary, marketState.summary, marketState.code, avgIndexChange, vixLevel, vixChangePct],
+    [marketState.summary, marketState.code, avgIndexChange, vixLevel, vixChangePct],
   );
+  const hasAiSummary = Boolean(aiInsights?.regime.summary?.trim());
+  const displayedSummary = hasAiSummary && summarySource === "ai" ? marketState.summary : headlineSummary;
   const showDivergenceAlert = hasDivergentSignals(avgIndexChange, vixChangePct);
   const allWarErrors = reportErrors([
     { slot: warRoom.overview, key: "overview" },
@@ -2043,7 +2086,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
             {warLoading && pulseRows.length === 0 ? (
               <PulseSkeleton />
             ) : (
-              <div className="mt-4 flex gap-2 overflow-x-auto rounded-xl border border-gold/15 bg-foreground/[0.02] p-2 snap-x snap-mandatory scrollbar-thin">
+              <div className="mt-4 flex gap-2 overflow-x-auto rounded-xl border border-gold/20 market-surface market-pulse-scroll p-2 snap-x snap-mandatory">
                 {pulseRows.slice(0, 4).map((row) => (
                   <Link
                     key={row.symbol}
@@ -2076,7 +2119,7 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
             )}
 
             {/* Layer 2 · One-sentence conclusion */}
-            <div className={`mt-5 rounded-xl border ${regimeBorder} bg-foreground/[0.02] p-4 md:p-5`}>
+            <div className={`mt-5 rounded-xl border ${regimeBorder} market-surface-strong p-4 md:p-5`}>
               <div className="flex items-start gap-3">
                 <MarketIcon className={`mt-0.5 h-9 w-9 shrink-0 ${marketState.tone}`} />
                 <div className="min-w-0 flex-1">
@@ -2084,14 +2127,40 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                     <div className={`text-2xl font-semibold ${marketState.tone}`}>{marketState.label}</div>
                     <Pill tone="muted">{regimeEnglish}</Pill>
                   </div>
-                  <p className="mt-2 max-w-3xl text-base leading-relaxed text-foreground">{headlineSummary}</p>
+                  {hasAiSummary ? (
+                    <div className="mt-3 inline-flex rounded-lg border border-border2 bg-panel p-0.5 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setSummarySource("ai")}
+                        className={`rounded-md px-3 py-1.5 font-medium transition ${
+                          summarySource === "ai"
+                            ? "bg-gold/15 text-gold"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        阿吉 AI 解读
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSummarySource("rules")}
+                        className={`rounded-md px-3 py-1.5 font-medium transition ${
+                          summarySource === "rules"
+                            ? "bg-gold/15 text-gold"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        规则引擎
+                      </button>
+                    </div>
+                  ) : null}
+                  <p className="mt-2 max-w-3xl text-base leading-relaxed text-foreground">{displayedSummary}</p>
                   {showDivergenceAlert ? (
                     <div className="mt-3 flex items-start gap-2 rounded-lg border border-gold/30 bg-gold/10 px-3 py-2.5 text-sm leading-6 text-gold">
                       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                       <span>矛盾信号：指数上涨但 VIX 急升，不宜盲目追涨，优先关注对冲与仓位。</span>
                     </div>
                   ) : null}
-                  <ul className="mt-4 space-y-1.5 rounded-lg border border-border2/80 bg-foreground/[0.02] px-3 py-3">
+                  <ul className="mt-4 space-y-1.5 rounded-lg market-surface-strong px-3 py-3">
                     {plainBasis.map((line) => (
                       <li key={line} className="flex gap-2 text-sm leading-6 text-muted-foreground">
                         <span className="text-gold">·</span>
@@ -2145,6 +2214,11 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                   borderClass={regimeBorder}
                   value={indexRead.label}
                   valueTone={indexRead.tone}
+                  collapsible={isMobileEvidence}
+                  open={!isMobileEvidence || mobileEvidenceOpen === "index"}
+                  onToggle={() =>
+                    setMobileEvidenceOpen((id) => (id === "index" ? null : "index"))
+                  }
                   sub={
                     <span className={`font-mono tabular-nums ${indexRead.tone}`}>
                       SPY/QQQ 均值 {pct(avgIndexChange)}
@@ -2175,6 +2249,11 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                   borderClass={regimeBorder}
                   value={vixLevel !== null ? vixLevel.toFixed(2) : "—"}
                   valueTone={(vixChangePct ?? 0) >= 0 ? "text-red" : "text-green"}
+                  collapsible={isMobileEvidence}
+                  open={!isMobileEvidence || mobileEvidenceOpen === "vix"}
+                  onToggle={() =>
+                    setMobileEvidenceOpen((id) => (id === "vix" ? null : "vix"))
+                  }
                   sub={
                     <span className={`font-mono text-sm tabular-nums ${(vixChangePct ?? 0) >= 0 ? "text-red" : "text-green"}`}>
                       {pct(vixChangePct)}
@@ -2221,6 +2300,11 @@ export default function MvpInsightsPage({ variant = "standalone" }: MvpInsightsP
                   borderClass={regimeBorder}
                   value={pcr !== null ? pcr.toFixed(2) : "—"}
                   valueTone={pcrMood.tone}
+                  collapsible={isMobileEvidence}
+                  open={!isMobileEvidence || mobileEvidenceOpen === "pcr"}
+                  onToggle={() =>
+                    setMobileEvidenceOpen((id) => (id === "pcr" ? null : "pcr"))
+                  }
                   sub={<span className={pcrMood.tone}>{pcrMood.label}</span>}
                 >
                   <PcrSentimentBar pcr={pcr} />
