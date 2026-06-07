@@ -5,16 +5,12 @@ import { Send, Plus, RefreshCw, Sparkles } from "lucide-react";
 import { clsx } from "clsx";
 import MessageBubble from "./MessageBubble";
 import { runAgentViaSseStream, type AgentChatMessage } from "@/lib/agentSse";
+import { formatMessage } from "@/lib/i18n/dictionary";
+import { useI18n } from "@/lib/i18n/context";
 
 type Message = AgentChatMessage;
 
 const TICKERS = ["SPY", "QQQ", "AAPL", "TSLA", "NVDA", "AMZN", "MSFT", "META", "GOOGL"];
-
-const WELCOME_SUGGESTIONS = (ticker: string) => [
-  `${ticker} 现在的 GEX 环境怎么样？`,
-  `分析 ${ticker} 当前的 IV 水平，是否适合卖方策略？`,
-  `帮我评估 ${ticker} Credit Put Spread 的风险收益比`,
-];
 
 function readOptionalBearerToken(): string | null {
   const fromPublicEnv = process.env.NEXT_PUBLIC_AGENT_BEARER?.trim();
@@ -30,6 +26,7 @@ function readOptionalBearerToken(): string | null {
 }
 
 export default function ChatWindow() {
+  const { locale, t } = useI18n();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -67,6 +64,7 @@ export default function ChatWindow() {
       await runAgentViaSseStream({
         question,
         ticker,
+        locale,
         bearerToken: readOptionalBearerToken(),
         thinkingMsgId: thinkingMsg.id,
         setMessages,
@@ -76,7 +74,7 @@ export default function ChatWindow() {
       setMessages((prev) =>
         prev.map((m) =>
           m.id === thinkingMsg.id
-            ? { ...m, content: "网络错误，请重试。", thinking: false }
+            ? { ...m, content: t("chat.networkError"), thinking: false }
             : m
         )
       );
@@ -103,7 +101,7 @@ export default function ChatWindow() {
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         <div className="flex items-center gap-4 px-5 py-3 border-b border-glass-border glass flex-shrink-0">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] text-muted uppercase tracking-wider">标的</span>
+            <span className="text-[10px] text-muted uppercase tracking-wider">{t("chat.ticker")}</span>
             <select
               value={ticker}
               onChange={(e) => setTicker(e.target.value)}
@@ -118,10 +116,11 @@ export default function ChatWindow() {
           <div className="ml-auto flex items-center gap-2">
             <button
               onClick={newChat}
+              aria-label={t("chat.newChat")}
               className="flex items-center gap-2 px-3 py-2 rounded-lg glass-subtle text-[12px] text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all"
             >
               <Plus className="w-4 h-4" />
-              新对话
+              {t("chat.newChat")}
             </button>
           </div>
         </div>
@@ -144,7 +143,7 @@ export default function ChatWindow() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={`问我任何期权问题，例如「${ticker} 现在的 GEX 环境如何？」`}
+                placeholder={formatMessage(t("chat.placeholder"), { ticker })}
                 rows={1}
                 className="w-full glass text-foreground text-[14px] px-4 py-4 pr-14 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted transition-all min-h-[56px] max-h-[160px]"
                 style={{ height: "auto" }}
@@ -158,6 +157,8 @@ export default function ChatWindow() {
               <button
                 onClick={() => sendMessage()}
                 disabled={!input.trim() || loading}
+                aria-label={t("chat.send")}
+                title={t("chat.send")}
                 className={clsx(
                   "absolute right-3 bottom-3 w-10 h-10 rounded-lg flex items-center justify-center transition-all",
                   input.trim() && !loading
@@ -174,7 +175,7 @@ export default function ChatWindow() {
             </div>
           </div>
           <p className="text-[10px] text-muted mt-2 text-center">
-            仅供教育参考，不构成投资建议 · Enter 发送，Shift+Enter 换行
+            {t("chat.disclaimer")}
           </p>
         </div>
       </div>
@@ -189,7 +190,12 @@ function WelcomeScreen({
   ticker: string;
   onPrompt: (p: string) => void;
 }) {
-  const suggestions = WELCOME_SUGGESTIONS(ticker);
+  const { t } = useI18n();
+  const suggestions = [
+    formatMessage(t("chat.suggestionGex"), { ticker }),
+    formatMessage(t("chat.suggestionIv"), { ticker }),
+    formatMessage(t("chat.suggestionSpread"), { ticker }),
+  ];
 
   return (
     <div className="flex flex-col items-center justify-center h-full py-12 animate-fade-up">
@@ -203,10 +209,10 @@ function WelcomeScreen({
       </div>
 
       <h2 className="text-[22px] font-bold text-foreground mb-2">
-        OptionsAji AI 分析师
+        {t("chat.welcomeTitle")}
       </h2>
       <p className="text-[14px] text-muted mb-8 text-center max-w-md">
-        基于平台缓存数据，综合回答你的期权与市场结构问题
+        {t("chat.welcomeSubtitle")}
       </p>
 
       <div className="grid grid-cols-1 gap-2 w-full max-w-xl">

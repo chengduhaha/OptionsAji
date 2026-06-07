@@ -3,6 +3,7 @@
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useI18n } from "@/lib/i18n/context";
 
 const PUBLIC_DASHBOARD_PREFIXES = ["/", "/profile"];
 
@@ -13,6 +14,7 @@ function isPublicDashboardPath(path: string | null): boolean {
 
 export default function DashboardAuthGuard({ children }: { children: React.ReactNode }) {
   const { ready, user } = useAuth();
+  const { t } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -28,7 +30,7 @@ export default function DashboardAuthGuard({ children }: { children: React.React
   if (!ready) {
     return (
       <div className="flex h-full w-full items-center justify-center bg-background text-muted-foreground text-[13px]">
-        加载会话…
+        {t("shell.loadingSession")}
       </div>
     );
   }
@@ -40,7 +42,7 @@ export default function DashboardAuthGuard({ children }: { children: React.React
   if (!user) {
     return (
       <div className="flex h-full w-full items-center justify-center bg-background text-muted-foreground text-[13px]">
-        重定向到登录…
+        {t("shell.redirectLogin")}
       </div>
     );
   }

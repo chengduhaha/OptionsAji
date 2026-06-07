@@ -1,6 +1,8 @@
 "use client";
 
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
+import { formatMessage, resolveDictionaryValue } from "@/lib/i18n/dictionary";
+import type { Locale } from "@/lib/i18n/types";
 
 export type AgentSseEvent =
   | { type: "thinking"; content: string | null; ts_unix_ms?: number }
@@ -37,22 +39,31 @@ export type AgentChatMessage = {
   thinkingLines?: string[];
 };
 
-function eventLabel(kind: AgentSseEvent["type"]): string {
+function localized(
+  locale: Locale,
+  key: string,
+  fallback: string,
+  values?: Record<string, string | number>,
+): string {
+  return formatMessage(resolveDictionaryValue(locale, key) ?? fallback, values);
+}
+
+function eventLabel(kind: AgentSseEvent["type"], locale: Locale): string {
   switch (kind) {
     case "thinking":
-      return "思考";
+      return localized(locale, "sse.thinking", "思考");
     case "data_fetched":
-      return "数据";
+      return localized(locale, "sse.data", "数据");
     case "planning":
-      return "规划";
+      return localized(locale, "sse.planning", "规划");
     case "subagent_start":
-      return "子代理启动";
+      return localized(locale, "sse.subagentStart", "子代理启动");
     case "subagent_done":
-      return "子代理完成";
+      return localized(locale, "sse.subagentDone", "子代理完成");
     case "error":
-      return "错误";
+      return localized(locale, "sse.error", "错误");
     default:
-      return "事件";
+      return localized(locale, "sse.event", "事件");
   }
 }
 
@@ -68,6 +79,7 @@ function pushTraceLine(
 
 async function consumeSse(
   reader: ReadableStreamDefaultReader<Uint8Array>,
+  locale: Locale,
   callbacks: {
     onEvent: (ev: AgentSseEvent) => void;
     onError?: (reason: unknown) => void;
@@ -102,7 +114,7 @@ async function consumeSse(
           callbacks.onError?.(parseError);
           callbacks.onEvent({
             type: "error",
-            content: "SSE 解码失败（非 JSON）。",
+            content: localized(locale, "sse.decodeFailed", "SSE 解码失败（非 JSON）。"),
           });
           continue;
         }
@@ -120,6 +132,7 @@ async function consumeSse(
 export async function runAgentViaSseStream(params: {
   question: string;
   ticker: string;
+  locale: Locale;
   bearerToken?: string | null;
   thinkingMsgId: string;
   setMessages: Dispatch<SetStateAction<AgentChatMessage[]>>;
@@ -133,6 +146,7 @@ export async function runAgentViaSseStream(params: {
   if (params.bearerToken) {
     headersRecord.Authorization = `Bearer ${params.bearerToken}`;
   }
+  const locale = params.locale;
 
   const finalizeStaleThinking = (): void => {
     params.setMessages((prev) =>
@@ -145,7 +159,7 @@ export async function runAgentViaSseStream(params: {
                 m.content ||
                 (m.thinkingLines && m.thinkingLines.length > 0
                   ? m.thinkingLines.join("\n")
-                  : "SSE 结束，但未收到模型回答片段。"),
+                  : localized(locale, "sse.stale", "SSE 结束，但未收到模型回答片段。")),
             }
           : m,
       ),
@@ -159,6 +173,7 @@ export async function runAgentViaSseStream(params: {
       body: JSON.stringify({
         question: params.question,
         ticker: params.ticker,
+        locale,
         session_id: params.sessionRef.current,
       }),
     });
@@ -174,8 +189,13 @@ export async function runAgentViaSseStream(params: {
                 thinkingLines: pushTraceLine(member.thinkingLines, `[HTTP ${resp.status}] ${text.slice(0, 300)}`),
                 content:
                   resp.status === 503
-                    ? `Agent 后端未就绪：${text || "请先配置 OPTIONS_AJI_BACKEND_URL。"}`
-                    : `Agent 后端错误 (${resp.status}): ${text || "未知错误"}`,
+                    ? localized(locale, "sse.backendNotReady", "Agent 后端未就绪：{detail}", {
+                        detail: text || "请先配置 OPTIONS_AJI_BACKEND_URL。",
+                      })
+                    : localized(locale, "sse.backendError", "Agent 后端错误 ({status}): {detail}", {
+                        status: resp.status,
+                        detail: text || localized(locale, "sse.unknownError", "未知错误"),
+                      }),
               }
             : member,
         ),
@@ -186,7 +206,7 @@ export async function runAgentViaSseStream(params: {
     let seenAnswer = false;
     const subagentStartedAt: Record<string, number> = {};
 
-    await consumeSse(resp.body.getReader(), {
+    await consumeSse(resp.body.getReader(), locale, {
       onEvent: (eventItem) => {
         if (
           eventItem.type === "thinking" ||
@@ -209,11 +229,11 @@ export async function runAgentViaSseStream(params: {
                 elapsedMs >= 1000
                   ? `${(elapsedMs / 1000).toFixed(1)}s`
                   : `${Math.round(elapsedMs)}ms`;
-              content = `${content}（耗时 ${elapsedLabel}）`;
+              content = `${content}（${localized(locale, "sse.elapsed", "耗时 {elapsed}", { elapsed: elapsedLabel })}）`;
             }
           }
 
-          const blob = `${eventLabel(eventItem.type)}｜${content}`;
+          const blob = `${eventLabel(eventItem.type, locale)}｜${content}`;
           params.setMessages((membership) =>
             membership.map((messageEntry) =>
               messageEntry.id === params.thinkingMsgId
@@ -236,9 +256,9 @@ export async function runAgentViaSseStream(params: {
                     thinking: false,
                     thinkingLines: pushTraceLine(
                       messageEntry.thinkingLines,
-                      `${eventLabel(eventItem.type)}｜${eventItem.content ?? "未知错误"}`,
+                      `${eventLabel(eventItem.type, locale)}｜${eventItem.content ?? localized(locale, "sse.unknownError", "未知错误")}`,
                     ),
-                    content: eventItem.content ?? "Agent 报错",
+                    content: eventItem.content ?? localized(locale, "sse.agentError", "Agent 报错"),
                   }
                 : messageEntry,
             ),
@@ -269,7 +289,7 @@ export async function runAgentViaSseStream(params: {
     const messageLabel =
       connectionError instanceof Error
         ? connectionError.message
-        : "网络错误";
+        : localized(locale, "sse.networkError", "网络错误");
 
     params.setMessages((memberList) =>
       memberList.map((messageEntry) =>
@@ -279,9 +299,11 @@ export async function runAgentViaSseStream(params: {
               thinking: false,
               thinkingLines: pushTraceLine(
                 messageEntry.thinkingLines,
-                `${eventLabel("error")}｜${messageLabel}`,
+                `${eventLabel("error", locale)}｜${messageLabel}`,
               ),
-              content: `${messageLabel}，无法连接 Agent SSE。`,
+              content: localized(locale, "sse.cannotConnect", "{message}，无法连接 Agent SSE。", {
+                message: messageLabel,
+              }),
             }
           : messageEntry,
       ),

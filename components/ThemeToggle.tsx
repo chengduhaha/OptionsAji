@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
+import { useI18n } from "@/lib/i18n/context";
 
 type Theme = "light" | "dark";
 
@@ -13,6 +14,7 @@ type Theme = "light" | "dark";
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>("light");
   const [mounted, setMounted] = useState(false);
+  const { t } = useI18n();
 
   useEffect(() => {
     setMounted(true);
@@ -37,25 +39,25 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={toggle}
-      aria-label={isDark ? "切换到亮色主题" : "切换到暗色主题"}
-      title={isDark ? "切换到亮色主题" : "切换到暗色主题"}
+      aria-label={isDark ? t("theme.switchToLight") : t("theme.switchToDark")}
+      title={isDark ? t("theme.switchToLight") : t("theme.switchToDark")}
       className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-glass-border bg-glass py-2 text-[11px] text-muted-foreground transition-all hover:border-primary/30 hover:text-foreground"
     >
       {/* Render a stable label until mounted to avoid hydration mismatch. */}
       {!mounted ? (
         <>
           <Sun className="h-3 w-3" />
-          主题
+          {t("theme.label")}
         </>
       ) : isDark ? (
         <>
           <Sun className="h-3 w-3" />
-          亮色主题
+          {t("theme.light")}
         </>
       ) : (
         <>
           <Moon className="h-3 w-3" />
-          暗色主题
+          {t("theme.dark")}
         </>
       )}
     </button>

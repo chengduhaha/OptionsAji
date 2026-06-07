@@ -34,9 +34,11 @@ import {
 import { clsx } from "clsx";
 import { useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useI18n } from "@/lib/i18n/context";
 import { useNavVisibility } from "@/lib/nav-visibility-context";
 import type { NavMenuId } from "@/lib/nav-visibility";
 import { Menu } from "lucide-react";
+import LanguageToggle from "@/components/LanguageToggle";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const NAV_GROUPS = [
@@ -159,6 +161,7 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [logoutBusy, setLogoutBusy] = useState(false);
   const { user, isAdmin, logout } = useAuth();
+  const { t } = useI18n();
   const { isVisible } = useNavVisibility();
 
   const visibleGroups = useMemo(() => {
@@ -197,7 +200,7 @@ export default function Sidebar() {
           </div>
           <div className="text-[11px] text-muted flex items-center gap-1.5">
             <Activity className="w-3 h-3 text-green" />
-            <span>市场开放中</span>
+            <span>{t("shell.marketOpen")}</span>
           </div>
         </div>
       </div>
@@ -215,19 +218,23 @@ export default function Sidebar() {
                   className="flex items-center gap-2 w-full px-3 py-2 text-[10px] font-semibold text-muted uppercase tracking-widest hover:text-muted-foreground transition-colors"
                 >
                   {isOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                  {group.label}
+                  {group.label === "另类数据" ? t("nav.altData") : t("nav.crossMarket")}
                 </button>
               )}
               {isOpen && (
                 <div className="space-y-1 mt-1">
                   {group.items.map((item) => (
-                    <NavItem key={item.id} item={item} pathname={pathname} />
+                    <NavItem
+                      key={item.id}
+                      item={{ ...item, label: t(`nav.${item.id}`, item.label) }}
+                      pathname={pathname}
+                    />
                   ))}
                   {group.label === null && user && (isAdmin || isVisible("profile")) ? (
                     <NavItem
                       item={{
                         id: "profile",
-                        label: "个人中心",
+                        label: t("nav.profile"),
                         href: "/profile",
                         icon: User,
                       }}
@@ -239,7 +246,7 @@ export default function Sidebar() {
                       <NavItem
                         item={{
                           id: "admin_menu",
-                          label: "菜单管理",
+                          label: t("nav.admin_menu"),
                           href: "/admin/menu",
                           icon: Menu,
                         }}
@@ -248,7 +255,7 @@ export default function Sidebar() {
                       <NavItem
                         item={{
                           id: "admin_discord",
-                          label: "Discord 来源",
+                          label: t("nav.admin_discord"),
                           href: "/admin/discord",
                           icon: AtSign,
                         }}
@@ -257,7 +264,7 @@ export default function Sidebar() {
                       <NavItem
                         item={{
                           id: "admin_users",
-                          label: "用户管理",
+                          label: t("nav.admin_users"),
                           href: "/admin/users",
                           icon: Shield,
                         }}
@@ -266,7 +273,7 @@ export default function Sidebar() {
                       <NavItem
                         item={{
                           id: "admin_access_keys",
-                          label: "Access Key",
+                          label: t("nav.admin_access_keys"),
                           href: "/admin/access-keys",
                           icon: KeyRound,
                         }}
@@ -275,7 +282,7 @@ export default function Sidebar() {
                       <NavItem
                         item={{
                           id: "admin_llm_usage",
-                          label: "Token 监控",
+                          label: t("nav.admin_llm_usage"),
                           href: "/admin/llm-usage",
                           icon: WalletCards,
                         }}
@@ -292,32 +299,33 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div className="px-4 py-4 border-t border-glass-border">
-        <div className="mb-3">
+        <div className="mb-3 space-y-2">
+          <LanguageToggle />
           <ThemeToggle />
         </div>
         {user ? (
           <div className="mb-3 px-1">
-            <div className="text-[10px] text-muted uppercase tracking-wide">已登录</div>
+            <div className="text-[10px] text-muted uppercase tracking-wide">{t("shell.loggedIn")}</div>
             <div className="text-[11px] font-mono text-foreground truncate" title={user.email}>
               {user.email}
             </div>
-            {isAdmin ? <div className="text-[10px] text-muted">角色 · {user.role}</div> : null}
+            {isAdmin ? <div className="text-[10px] text-muted">{t("shell.role")} · {user.role}</div> : null}
             <button
               type="button"
               onClick={handleLogout}
               disabled={logoutBusy}
               className="mt-2 text-[11px] text-primary hover:underline disabled:opacity-60"
             >
-              {logoutBusy ? "退出中…" : "退出登录"}
+              {logoutBusy ? t("shell.loggingOut") : t("shell.logout")}
             </button>
           </div>
         ) : (
           <div className="mb-3 px-1 text-[11px] text-muted">
-            <div className="mb-2">未登录</div>
+            <div className="mb-2">{t("shell.loggedOut")}</div>
             <div className="flex gap-2">
-              <Link href="/login" className="text-primary hover:underline">登录</Link>
+              <Link href="/login" className="text-primary hover:underline">{t("shell.login")}</Link>
               <span>·</span>
-              <Link href="/register" className="text-primary hover:underline">注册</Link>
+              <Link href="/register" className="text-primary hover:underline">{t("shell.register")}</Link>
             </div>
           </div>
         )}
@@ -326,8 +334,8 @@ export default function Sidebar() {
             <Star className="w-4 h-4 fill-primary text-primary" />
           </div>
           <div className="flex-1">
-            <div className="text-[12px] font-semibold text-foreground">Pro 会员</div>
-            <div className="text-[10px] text-muted">全功能访问</div>
+            <div className="text-[12px] font-semibold text-foreground">{t("shell.proMember")}</div>
+            <div className="text-[10px] text-muted">{t("shell.fullAccess")}</div>
           </div>
         </div>
         <div className="flex gap-2">
@@ -336,14 +344,14 @@ export default function Sidebar() {
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-glass border border-glass-border text-[11px] text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all"
           >
             <LayoutDashboard className="w-3 h-3" />
-            产品介绍
+            {t("shell.productIntro")}
           </Link>
           <Link
             href="/ai"
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary/10 border border-primary/20 text-[11px] text-primary font-medium hover:bg-primary/20 transition-all"
           >
             <Sparkles className="w-3 h-3" />
-            AI 分析
+            {t("shell.aiAnalysis")}
           </Link>
         </div>
       </div>

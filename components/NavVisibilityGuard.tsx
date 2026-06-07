@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { useI18n } from "@/lib/i18n/context";
 import { useNavVisibility } from "@/lib/nav-visibility-context";
 import { isPathAllowed } from "@/lib/nav-visibility";
 
@@ -10,6 +11,7 @@ export default function NavVisibilityGuard({ children }: { children: React.React
   const pathname = usePathname();
   const router = useRouter();
   const { isAdmin } = useAuth();
+  const { t } = useI18n();
   const { visibility, loading } = useNavVisibility();
 
   useEffect(() => {
@@ -23,7 +25,7 @@ export default function NavVisibilityGuard({ children }: { children: React.React
   if (!loading && !isAdmin && pathname && !isPathAllowed(pathname, visibility, false)) {
     return (
       <div className="flex h-full w-full items-center justify-center text-muted-foreground text-[13px]">
-        该功能暂未开放…
+        {t("shell.featureUnavailable")}
       </div>
     );
   }
