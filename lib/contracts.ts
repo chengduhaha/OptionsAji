@@ -62,6 +62,55 @@ export interface SignalsFeedEnvelopeContract {
   signals: SignalCardContract[];
 }
 
+export interface DiscordKolHubItemContract {
+  author: string;
+  display_name: string;
+  message_count: number;
+  last_seen_utc: string;
+  avatar_url: string | null;
+  bio_zh: string | null;
+  twitter_handle: string | null;
+}
+
+export interface DiscordKolHubContract {
+  generated_at_utc: string;
+  menu_slot: string;
+  items: DiscordKolHubItemContract[];
+}
+
+export interface DiscordTimelineItemContract {
+  id: string;
+  kind: string;
+  created_at_utc: string;
+  title: string;
+  body: string;
+  tickers: string[];
+  author?: string | null;
+  raw_body?: string | null;
+  bullets_zh?: string[] | null;
+  risk_note_zh?: string | null;
+  display_name?: string | null;
+  avatar_url?: string | null;
+}
+
+export interface DiscordTimelineContract {
+  generated_at_utc: string;
+  menu_slot: string;
+  items: DiscordTimelineItemContract[];
+  next_before: string | null;
+  has_more: boolean;
+}
+
+export interface DiscordAuthorProfileContract {
+  author: string;
+  display_name: string;
+  message_count: number;
+  last_seen_utc: string;
+  avatar_url: string | null;
+  bio_zh: string | null;
+  twitter_handle: string | null;
+}
+
 export interface AgentBriefContract {
   brief?: string;
 }

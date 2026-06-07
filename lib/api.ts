@@ -290,25 +290,34 @@ export const api = {
   },
 
   discord: {
-    timeline: (opts?: { menu_slot?: string; hours?: number; limit?: number; ticker?: string }) => {
+    kolHub: (opts?: { menu_slot?: string; hours?: number }) => {
+      const params = new URLSearchParams();
+      params.set("menu_slot", opts?.menu_slot ?? "twitter_kol");
+      params.set("hours", String(opts?.hours ?? 168));
+      return fetchJSON<import("@/lib/contracts").DiscordKolHubContract>(
+        `/api/discord/kol-hub?${params}`,
+      );
+    },
+    timeline: (opts?: {
+      menu_slot?: string;
+      hours?: number;
+      limit?: number;
+      ticker?: string;
+      authors?: string[];
+      before_timestamp?: string;
+    }) => {
       const params = new URLSearchParams();
       params.set("menu_slot", opts?.menu_slot ?? "twitter_kol");
       params.set("hours", String(opts?.hours ?? 72));
       params.set("limit", String(opts?.limit ?? 50));
       if (opts?.ticker) params.set("ticker", opts.ticker);
-      return fetchJSON<{
-        generated_at_utc: string;
-        menu_slot: string;
-        items: Array<{
-          id: string;
-          kind: string;
-          created_at_utc: string;
-          title: string;
-          body: string;
-          tickers: string[];
-          author?: string | null;
-        }>;
-      }>(`/api/discord/timeline?${params}`);
+      if (opts?.authors && opts.authors.length > 0) {
+        params.set("authors", opts.authors.join(","));
+      }
+      if (opts?.before_timestamp) params.set("before_timestamp", opts.before_timestamp);
+      return fetchJSON<import("@/lib/contracts").DiscordTimelineContract>(
+        `/api/discord/timeline?${params}`,
+      );
     },
   },
 

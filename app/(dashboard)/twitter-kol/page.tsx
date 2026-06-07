@@ -1,25 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { RefreshCw, AtSign } from "lucide-react";
-
-type TimelineItem = {
-  id: string;
-  created_at_utc: string;
-  title: string;
-  body: string;
-  tickers: string[];
-  author?: string | null;
-  raw_body?: string | null;
-  bullets_zh?: string[] | null;
-  risk_note_zh?: string | null;
-};
-
-type TimelineEnvelope = {
-  items: TimelineItem[];
-  generated_at_utc: string;
-  menu_slot: string;
-};
+import KolAvatarStrip from "@/components/twitter-kol/KolAvatarStrip";
+import KolDetailDrawer from "@/components/twitter-kol/KolDetailDrawer";
+import KolTimelineCard from "@/components/twitter-kol/KolTimelineCard";
+import type {
+  DiscordKolHubItemContract,
+  DiscordTimelineItemContract,
+} from "@/lib/contracts";
 
 function formatTime(iso: string): string {
   try {
@@ -29,70 +18,168 @@ function formatTime(iso: string): string {
   }
 }
 
+function parseError(payload: unknown): string {
+  if (!payload || typeof payload !== "object") return "加载失败";
+  const detail = (payload as { detail?: unknown }).detail;
+  if (typeof detail === "object" && detail && "message" in detail) {
+    return String((detail as { message: unknown }).message);
+  }
+  if ("error" in (payload as object)) {
+    const err = (payload as { error?: { message?: string } }).error;
+    if (err?.message) return err.message;
+  }
+  return "加载失败";
+}
+
 export default function TwitterKolPage() {
-  const [items, setItems] = useState<TimelineItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [hubEntries, setHubEntries] = useState<DiscordKolHubItemContract[]>([]);
+  const [items, setItems] = useState<DiscordTimelineItemContract[]>([]);
+  const [selectedAuthors, setSelectedAuthors] = useState<Set<string>>(new Set());
+  const [singleSelectMode, setSingleSelectMode] = useState(false);
+  const [detailEntry, setDetailEntry] = useState<DiscordKolHubItemContract | null>(null);
+  const [loadingHub, setLoadingHub] = useState(true);
+  const [loadingTimeline, setLoadingTimeline] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
+  const [nextBefore, setNextBefore] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const hubByAuthor = useMemo(() => {
+    const map = new Map<string, DiscordKolHubItemContract>();
+    for (const entry of hubEntries) map.set(entry.author, entry);
+    return map;
+  }, [hubEntries]);
+
+  const loadHub = useCallback(async () => {
+    setLoadingHub(true);
     try {
-      const params = new URLSearchParams({
-        menu_slot: "twitter_kol",
-        hours: "168",
-        limit: "80",
-      });
-      const res = await fetch(`/api/discord/timeline?${params}`, { cache: "no-store" });
+      const params = new URLSearchParams({ menu_slot: "twitter_kol", hours: "168" });
+      const res = await fetch(`/api/discord/kol-hub?${params}`, { cache: "no-store" });
       const raw = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        const msg =
-          typeof raw === "object" && raw && "detail" in raw
-            ? String((raw as { detail?: { message?: string } }).detail?.message ?? "加载失败")
-            : "加载失败";
-        throw new Error(msg);
-      }
-      const data = raw as TimelineEnvelope;
-      setItems(Array.isArray(data.items) ? data.items : []);
-      setUpdatedAt(data.generated_at_utc ?? null);
+      if (!res.ok) throw new Error(parseError(raw));
+      const list = Array.isArray((raw as { items?: unknown }).items)
+        ? ((raw as { items: DiscordKolHubItemContract[] }).items)
+        : [];
+      setHubEntries(list);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "加载失败");
-      setItems([]);
+      setError(e instanceof Error ? e.message : "加载博主列表失败");
+      setHubEntries([]);
     } finally {
-      setLoading(false);
+      setLoadingHub(false);
     }
   }, []);
 
+  const fetchTimeline = useCallback(
+    async (opts?: { append?: boolean; before?: string | null }) => {
+      const append = opts?.append ?? false;
+      if (append) setLoadingMore(true);
+      else setLoadingTimeline(true);
+
+      try {
+        const params = new URLSearchParams({
+          menu_slot: "twitter_kol",
+          hours: "168",
+          limit: "30",
+        });
+        const authors = Array.from(selectedAuthors);
+        if (authors.length > 0) params.set("authors", authors.join(","));
+        if (opts?.before) params.set("before_timestamp", opts.before);
+
+        const res = await fetch(`/api/discord/timeline?${params}`, { cache: "no-store" });
+        const raw = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(parseError(raw));
+
+        const data = raw as {
+          items?: DiscordTimelineItemContract[];
+          generated_at_utc?: string;
+          next_before?: string | null;
+          has_more?: boolean;
+        };
+        const page = Array.isArray(data.items) ? data.items : [];
+        setItems((prev) => (append ? [...prev, ...page] : page));
+        setUpdatedAt(data.generated_at_utc ?? null);
+        setNextBefore(data.next_before ?? null);
+        setHasMore(Boolean(data.has_more));
+        setError(null);
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : "加载动态失败");
+        if (!append) setItems([]);
+      } finally {
+        if (append) setLoadingMore(false);
+        else setLoadingTimeline(false);
+      }
+    },
+    [selectedAuthors],
+  );
+
+  const refreshAll = useCallback(async () => {
+    await loadHub();
+    await fetchTimeline();
+  }, [loadHub, fetchTimeline]);
+
   useEffect(() => {
-    void load();
-  }, [load]);
+    void loadHub();
+  }, [loadHub]);
+
+  useEffect(() => {
+    void fetchTimeline();
+  }, [fetchTimeline]);
+
+  function toggleAuthor(author: string) {
+    setSelectedAuthors((prev) => {
+      const next = new Set(prev);
+      if (singleSelectMode) {
+        if (next.has(author)) {
+          next.clear();
+        } else {
+          next.clear();
+          next.add(author);
+        }
+      } else if (next.has(author)) {
+        next.delete(author);
+      } else {
+        next.add(author);
+      }
+      return next;
+    });
+  }
+
+  function selectAll() {
+    setSelectedAuthors(new Set());
+  }
+
+  function openDetailByAuthor(author: string) {
+    const entry = hubByAuthor.get(author);
+    if (entry) setDetailEntry(entry);
+  }
+
+  const loading = loadingHub || loadingTimeline;
 
   return (
     <div className="mx-auto max-w-[900px] space-y-5 p-4 md:p-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <AtSign className="h-4 w-4 text-gold" />
-            Twitter 美股大牛追踪
+      <header className="border-b border-gold/20 pb-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <AtSign className="h-4 w-4 text-gold" />
+              美股大牛追踪
+            </div>
+            <h1 className="mt-2 text-xl font-semibold text-foreground">精选市场观点</h1>
+            {updatedAt ? (
+              <p className="mt-1 text-[10px] text-muted">更新于 {formatTime(updatedAt)}</p>
+            ) : null}
           </div>
-          <h1 className="mt-2 text-xl font-semibold text-foreground">精选推特来源</h1>
-          <p className="mt-1 text-[12px] text-muted-foreground leading-relaxed">
-            展示管理员在「Discord 来源管理」中为该菜单配置的 TweetShift 来源。未配置白名单时显示全部来源。
-          </p>
-          {updatedAt ? (
-            <p className="mt-1 text-[10px] text-muted">更新于 {formatTime(updatedAt)}</p>
-          ) : null}
+          <button
+            type="button"
+            onClick={() => void refreshAll()}
+            disabled={loading}
+            className="inline-flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/10 px-3 py-2 text-sm text-gold hover:bg-gold/15 disabled:opacity-50"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            刷新
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => void load()}
-          disabled={loading}
-          className="inline-flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/10 px-3 py-2 text-sm text-gold hover:bg-gold/15 disabled:opacity-50"
-        >
-          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          刷新
-        </button>
       </header>
 
       {error ? (
@@ -101,53 +188,49 @@ export default function TwitterKolPage() {
         </div>
       ) : null}
 
-      {loading && items.length === 0 ? (
+      {!loadingHub && hubEntries.length > 0 ? (
+        <KolAvatarStrip
+          entries={hubEntries}
+          selectedAuthors={selectedAuthors}
+          singleSelectMode={singleSelectMode}
+          onToggleAuthor={toggleAuthor}
+          onSelectAll={selectAll}
+          onToggleMode={() => setSingleSelectMode((v) => !v)}
+          onOpenDetail={setDetailEntry}
+        />
+      ) : null}
+
+      {loadingTimeline && items.length === 0 ? (
         <p className="text-[13px] text-muted-foreground">加载中…</p>
       ) : items.length === 0 ? (
-        <p className="text-[13px] text-muted-foreground">
-          暂无推文。请在管理后台配置 author 白名单，或等待 Discord ingest 同步。
-        </p>
+        <div className="rounded-xl border border-glass-border bg-panel/60 px-4 py-8 text-center">
+          <p className="text-[14px] text-muted-foreground">暂无动态，请稍后再来。</p>
+        </div>
       ) : (
         <div className="space-y-3">
           {items.map((item) => (
-            <article
+            <KolTimelineCard
               key={item.id}
-              className="rounded-xl border border-border2 bg-panel2 p-4"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted">
-                <span className="text-gold">{item.author ?? "Discord"}</span>
-                <time className="font-mono">{formatTime(item.created_at_utc)}</time>
-              </div>
-              <h2 className="mt-2 text-[15px] font-medium text-foreground">{item.title}</h2>
-              <p className="mt-2 text-[13px] leading-6 text-muted-foreground whitespace-pre-wrap">
-                {item.body}
-              </p>
-              {item.bullets_zh && item.bullets_zh.length > 0 ? (
-                <ul className="mt-3 space-y-1 text-[12px] text-muted-foreground list-disc pl-4">
-                  {item.bullets_zh.map((b) => (
-                    <li key={b}>{b}</li>
-                  ))}
-                </ul>
-              ) : null}
-              {item.risk_note_zh ? (
-                <p className="mt-2 text-[11px] text-muted">{item.risk_note_zh}</p>
-              ) : null}
-              {item.tickers.length > 0 ? (
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {item.tickers.slice(0, 8).map((sym) => (
-                    <span
-                      key={`${item.id}-${sym}`}
-                      className="rounded border border-border2 px-2 py-0.5 font-mono text-[10px] text-muted"
-                    >
-                      {sym}
-                    </span>
-                  ))}
-                </div>
-              ) : null}
-            </article>
+              item={item}
+              onAuthorClick={openDetailByAuthor}
+            />
           ))}
+          {hasMore ? (
+            <div className="flex justify-center pt-2">
+              <button
+                type="button"
+                disabled={loadingMore}
+                onClick={() => void fetchTimeline({ append: true, before: nextBefore })}
+                className="rounded-lg border border-glass-border px-4 py-2 text-[13px] text-muted-foreground hover:border-gold/40 hover:text-gold disabled:opacity-50"
+              >
+                {loadingMore ? "加载中…" : "加载更多"}
+              </button>
+            </div>
+          ) : null}
         </div>
       )}
+
+      <KolDetailDrawer entry={detailEntry} onClose={() => setDetailEntry(null)} />
     </div>
   );
 }
