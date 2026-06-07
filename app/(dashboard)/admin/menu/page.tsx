@@ -126,12 +126,14 @@ export default function AdminMenuPage() {
 
   if (!ready || loading) {
     return (
-      <div className="p-6 text-muted-foreground text-[13px]">加载菜单配置…</div>
+      <div className="h-full overflow-y-auto p-6 text-muted-foreground text-[13px]">
+        加载菜单配置…
+      </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-2xl space-y-6">
+    <div className="h-full overflow-y-auto p-6 max-w-2xl mx-auto space-y-6">
       <div>
         <h1 className="text-lg font-semibold text-foreground">菜单管理</h1>
         <p className="mt-1 text-[12px] text-muted-foreground leading-relaxed">
