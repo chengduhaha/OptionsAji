@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import TurnstileWidget from "@/components/auth/TurnstileWidget";
 import { useAuth } from "@/lib/auth-context";
 
 export default function RegisterPage() {
@@ -14,12 +15,15 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [code, setCode] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [pendingEmail, setPendingEmail] = useState("");
   const [verificationExpiresAt, setVerificationExpiresAt] = useState<string | null>(null);
   const [debugCode, setDebugCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
 
   useEffect(() => {
     if (ready && user) router.replace("/");
@@ -29,9 +33,13 @@ export default function RegisterPage() {
     e.preventDefault();
     setError(null);
     setInfo(null);
+    if (turnstileSiteKey && !turnstileToken) {
+      setError("请先完成人机验证。");
+      return;
+    }
     setBusy(true);
     try {
-      const resp = await register(email.trim(), password, displayName.trim() || undefined);
+      const resp = await register(email.trim(), password, displayName.trim() || undefined, turnstileToken);
       setPendingEmail(resp.user.email);
       setVerificationExpiresAt(resp.verification_expires_at);
       setDebugCode(resp.verification_code);
@@ -39,10 +47,16 @@ export default function RegisterPage() {
       setInfo("验证码已发送到您的邮箱，请查收（含垃圾箱）。");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "注册失败");
+      setTurnstileToken(null);
+      setTurnstileResetKey((value) => value + 1);
     } finally {
       setBusy(false);
     }
   }
+
+  const handleTurnstileError = useCallback(() => {
+    setError("人机验证加载失败，请刷新后重试。");
+  }, []);
 
   async function onResendCode() {
     if (!pendingEmail.trim()) return;
@@ -130,10 +144,19 @@ export default function RegisterPage() {
                 className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-[14px] text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-ring/40"
               />
             </div>
+            {turnstileSiteKey ? (
+              <TurnstileWidget
+                siteKey={turnstileSiteKey}
+                action="register"
+                resetKey={turnstileResetKey}
+                onToken={setTurnstileToken}
+                onError={handleTurnstileError}
+              />
+            ) : null}
             {error ? <p className="text-[12px] text-red">{error}</p> : null}
             <button
               type="submit"
-              disabled={busy || !ready}
+              disabled={busy || !ready || (Boolean(turnstileSiteKey) && !turnstileToken)}
               className="lift w-full rounded-lg bg-primary py-2.5 text-[14px] font-semibold text-primary-foreground disabled:opacity-50"
             >
               {busy ? "提交中…" : "注册"}

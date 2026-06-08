@@ -26,8 +26,13 @@ type AuthContextValue = {
   loading: boolean;
   /** bootstrapped && !loading */
   ready: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, displayName?: string) => Promise<AuthRegisterContract>;
+  login: (email: string, password: string, turnstileToken?: string | null) => Promise<void>;
+  register: (
+    email: string,
+    password: string,
+    displayName?: string,
+    turnstileToken?: string | null,
+  ) => Promise<AuthRegisterContract>;
   verifyRegistration: (email: string, code: string) => Promise<void>;
   resendVerification: (email: string) => Promise<AuthResendVerificationContract>;
   logout: () => Promise<void>;
@@ -99,8 +104,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [bootstrapped, token, refreshMe]);
 
   const login = useCallback(
-    async (email: string, password: string) => {
-      const data = await api.auth.login({ email, password });
+    async (email: string, password: string, turnstileToken?: string | null) => {
+      const data = await api.auth.login({ email, password, turnstile_token: turnstileToken ?? null });
       persistToken(data.access_token);
       setUser(data.user);
       setLoading(false);
@@ -109,11 +114,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const register = useCallback(
-    async (email: string, password: string, displayName?: string) => {
+    async (email: string, password: string, displayName?: string, turnstileToken?: string | null) => {
       return api.auth.register({
         email,
         password,
         display_name: displayName?.trim() || null,
+        turnstile_token: turnstileToken ?? null,
       });
     },
     [],

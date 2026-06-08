@@ -106,7 +106,12 @@ async function fetchJSON<T>(path: string, init?: RequestInit): Promise<T> {
 // ── Market Overview ────────────────────────────────────────────────────────────
 export const api = {
   auth: {
-    register: (payload: { email: string; password: string; display_name?: string | null }) =>
+    register: (payload: {
+      email: string;
+      password: string;
+      display_name?: string | null;
+      turnstile_token?: string | null;
+    }) =>
       fetchJSON<AuthRegisterContract>("/api/auth/register", {
         method: "POST",
         body: JSON.stringify(payload),
@@ -121,7 +126,7 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ email }),
       }),
-    login: (payload: { email: string; password: string }) =>
+    login: (payload: { email: string; password: string; turnstile_token?: string | null }) =>
       fetchJSON<AuthTokenContract>("/api/auth/login", {
         method: "POST",
         body: JSON.stringify(payload),

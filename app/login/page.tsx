@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import TurnstileWidget from "@/components/auth/TurnstileWidget";
 import { useAuth } from "@/lib/auth-context";
 
 function LoginInner() {
@@ -13,8 +14,11 @@ function LoginInner() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
 
   useEffect(() => {
     if (ready && user) router.replace(nextPath);
@@ -23,16 +27,26 @@ function LoginInner() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (turnstileSiteKey && !turnstileToken) {
+      setError("请先完成人机验证。");
+      return;
+    }
     setBusy(true);
     try {
-      await login(email.trim(), password);
+      await login(email.trim(), password, turnstileToken);
       router.replace(nextPath);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "登录失败");
+      setTurnstileToken(null);
+      setTurnstileResetKey((value) => value + 1);
     } finally {
       setBusy(false);
     }
   }
+
+  const handleTurnstileError = useCallback(() => {
+    setError("人机验证加载失败，请刷新后重试。");
+  }, []);
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-background px-4">
@@ -72,10 +86,19 @@ function LoginInner() {
                 className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-[14px] text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-ring/40"
               />
             </div>
+            {turnstileSiteKey ? (
+              <TurnstileWidget
+                siteKey={turnstileSiteKey}
+                action="login"
+                resetKey={turnstileResetKey}
+                onToken={setTurnstileToken}
+                onError={handleTurnstileError}
+              />
+            ) : null}
             {error ? <p className="text-[12px] text-red">{error}</p> : null}
             <button
               type="submit"
-              disabled={busy || !ready}
+              disabled={busy || !ready || (Boolean(turnstileSiteKey) && !turnstileToken)}
               className="lift w-full rounded-lg bg-primary py-2.5 text-[14px] font-semibold text-primary-foreground disabled:opacity-50"
             >
               {busy ? "登录中…" : "登录"}
