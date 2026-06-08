@@ -43,7 +43,7 @@ function KolAvatar({
       >
         {entry.avatar_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={entry.avatar_url} alt={label} className="h-full w-full object-cover" />
+          <img src={entry.avatar_url} alt={label} loading="lazy" className="h-full w-full object-cover" />
         ) : (
           <span className="flex h-full w-full items-center justify-center bg-panel text-[11px] font-semibold text-gold">
             {initials(label)}

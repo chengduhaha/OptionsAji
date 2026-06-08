@@ -58,11 +58,11 @@ import ExpectedMoveDetailModal, {
   type ExpectedMoveRow,
 } from "@/components/mvp/ExpectedMoveDetailModal";
 import {
-  OPTION_FRAMEWORK_INTRO,
-  OPTION_TABLE_LEGEND,
-  PLAYBOOK_SCREENER_FOOTNOTE,
   expectedMoveBucketHint,
   expectedMoveBucketLabel,
+  getOptionFrameworkIntro,
+  getOptionTableLegend,
+  getPlaybookScreenerFootnote,
 } from "@/lib/option-framework";
 import {
   formatWarRoomImpactLabel,
@@ -588,11 +588,19 @@ function classifyMarket(
     return sum;
   }, 0);
 
-  const basis: string[] = [
-    `SPY 涨跌 ${spy !== null ? pct(spy) : "—"}，QQQ 涨跌 ${qqq !== null ? pct(qqq) : "—"}，指数均值约 ${pct(avgIndex)}`,
-    `VIX 现价 ${vix !== null ? vix.toFixed(2) : "—"}（${vixBand}），日变化 ${vixChange !== null ? pct(vixChange) : "—"}`,
-    `信号综合得分 ${signalScore}（上涨情景加分、下跌情景减分，来自 /api/signals/feed）`,
-  ];
+  const localizedBand = localizeVolatilityBand(vixBand, locale);
+  const basis: string[] =
+    locale === "en"
+      ? [
+          `SPY ${spy !== null ? pct(spy) : "—"}, QQQ ${qqq !== null ? pct(qqq) : "—"}, index avg ~${pct(avgIndex)}`,
+          `VIX ${vix !== null ? vix.toFixed(2) : "—"} (${localizedBand}), day change ${vixChange !== null ? pct(vixChange) : "—"}`,
+          `Signal score ${signalScore} (bull adds, bear subtracts — from /api/signals/feed)`,
+        ]
+      : [
+          `SPY 涨跌 ${spy !== null ? pct(spy) : "—"}，QQQ 涨跌 ${qqq !== null ? pct(qqq) : "—"}，指数均值约 ${pct(avgIndex)}`,
+          `VIX 现价 ${vix !== null ? vix.toFixed(2) : "—"}（${localizedBand}），日变化 ${vixChange !== null ? pct(vixChange) : "—"}`,
+          `信号综合得分 ${signalScore}（上涨情景加分、下跌情景减分，来自 /api/signals/feed）`,
+        ];
 
   const engineNote =
     resolveDictionaryValue(locale, "mvp.engineNoteUnavailable") ??
@@ -643,25 +651,61 @@ function regimeAccentBar(code: MvpMarketRegimeCode): string {
   return "bg-gold/70";
 }
 
+function localizeMarketSessionLabel(label: string | null, locale: Locale): string | null {
+  if (!label) return null;
+  if (locale === "zh") return label;
+  const map: Record<string, string> = {
+    盘前交易: resolveDictionaryValue("en", "mvp.session.preMarketFull") ?? "Pre-market",
+    盘前: resolveDictionaryValue("en", "mvp.session.preMarket") ?? "Pre-market",
+    盘中交易: resolveDictionaryValue("en", "mvp.session.marketOpen") ?? "Market open",
+    盘中: resolveDictionaryValue("en", "mvp.session.marketOpen") ?? "Market open",
+    盘后交易: resolveDictionaryValue("en", "mvp.session.afterHours") ?? "After hours",
+    盘后: resolveDictionaryValue("en", "mvp.session.afterHours") ?? "After hours",
+    休市: resolveDictionaryValue("en", "mvp.session.closed") ?? "Closed",
+  };
+  return map[label] ?? label;
+}
+
+function localizeVolatilityBand(band: string, locale: Locale): string {
+  if (locale === "zh") return band;
+  const map: Record<string, string> = {
+    低波动: "Low vol",
+    正常: "Normal",
+    "正常(15-20)": "Normal (15–20)",
+    偏高: "Elevated",
+    高波动: "High vol",
+  };
+  return map[band] ?? band;
+}
+
 function indexDirectionRead(avgIndex: number, locale: Locale): { label: string; tone: string; hint: string } {
   if (avgIndex >= 0.35) {
     return {
       label: resolveDictionaryValue(locale, "mvp.index.strong") ?? "偏强",
       tone: "text-green",
-      hint: `SPY/QQQ 平均涨 ${pct(avgIndex)}，宽基指数方向向上`,
+      hint:
+        locale === "en"
+          ? `SPY/QQQ avg up ${pct(avgIndex)} — broad indices trending higher`
+          : `SPY/QQQ 平均涨 ${pct(avgIndex)}，宽基指数方向向上`,
     };
   }
   if (avgIndex <= -0.35) {
     return {
       label: resolveDictionaryValue(locale, "mvp.index.weak") ?? "偏弱",
       tone: "text-red",
-      hint: `SPY/QQQ 平均跌 ${Math.abs(avgIndex).toFixed(2)}%，宽基指数承压`,
+      hint:
+        locale === "en"
+          ? `SPY/QQQ avg down ${Math.abs(avgIndex).toFixed(2)}% — broad indices under pressure`
+          : `SPY/QQQ 平均跌 ${Math.abs(avgIndex).toFixed(2)}%，宽基指数承压`,
     };
   }
   return {
     label: resolveDictionaryValue(locale, "mvp.index.range") ?? "震荡",
     tone: "text-blue",
-    hint: `指数涨跌有限（均值 ${pct(avgIndex)}），方向待确认`,
+    hint:
+      locale === "en"
+        ? `Limited index move (avg ${pct(avgIndex)}) — direction unconfirmed`
+        : `指数涨跌有限（均值 ${pct(avgIndex)}），方向待确认`,
   };
 }
 
@@ -696,28 +740,49 @@ function buildPlainLanguageBasis(args: {
   lines.push(indexRead.hint);
 
   if (args.vix !== null) {
-    if (args.vixChange !== null && args.vixChange > 5) {
-      lines.push(`VIX 急升至 ${args.vix.toFixed(1)}（${args.vixBand}），波动/恐慌快速升温`);
+    const band = localizeVolatilityBand(args.vixBand, args.locale);
+    if (args.locale === "en") {
+      if (args.vixChange !== null && args.vixChange > 5) {
+        lines.push(`VIX spiked to ${args.vix.toFixed(1)} (${band}) — fear/vol heating up fast`);
+      } else if (args.vix >= 22) {
+        lines.push(`VIX ${args.vix.toFixed(1)} elevated — options premium and hedge cost rising`);
+      } else if (args.vix < 15) {
+        lines.push(`VIX ${args.vix.toFixed(1)} low — muted market volatility`);
+      } else {
+        lines.push(`VIX ${args.vix.toFixed(1)} (${band}) — volatility in a normal range`);
+      }
+    } else if (args.vixChange !== null && args.vixChange > 5) {
+      lines.push(`VIX 急升至 ${args.vix.toFixed(1)}（${band}），波动/恐慌快速升温`);
     } else if (args.vix >= 22) {
       lines.push(`VIX ${args.vix.toFixed(1)} 处于偏高区间，期权溢价与对冲成本上升`);
     } else if (args.vix < 15) {
       lines.push(`VIX ${args.vix.toFixed(1)} 处于低位，市场波动较小`);
     } else {
-      lines.push(`VIX ${args.vix.toFixed(1)}（${args.vixBand}），波动率处于常规区间`);
+      lines.push(`VIX ${args.vix.toFixed(1)}（${band}），波动率处于常规区间`);
     }
   }
 
   if (args.pcr !== null) {
     const mood = pcrMoodRead(args.pcr, args.locale);
     const balanced = resolveDictionaryValue(args.locale, "mvp.pcr.balanced") ?? "均衡";
-    lines.push(
-      mood.label === balanced
-        ? `P/C ${args.pcr.toFixed(2)}，Put/Call 成交均衡，无极端情绪`
-        : `P/C ${args.pcr.toFixed(2)}，期权成交情绪${mood.label}`,
-    );
+    if (args.locale === "en") {
+      lines.push(
+        mood.label === balanced
+          ? `P/C ${args.pcr.toFixed(2)} — Put/Call volume balanced, no extreme sentiment`
+          : `P/C ${args.pcr.toFixed(2)} — options flow tone: ${mood.label}`,
+      );
+    } else {
+      lines.push(
+        mood.label === balanced
+          ? `P/C ${args.pcr.toFixed(2)}，Put/Call 成交均衡，无极端情绪`
+          : `P/C ${args.pcr.toFixed(2)}，期权成交情绪${mood.label}`,
+      );
+    }
   }
 
-  lines.push(`综合判断：${args.regimeLabel}`);
+  lines.push(
+    args.locale === "en" ? `Overall read: ${args.regimeLabel}` : `综合判断：${args.regimeLabel}`,
+  );
   return lines;
 }
 
@@ -728,6 +793,7 @@ function buildHeadlineSummary(args: {
   avgIndex: number;
   vix: number | null;
   vixChange: number | null;
+  locale: Locale;
 }): string {
   if (args.hasAiSummary) return args.fallbackSummary;
 
@@ -736,10 +802,34 @@ function buildHeadlineSummary(args: {
   const vixSpike = args.vixChange !== null && args.vixChange > 5;
   const vixHigh = args.vix !== null && args.vix >= 22;
   const vixLow = args.vix !== null && args.vix < 15;
+  const regimeEnglish = regimeMeta(args.code, args.locale).english;
+
+  if (args.locale === "en") {
+    if (indexUp && (vixSpike || vixHigh)) {
+      const vixPart =
+        args.vix !== null
+          ? `VIX ${vixSpike ? "spiked to" : "elevated at"} ${args.vix.toFixed(1)}`
+          : "volatility rising";
+      return `Indices firm (avg ${pct(args.avgIndex)}) but ${vixPart} — strength with hidden vol risk; ${regimeEnglish} read.`;
+    }
+    if (indexDown && vixHigh) {
+      return "Indices weak and VIX elevated — risk-off tone; prioritize hedges and sizing over dip-buying.";
+    }
+    if (indexUp && vixLow) {
+      return "Indices up, VIX low — risk appetite OK; watch gamma and IV crush in a quiet vol tape.";
+    }
+    if (args.code === "range_bound") {
+      return "Limited index and vol moves — range-bound tape; wait for volume and VIX to confirm a break.";
+    }
+    if (args.code === "transitional") {
+      return "Index, VIX, and options sentiment diverge — no single regime; keep assumptions small.";
+    }
+    return args.fallbackSummary;
+  }
 
   if (indexUp && (vixSpike || vixHigh)) {
     const vixPart = args.vix !== null ? `VIX ${vixSpike ? "急升至" : "偏高至"} ${args.vix.toFixed(1)}` : "波动率抬升";
-    return `指数走强（均值 ${pct(args.avgIndex)}），但 ${vixPart}——表面强势下隐藏波动风险，属「涨中有险」的 ${regimeMeta(args.code).english} 模式。`;
+    return `指数走强（均值 ${pct(args.avgIndex)}），但 ${vixPart}——表面强势下隐藏波动风险，属「涨中有险」的 ${regimeEnglish} 模式。`;
   }
   if (indexDown && vixHigh) {
     return `指数走弱且 VIX 偏高，避险情绪占主导；期权侧优先关注对冲与仓位，而非抄底假设。`;
@@ -812,13 +902,13 @@ function PulseSkeleton() {
   );
 }
 
-function PcrSentimentBar({ pcr }: { pcr: number | null }) {
+function PcrSentimentBar({ pcr, locale }: { pcr: number | null; locale: Locale }) {
   const marker = pcrMarkerPct(pcr);
   return (
     <div className="space-y-1.5">
       <div className="flex justify-between text-xs text-muted">
-        <span>Put 活跃</span>
-        <span>Call 活跃</span>
+        <span>{resolveDictionaryValue(locale, "mvp.pcr.putActive") ?? "Put 活跃"}</span>
+        <span>{resolveDictionaryValue(locale, "mvp.pcr.callActive") ?? "Call 活跃"}</span>
       </div>
       <div className="relative h-2 overflow-hidden rounded-full bg-gradient-to-r from-red/40 via-gold/30 to-green/40">
         <div
@@ -826,7 +916,9 @@ function PcrSentimentBar({ pcr }: { pcr: number | null }) {
           style={{ left: `${marker}%` }}
         />
       </div>
-      <p className="text-xs text-muted">P/C 成交量比 · 全市场 Put/Call 近似</p>
+      <p className="text-xs text-muted">
+        {resolveDictionaryValue(locale, "mvp.pcr.volumeRatio") ?? "P/C 成交量比 · 全市场 Put/Call 近似"}
+      </p>
     </div>
   );
 }
@@ -1010,12 +1102,28 @@ function eventsFromMvpWarRoom(mvp: JsonRecord | null, locale: Locale): EventItem
     const impact = normalizeWarRoomImpact(text(ev.impact, "中性"));
     const impactScope = normalizeWarRoomImpactScope(text(ev.impact_scope, "equity_broad"));
     const relatedAssets = mergeRelatedAssets(ev.related_assets, ev.tickers);
-    const impactNote = text(ev.impact_note_zh) || undefined;
-    const watchZh = text(ev.watch_zh) || undefined;
-    const deepDive = text(ev.deep_dive_zh) || undefined;
-    const tradeImplications = text(ev.trade_implications_zh) || undefined;
-    const scenario = text(ev.scenario_zh) || undefined;
-    const riskWatch = text(ev.risk_watch_zh) || undefined;
+    const impactNote =
+      (locale === "en" ? text(ev.impact_note_en) : text(ev.impact_note_zh)) ||
+      text(ev.impact_note_zh) ||
+      undefined;
+    const watchZh =
+      (locale === "en" ? text(ev.watch_en) : text(ev.watch_zh)) || text(ev.watch_zh) || undefined;
+    const deepDive =
+      (locale === "en" ? text(ev.deep_dive_en) : text(ev.deep_dive_zh)) ||
+      text(ev.deep_dive_zh) ||
+      undefined;
+    const tradeImplications =
+      (locale === "en" ? text(ev.trade_implications_en) : text(ev.trade_implications_zh)) ||
+      text(ev.trade_implications_zh) ||
+      undefined;
+    const scenario =
+      (locale === "en" ? text(ev.scenario_en) : text(ev.scenario_zh)) ||
+      text(ev.scenario_zh) ||
+      undefined;
+    const riskWatch =
+      (locale === "en" ? text(ev.risk_watch_en) : text(ev.risk_watch_zh)) ||
+      text(ev.risk_watch_zh) ||
+      undefined;
     return makeWarRoomEventItem(
       {
         id: text(ev.id, `${timeLabel}-${title}`),
@@ -1085,13 +1193,27 @@ function buildWarRoomEvents(data: WarRoomData, locale: Locale): EventItem[] {
 
   for (const { ev } of macroEvents) {
     const impact = text(ev.impact) === "High" ? "风险" : "中性";
-    const eventName = text(ev.event, "宏观事件");
-    const title = macroEventTitleZh(eventName);
+    const eventName = text(ev.event, locale === "en" ? "Macro event" : "宏观事件");
+    const title = locale === "en" ? eventName : macroEventTitleZh(eventName);
+    const countryLabel =
+      text(ev.country) === "US" ? (locale === "en" ? "US" : "美国") : text(ev.country);
     const summary = [
-      text(ev.country) === "US" ? "美国" : text(ev.country),
-      ev.estimate != null ? `预期 ${String(ev.estimate)}` : "",
-      ev.previous != null ? `前值 ${String(ev.previous)}` : "",
-      eventName !== title ? `原文：${eventName}` : "",
+      countryLabel,
+      ev.estimate != null
+        ? locale === "en"
+          ? `Est. ${String(ev.estimate)}`
+          : `预期 ${String(ev.estimate)}`
+        : "",
+      ev.previous != null
+        ? locale === "en"
+          ? `Prev. ${String(ev.previous)}`
+          : `前值 ${String(ev.previous)}`
+        : "",
+      eventName !== title
+        ? locale === "en"
+          ? `Original: ${eventName}`
+          : `原文：${eventName}`
+        : "",
     ]
       .filter(Boolean)
       .join(" · ");
@@ -1123,8 +1245,14 @@ function buildWarRoomEvents(data: WarRoomData, locale: Locale): EventItem[] {
   }
 
   for (const article of getArticles(data.news.data).slice(0, 3)) {
-    const title = text(article.title_zh) || text(article.title, "市场新闻");
-    const summary = text(article.summary_zh) || text(article.content);
+    const title =
+      locale === "en"
+        ? text(article.title_en) || text(article.title) || text(article.title_zh, "Market news")
+        : text(article.title_zh) || text(article.title, "市场新闻");
+    const summary =
+      locale === "en"
+        ? text(article.summary_en) || text(article.content) || text(article.summary_zh)
+        : text(article.summary_zh) || text(article.content);
     const timeLabel = zhTime(article.published_at ?? article.publishedDate ?? article.date, locale);
     const symbols = asArray(article.symbols).map((s) => String(s)).filter(Boolean);
     events.push(
@@ -1362,6 +1490,7 @@ function buildTradePlan(args: {
   events: EventItem[];
   vix: number | null;
   vixChange: number | null;
+  locale: Locale;
 }): string[] {
   const plan: string[] = [];
   if (args.brief?.trim()) {
@@ -1369,28 +1498,71 @@ function buildTradePlan(args: {
   }
   const topEvent = args.events[0];
   if (topEvent) {
-    plan.push(`盘前主线先围绕「${topEvent.title}」做情景推演，相关标的只等开盘后量价确认。`);
+    plan.push(
+      args.locale === "en"
+        ? `Lead with "${topEvent.title}" for scenario planning; wait for post-open volume on related names.`
+        : `盘前主线先围绕「${topEvent.title}」做情景推演，相关标的只等开盘后量价确认。`,
+    );
   }
-  if (args.marketCode === "risk_off") {
-    plan.push("盘面处于避险环境（Risk-Off），宜先梳理敞口与对冲需求，再讨论方向假设。");
-  } else if (args.marketCode === "elevated_vol") {
-    plan.push("高波动环境下，期权溢价与 Gamma 敏感度高，优先控制权利金与仓位规模。");
-  } else if (args.marketCode === "risk_on") {
-    plan.push("风险偏好偏积极（Risk-On），可观察板块强弱与期限结构，避免将环境标签等同于上涨结论。");
-  } else if (args.marketCode === "range_bound") {
-    plan.push("中性震荡格局，缩小观察名单，等待指数与波动率给出同向突破。");
+  if (args.locale === "en") {
+    if (args.marketCode === "risk_off") {
+      plan.push("Risk-Off tape — review exposure and hedges before directional bets.");
+    } else if (args.marketCode === "elevated_vol") {
+      plan.push("High-vol regime — options premium and gamma sensitivity high; size down.");
+    } else if (args.marketCode === "risk_on") {
+      plan.push("Risk-On tone — watch sector leadership and term structure; regime ≠ guaranteed rally.");
+    } else if (args.marketCode === "range_bound") {
+      plan.push("Range-bound — narrow the watch list; wait for index and VIX to break together.");
+    } else {
+      plan.push("Transitional — mixed signals; wait 15–30 min after the open to confirm SPY/QQQ volume.");
+    }
+    if ((args.vixChange ?? 0) > 3 || (args.vix ?? 0) >= 20) {
+      plan.push("Rising VIX — favor spreads or smaller size over naked long options.");
+    } else {
+      plan.push("Vol contained — stocks: key levels; options: DTE, volume, OI, and bid-ask.");
+    }
   } else {
-    plan.push("过渡观察阶段，指标存在分歧，开盘后等待 15–30 分钟再验证 SPY/QQQ 量价。");
-  }
-  if ((args.vixChange ?? 0) > 3 || (args.vix ?? 0) >= 20) {
-    plan.push("VIX 抬升时减少裸买期权，优先用价差或更小仓位控制权利金损耗。");
-  } else {
-    plan.push("波动率未明显失控时，正股看关键区间，期权看 DTE、成交量、OI 和买卖价差。");
+    if (args.marketCode === "risk_off") {
+      plan.push("盘面处于避险环境（Risk-Off），宜先梳理敞口与对冲需求，再讨论方向假设。");
+    } else if (args.marketCode === "elevated_vol") {
+      plan.push("高波动环境下，期权溢价与 Gamma 敏感度高，优先控制权利金与仓位规模。");
+    } else if (args.marketCode === "risk_on") {
+      plan.push("风险偏好偏积极（Risk-On），可观察板块强弱与期限结构，避免将环境标签等同于上涨结论。");
+    } else if (args.marketCode === "range_bound") {
+      plan.push("中性震荡格局，缩小观察名单，等待指数与波动率给出同向突破。");
+    } else {
+      plan.push("过渡观察阶段，指标存在分歧，开盘后等待 15–30 分钟再验证 SPY/QQQ 量价。");
+    }
+    if ((args.vixChange ?? 0) > 3 || (args.vix ?? 0) >= 20) {
+      plan.push("VIX 抬升时减少裸买期权，优先用价差或更小仓位控制权利金损耗。");
+    } else {
+      plan.push("波动率未明显失控时，正股看关键区间，期权看 DTE、成交量、OI 和买卖价差。");
+    }
   }
   return plan.slice(0, 5);
 }
 
-function pickActionBias(direction: Direction, report: StockReport | null) {
+function inferStockDirection(report: Pick<StockReport, "overview" | "smart">): Direction {
+  const change = num(report.overview.data?.bar?.changePct);
+  const smart = report.smart.data;
+  const institutional = smart?.institutional_direction?.toLowerCase() ?? "";
+  const consensus = smart?.consensus_type?.toLowerCase() ?? "";
+
+  const isBear =
+    (change !== null && change < -1.5) ||
+    institutional.includes("bear") ||
+    consensus === "aligned_bearish";
+  const isBull =
+    (change !== null && change > 1.5) ||
+    institutional.includes("bull") ||
+    consensus === "aligned_bullish";
+
+  if (isBear) return "bear";
+  if (isBull) return "bull";
+  return "neutral";
+}
+
+function pickActionBias(direction: Direction, report: StockReport | null, locale: Locale) {
   const overview = report?.overview.data ?? null;
   const bar = overview?.bar;
   const price = num(bar?.price);
@@ -1403,55 +1575,76 @@ function pickActionBias(direction: Direction, report: StockReport | null) {
 
   if (!overview) {
     return {
-      label: "等待数据",
+      label: locale === "en" ? "Awaiting data" : "等待数据",
       tone: "text-muted-foreground",
-      thesis: "个股数据未完全载入，先不要基于单一价格做判断。",
+      thesis:
+        locale === "en"
+          ? "Stock data still loading — don't trade off price alone."
+          : "个股数据未完全载入，先不要基于单一价格做判断。",
     };
   }
 
   if (direction === "bull") {
     if ((change ?? 0) > 2.5 && (ivRank ?? 0) > 65) {
       return {
-        label: "追高成本偏高",
+        label: locale === "en" ? "Chase cost high" : "追高成本偏高",
         tone: "text-red",
-        thesis: "价格和隐含波动率同时偏热，优先等回踩或用价差降低权利金暴露。",
+        thesis:
+          locale === "en"
+            ? "Price and IV both hot — wait for pullback or use spreads to cut premium risk."
+            : "价格和隐含波动率同时偏热，优先等回踩或用价差降低权利金暴露。",
       };
     }
     if (institutional.includes("bull") || smart?.consensus_type === "aligned_bullish") {
       return {
-        label: "可列入多头观察",
+        label: locale === "en" ? "Bull watchlist" : "可列入多头观察",
         tone: "text-green",
-        thesis: "机构/情绪与多头方向更接近，等待价格靠近支撑或突破确认。",
+        thesis:
+          locale === "en"
+            ? "Institutional/sentiment skew bullish — wait for support or breakout confirm."
+            : "机构/情绪与多头方向更接近，等待价格靠近支撑或突破确认。",
       };
     }
     return {
-      label: "多头需等待确认",
+      label: locale === "en" ? "Bull needs confirm" : "多头需等待确认",
       tone: "text-gold",
-      thesis: `当前价格 ${price !== null ? `$${price.toFixed(2)}` : "—"}，先观察开盘后是否放量站稳关键区间。`,
+      thesis:
+        locale === "en"
+          ? `Spot ${price !== null ? `$${price.toFixed(2)}` : "—"} — wait for post-open volume at key levels.`
+          : `当前价格 ${price !== null ? `$${price.toFixed(2)}` : "—"}，先观察开盘后是否放量站稳关键区间。`,
     };
   }
 
   if (direction === "bear") {
     if ((change ?? 0) < -2.5 && (ivRank ?? 0) > 65) {
       return {
-        label: "空头拥挤",
+        label: locale === "en" ? "Crowded short" : "空头拥挤",
         tone: "text-red",
-        thesis: "价格已快速下跌且 IV 偏高，直接买 put 的容错较低。",
+        thesis:
+          locale === "en"
+            ? "Sharp drop with high IV — naked puts have limited margin for error."
+            : "价格已快速下跌且 IV 偏高，直接买 put 的容错较低。",
       };
     }
     if (institutional.includes("bear") || retail.includes("bull")) {
       return {
-        label: "可观察下行验证",
+        label: locale === "en" ? "Watch downside confirm" : "可观察下行验证",
         tone: "text-gold",
-        thesis: "下跌情景需要跌破支撑或反弹不过压力位后再确认。",
+        thesis:
+          locale === "en"
+            ? "Bear case needs support break or failed rally at resistance."
+            : "下跌情景需要跌破支撑或反弹不过压力位后再确认。",
       };
     }
   }
 
   return {
-    label: "中性观察",
+    label: locale === "en" ? "Neutral watch" : "中性观察",
     tone: "text-gold",
-    thesis: "先判断波动率和区间边界，再决定正股等待还是期权用有限风险结构表达。",
+    thesis:
+      locale === "en"
+        ? "Map vol and range first, then decide stock wait vs defined-risk options."
+        : "先判断波动率和区间边界，再决定正股等待还是期权用有限风险结构表达。",
   };
 }
 
@@ -1521,9 +1714,14 @@ function compareFlipToExpectedMove(
   spot: number | null,
   gammaFlip: number | null,
   expectedMovePct: number,
+  locale: Locale = "zh",
 ): FlipExpectedMoveCompare {
   if (spot === null || gammaFlip === null || spot <= 0) {
-    return { flipPct: null, inside: null, label: "Flip 数据缺失" };
+    return {
+      flipPct: null,
+      inside: null,
+      label: locale === "en" ? "Flip data missing" : "Flip 数据缺失",
+    };
   }
   const flipPct = ((gammaFlip - spot) / spot) * 100;
   const inside = Math.abs(flipPct) <= expectedMovePct;
@@ -1531,14 +1729,20 @@ function compareFlipToExpectedMove(
     return {
       flipPct,
       inside: true,
-      label: `Flip ${flipPct >= 0 ? "+" : ""}${flipPct.toFixed(1)}% 在 ±${expectedMovePct.toFixed(1)}% 内`,
+      label:
+        locale === "en"
+          ? `Flip ${flipPct >= 0 ? "+" : ""}${flipPct.toFixed(1)}% within ±${expectedMovePct.toFixed(1)}%`
+          : `Flip ${flipPct >= 0 ? "+" : ""}${flipPct.toFixed(1)}% 在 ±${expectedMovePct.toFixed(1)}% 内`,
     };
   }
-  const beyond = flipPct > expectedMovePct ? "上界" : "下界";
+  const beyond = flipPct > expectedMovePct ? (locale === "en" ? "upper" : "上界") : locale === "en" ? "lower" : "下界";
   return {
     flipPct,
     inside: false,
-    label: `Flip ${flipPct >= 0 ? "+" : ""}${flipPct.toFixed(1)}% 超出 EM ${beyond}`,
+    label:
+      locale === "en"
+        ? `Flip ${flipPct >= 0 ? "+" : ""}${flipPct.toFixed(1)}% beyond EM ${beyond}`
+        : `Flip ${flipPct >= 0 ? "+" : ""}${flipPct.toFixed(1)}% 超出 EM ${beyond}`,
   };
 }
 
@@ -1850,11 +2054,13 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
     const realtimeSpot = num(quote.data?.price);
     const reportSpot = realtimeSpot ?? num(overviewData?.bar?.price);
     const chainData = chain.data;
-    const candidates = normalizeOptionCandidates(chainData, direction);
+    const inferredDirection = inferStockDirection({ overview, smart });
+    setDirection(inferredDirection);
+    const candidates = normalizeOptionCandidates(chainData, inferredDirection);
     const strictUnusual = asArray(unusual.data?.items).map(asRecord).slice(0, 5);
     const hotOpts = normalizeOptionActivity(chainData).slice(0, 5);
     const unusualForInsight = strictUnusual.length > 0 ? strictUnusual : hotOpts;
-    const insightDirection: "bull" | "bear" = direction === "bear" ? "bear" : "bull";
+    const insightDirection: "bull" | "bear" = inferredDirection === "bear" ? "bear" : "bull";
     const optionsInsights = await settle<StockOptionsInsightsContract>(() =>
       api.market.stockOptionsInsights({
         symbol: sym,
@@ -1869,13 +2075,13 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
       }, token),
     );
     const nextReport = { quote, overview, priceTarget, smart, chain, gex, gexHistory, unusual, optionsInsights };
-    cachedStockReports.set(reportCacheKey(sym, direction, regimeCode), {
+    cachedStockReports.set(reportCacheKey(sym, inferredDirection, regimeCode), {
       data: nextReport,
       cachedAt: Date.now(),
     });
     setReport(nextReport);
     setReportLoading(false);
-  }, [symbol, direction, currentMarketRegime, tier, token, openUnlock]);
+  }, [symbol, currentMarketRegime, tier, token, openUnlock]);
 
   useEffect(() => {
     if (tier !== "pro") return;
@@ -1897,15 +2103,15 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
   const vixHistory = overview?.volatility.vixSeries ?? [];
   const vixSeries = vixHistory.map((value, index) => {
     const offset = vixHistory.length - 1 - index;
-    const dayLabel = offset === 0 ? "今" : `-${offset}日`;
+    const dayLabel = offset === 0 ? (locale === "en" ? "Now" : "今") : locale === "en" ? `-${offset}d` : `-${offset}日`;
     return { day: dayLabel, value };
   });
   const vixLevel = overview?.volatility.vix ?? null;
   const vixChangePct = overview?.volatility.vixChangePct ?? null;
-  const vixReadFallback = vixLevel !== null ? interpretVix(vixLevel) : null;
+  const vixReadFallback = vixLevel !== null ? interpretVix(vixLevel, locale) : null;
   const vixInterpretation = aiInsights?.vix?.interpretation || vixReadFallback?.interpretation;
   const pcr = overview?.liquidity.putCallRatioVolumeApprox ?? null;
-  const pcrReadFallback = pcr !== null ? interpretPCR(pcr) : null;
+  const pcrReadFallback = pcr !== null ? interpretPCR(pcr, locale) : null;
   const pcrInterpretation = aiInsights?.pcr?.interpretation || pcrReadFallback?.interpretation;
   const vixChartCaption = aiInsights?.vix_chart?.caption ?? "";
   const spyChange = pulseRows.find((p) => p.symbol === "SPY")?.changePct ?? null;
@@ -1937,7 +2143,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
   const regimeBorder = regimeAccentBorder(marketState.code);
   const regimeBar = regimeAccentBar(marketState.code);
   const regimeEnglish = regimeMeta(marketState.code, locale).english;
-  const marketSessionLabel = overview?.marketSessionLabel ?? null;
+  const marketSessionLabel = localizeMarketSessionLabel(overview?.marketSessionLabel ?? null, locale);
   const headlineSummary = useMemo(
     () =>
       buildHeadlineSummary({
@@ -1947,8 +2153,9 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
         avgIndex: avgIndexChange,
         vix: vixLevel,
         vixChange: vixChangePct,
+        locale,
       }),
-    [marketState.summary, marketState.code, avgIndexChange, vixLevel, vixChangePct],
+    [marketState.summary, marketState.code, avgIndexChange, vixLevel, vixChangePct, locale],
   );
   const hasAiSummary = Boolean(aiInsights?.regime.summary?.trim());
   const displayedSummary = hasAiSummary && summarySource === "ai" ? marketState.summary : headlineSummary;
@@ -1962,7 +2169,11 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
     { slot: warRoom.signals, key: "signals" },
   ]);
 
-  const stockBias = pickActionBias(direction, report);
+  const stockBias = pickActionBias(direction, report, locale);
+  const inferredDirectionLabel =
+    resolveDictionaryValue(locale, `mvp.inferredDirection.${direction}`) ??
+    resolveDictionaryValue(locale, "mvp.inferredDirection.neutral") ??
+    "中性";
   const stockOverview = report?.overview.data ?? null;
   const realtimeQuote = report?.quote.data ?? null;
   const priceSeries = (stockOverview?.priceSeries ?? [])
@@ -2030,6 +2241,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
         events,
         vix: overview?.volatility.vix ?? null,
         vixChange: overview?.volatility.vixChangePct ?? null,
+        locale,
       });
   const watchPreview = tradePlan[0] ?? null;
   const watchRemainder = tradePlan.slice(1);
@@ -2255,7 +2467,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                   }
                   sub={
                     <span className={`font-mono tabular-nums ${indexRead.tone}`}>
-                      SPY/QQQ 均值 {pct(avgIndexChange)}
+                      {t("mvp.indexAvg")} {pct(avgIndexChange)}
                     </span>
                   }
                 >
@@ -2292,7 +2504,9 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                     <span className={`font-mono text-sm tabular-nums ${(vixChangePct ?? 0) >= 0 ? "text-red" : "text-green"}`}>
                       {pct(vixChangePct)}
                       {overview?.volatility.band ? (
-                        <span className="ml-2 text-muted-foreground">{overview.volatility.band}</span>
+                        <span className="ml-2 text-muted-foreground">
+                          {localizeVolatilityBand(overview.volatility.band, locale)}
+                        </span>
                       ) : null}
                     </span>
                   }
@@ -2313,17 +2527,19 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                             contentStyle={tooltipStyle()}
                             cursor={{ stroke: CHART.gridStroke }}
                             formatter={(value: number) => [`${value.toFixed(2)}`, "VIX"]}
-                            labelFormatter={(label) => `交易日 ${label}`}
+                            labelFormatter={(label) =>
+                              locale === "en" ? `Session ${label}` : `交易日 ${label}`
+                            }
                           />
                           <Area type="monotone" dataKey="value" stroke="#f0b429" fill="url(#vixFillOverview)" strokeWidth={2} dot={false} />
                         </AreaChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="flex h-full items-center justify-center text-xs text-muted">VIX 曲线暂不可用</div>
+                      <div className="flex h-full items-center justify-center text-xs text-muted">{t("mvp.vixChartUnavailable")}</div>
                     )}
                   </div>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    {vixInterpretation || vixChartCaption || (warLoading ? "阿吉深度洞察生成中…" : "VIX 数据缺失")}
+                    {vixInterpretation || vixChartCaption || (warLoading ? t("mvp.insightsGenerating") : t("mvp.vixMissing"))}
                   </p>
                 </EvidenceCard>
 
@@ -2341,9 +2557,9 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                   }
                   sub={<span className={pcrMood.tone}>{pcrMood.label}</span>}
                 >
-                  <PcrSentimentBar pcr={pcr} />
+                  <PcrSentimentBar pcr={pcr} locale={locale} />
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    {pcrInterpretation || "P/C 数据缺失"}
+                    {pcrInterpretation || t("mvp.pcrMissing")}
                   </p>
                 </EvidenceCard>
               </div>
@@ -2478,7 +2694,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
             <div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Search className="h-4 w-4 text-gold" />
-                标的深度分析
+                {t("mvp.tickerAnalysis")}
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {QUICK_SYMBOLS.map((sym) => (
@@ -2509,32 +2725,13 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                   placeholder="NVDA"
                 />
               </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs text-muted">方向</label>
-                <div className="grid grid-cols-3 rounded-lg border border-border2 bg-background p-1">
-                  {([
-                    ["bull", "上涨情景"],
-                    ["bear", "下跌情景"],
-                    ["neutral", "中性情景"],
-                  ] as const).map(([id, label]) => (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => setDirection(id)}
-                      className={`h-8 rounded-md px-3 text-xs transition ${direction === id ? "bg-gold text-background" : "text-muted-foreground hover:text-foreground"}`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
               <button
                 type="submit"
                 className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-gold px-4 text-sm font-medium text-background transition hover:bg-gold/90 disabled:opacity-60"
                 disabled={reportLoading}
               >
                 {reportLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                生成研究摘要
+                {t("mvp.generateSummary")}
               </button>
             </form>
           </div>
@@ -2554,7 +2751,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
             <div className="flex items-center gap-2">
               <GitBranch className="h-4 w-4 shrink-0 text-gold" />
               <span className="font-mono text-sm font-semibold text-gold">{symbol}</span>
-              <span className="text-[10px] text-muted">Gamma 快览</span>
+              <span className="text-[10px] text-muted">{t("mvp.gammaGlance")}</span>
             </div>
             <div className="hidden h-5 w-px bg-border2 sm:block" aria-hidden />
             <GlanceStat label="Net GEX" value={netGexDisplay} tone={netGexTone} />
@@ -2565,7 +2762,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
               tone={gammaRead.tone === "muted" ? "default" : gammaRead.tone}
             />
             <GlanceStat
-              label="结构偏向"
+              label={t("mvp.structureBias")}
               value={gammaRead.structureBias}
               tone={
                 isVolatilityExpansion(gammaRead.structureBiasCode)
@@ -2578,7 +2775,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
             {gexSpot !== null ? (
               <>
                 <div className="hidden h-5 w-px bg-border2 lg:block" aria-hidden />
-                <GlanceStat label="现价" value={money(gexSpot)} />
+                <GlanceStat label={t("mvp.spotPrice")} value={money(gexSpot)} />
               </>
             ) : null}
             {reportLoading ? (
@@ -2589,7 +2786,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                 onClick={scrollToGammaHero}
                 className="ml-auto inline-flex items-center gap-1 rounded-lg border border-gold/30 bg-gold/5 px-2.5 py-1.5 text-[10px] font-medium text-gold transition hover:border-gold/50 hover:bg-gold/10"
               >
-                查看 Gamma 详情
+                {t("mvp.viewGammaDetail")}
                 <ChevronDown className="h-3 w-3" />
               </button>
             )}
@@ -2602,14 +2799,18 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">
                   <GitBranch className="h-5 w-5 text-gold" />
-                  <span className="text-base font-semibold text-foreground">Gamma 结构定位</span>
+                  <span className="text-base font-semibold text-foreground">{t("mvp.gammaStructure")}</span>
                 </div>
-                <Pill tone="gold">平台核心</Pill>
+                <Pill tone="gold">{t("mvp.platformCore")}</Pill>
                 <Pill tone={gammaRead.tone}>{gammaRead.regimeLabel}</Pill>
                 <Pill tone={isVolatilityExpansion(gammaRead.structureBiasCode) ? "red" : isMeanReversion(gammaRead.structureBiasCode) ? "green" : "muted"}>
                   {gammaRead.structureBias}
                 </Pill>
-                {gexSpot !== null ? <Pill tone="blue">现价 {money(gexSpot)}</Pill> : null}
+                {gexSpot !== null ? (
+                  <Pill tone="blue">
+                    {t("mvp.spotPrice")} {money(gexSpot)}
+                  </Pill>
+                ) : null}
               </div>
               {reportLoading ? <Loader2 className="h-5 w-5 animate-spin text-gold" /> : null}
             </div>
@@ -2619,7 +2820,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
 
               {gexError ? (
                 <div className="mt-3 rounded-lg border border-red/20 bg-red/10 px-3 py-2 text-xs text-red">
-                  Gamma 结构暂不可用：{friendlyApiError(gexError, "gex")}
+                  {t("mvp.gammaUnavailable")} {friendlyApiError(gexError, "gex")}
                 </div>
               ) : null}
 
@@ -2627,17 +2828,17 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                 <Metric
                   label="Net GEX"
                   value={num(gexProfile?.netGex) !== null ? `${num(gexProfile?.netGex)! >= 0 ? "+" : ""}${num(gexProfile?.netGex)!.toFixed(2)}B` : "—"}
-                  sub="对冲环境"
+                  sub={t("mvp.hedgeEnv")}
                 />
-                <Metric label="Gamma Flip" value={money(gexProfile?.gammaFlip)} sub="波动分界" />
-                <Metric label="Call Wall" value={money(gexProfile?.callWall)} sub="上方压力" />
-                <Metric label="Put Wall" value={money(gexProfile?.putWall)} sub="下方支撑" />
-                <Metric label="Max Pain" value={money(gexProfile?.maxPain)} sub="到期吸附" />
+                <Metric label="Gamma Flip" value={money(gexProfile?.gammaFlip)} sub={t("mvp.volBoundary")} />
+                <Metric label="Call Wall" value={money(gexProfile?.callWall)} sub={t("mvp.callPressure")} />
+                <Metric label="Put Wall" value={money(gexProfile?.putWall)} sub={t("mvp.putSupport")} />
+                <Metric label="Max Pain" value={money(gexProfile?.maxPain)} sub={t("mvp.maxPainExpiry")} />
               </div>
 
               <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
                 <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-3">
-                  <div className="text-[10px] font-medium uppercase tracking-wider text-muted">操作含义</div>
+                  <div className="text-[10px] font-medium uppercase tracking-wider text-muted">{t("mvp.actionMeaning")}</div>
                   <div className="mt-2 space-y-2">
                     {gammaRead.actions.map((line) => (
                       <div key={line} className="flex gap-2 text-sm leading-6 text-muted-foreground">
@@ -2648,13 +2849,21 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                   </div>
                 </div>
                 <div className="rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-3">
-                  <div className="text-[10px] font-medium uppercase tracking-wider text-muted">风险边界</div>
+                  <div className="text-[10px] font-medium uppercase tracking-wider text-muted">{t("mvp.riskBoundary")}</div>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">{gammaRead.risk}</p>
                   <div className="mt-3 grid grid-cols-2 gap-2 text-[10px] text-muted">
-                    <span>距 Flip {pct(gammaRead.distances.flipPct)}</span>
-                    <span>距 Call Wall {pct(gammaRead.distances.callWallPct)}</span>
-                    <span>距 Put Wall {pct(gammaRead.distances.putWallPct)}</span>
-                    <span>距 Max Pain {pct(gammaRead.distances.maxPainPct)}</span>
+                    <span>
+                      {t("mvp.distFlip")} {pct(gammaRead.distances.flipPct)}
+                    </span>
+                    <span>
+                      {t("mvp.distCallWall")} {pct(gammaRead.distances.callWallPct)}
+                    </span>
+                    <span>
+                      {t("mvp.distPutWall")} {pct(gammaRead.distances.putWallPct)}
+                    </span>
+                    <span>
+                      {t("mvp.distMaxPain")} {pct(gammaRead.distances.maxPainPct)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -2666,7 +2875,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                   className="rounded-lg border border-border2 px-3 py-2 text-xs text-muted-foreground transition hover:border-gold/40 hover:text-gold disabled:opacity-50"
                   disabled={gexStrikes.length === 0}
                 >
-                  {gammaChartOpen ? "收起分布图" : "展开分布图"}
+                  {gammaChartOpen ? t("mvp.collapseDistribution") : t("mvp.expandDistribution")}
                 </button>
                 <button
                   type="button"
@@ -2675,7 +2884,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                   disabled={gexStrikes.length === 0 || gexSpot === null}
                 >
                   <Maximize2 className="h-3.5 w-3.5" />
-                  放大分布
+                  {t("mvp.enlargeDistribution")}
                 </button>
                 <button
                   type="button"
@@ -2683,7 +2892,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                   className="rounded-lg border border-border2 px-3 py-2 text-xs text-muted-foreground transition hover:border-gold/40 hover:text-gold disabled:opacity-50"
                   disabled={gexHistoryRows.length === 0}
                 >
-                  {gammaTrendOpen ? "收起趋势图" : "展开趋势图"}
+                  {gammaTrendOpen ? t("mvp.collapseTrend") : t("mvp.expandTrend")}
                 </button>
                 <button
                   type="button"
@@ -2692,7 +2901,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                   disabled={gexHistoryRows.length === 0}
                 >
                   <Maximize2 className="h-3.5 w-3.5" />
-                  放大趋势
+                  {t("mvp.enlargeTrend")}
                 </button>
               </div>
 
@@ -2700,7 +2909,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                 <div className={`mt-4 grid gap-4 ${gammaChartOpen && gammaTrendOpen ? "grid-cols-1 xl:grid-cols-2" : "grid-cols-1"}`}>
                   {gammaChartOpen ? (
                     <div className="rounded-lg border border-gold/15 bg-foreground/[0.02] p-3">
-                      <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-gold">Strike Gamma 分布</div>
+                      <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-gold">{t("mvp.strikeDistribution")}</div>
                       {gexStrikes.length > 0 && gexSpot !== null ? (
                         <GexChart
                           ticker={symbol}
@@ -2709,13 +2918,13 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                           gammaFlip={num(gexProfile?.gammaFlip) ?? undefined}
                         />
                       ) : (
-                        <EmptyLine text="暂无 Gamma 分布数据" />
+                        <EmptyLine text={t("mvp.noGammaData")} />
                       )}
                     </div>
                   ) : null}
                   {gammaTrendOpen ? (
                     <div className="rounded-lg border border-gold/15 bg-foreground/[0.02] p-3">
-                      <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-gold">Net GEX 趋势</div>
+                      <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-gold">{t("mvp.netGexTrend")}</div>
                       <GexTrendChart merged={gexHistoryRows} symbol={symbol} />
                     </div>
                   ) : null}
@@ -2732,10 +2941,13 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                 <div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <LineChartIcon className="h-4 w-4 text-blue" />
-                    入场时机评估
+                    {t("mvp.entryTiming")}
                   </div>
                   <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-gold/15 bg-gold/[0.04] px-3 py-2">
-                    <span className="text-[10px] font-medium uppercase tracking-wider text-gold">基于 Gamma 环境</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-gold">{t("mvp.basedOnGamma")}</span>
+                    <Pill tone="muted">
+                      {resolveDictionaryValue(locale, "mvp.inferredDirection.auto") ?? "自动推断"}: {inferredDirectionLabel}
+                    </Pill>
                     <Pill tone={gammaRead.tone}>{gammaRead.regimeLabel}</Pill>
                     <Pill
                       tone={
@@ -2750,7 +2962,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                     </Pill>
                     {gammaFlipLevel !== null && gexSpot !== null ? (
                       <span className="text-[11px] text-muted-foreground">
-                        Flip {money(gammaFlipLevel)} · {pct(gammaRead.distances.flipPct)} 距现价
+                        Flip {money(gammaFlipLevel)} · {pct(gammaRead.distances.flipPct)} {t("mvp.distFromSpot")}
                       </span>
                     ) : null}
                   </div>
@@ -2765,10 +2977,22 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
               </div>
 
               <div className="mt-4 grid grid-cols-2 gap-2">
-                <Metric label="现价" value={money(spot)} sub={pct(stockOverview?.bar?.changePct)} />
-                <Metric label="IV Rank" value={num(stockOverview?.keyStats?.ivRank)?.toFixed(1) ?? "—"} sub="波动率热度" />
-                <Metric label="目标价差" value={upside !== null ? pct(upside) : "—"} sub={ptAvg ? money(ptAvg) : "分析师"} />
-                <Metric label="情绪" value={report?.smart.data?.retail_sentiment_score ?? "—"} sub={report?.smart.data?.consensus_type ?? "smart vs retail"} />
+                <Metric label={t("mvp.spotPrice")} value={money(spot)} sub={pct(stockOverview?.bar?.changePct)} />
+                <Metric
+                  label="IV Rank"
+                  value={num(stockOverview?.keyStats?.ivRank)?.toFixed(1) ?? "—"}
+                  sub={t("mvp.ivRankHeat")}
+                />
+                <Metric
+                  label={t("mvp.targetSpread")}
+                  value={upside !== null ? pct(upside) : "—"}
+                  sub={ptAvg ? money(ptAvg) : t("mvp.analyst")}
+                />
+                <Metric
+                  label={t("mvp.sentiment")}
+                  value={report?.smart.data?.retail_sentiment_score ?? "—"}
+                  sub={report?.smart.data?.consensus_type ?? "smart vs retail"}
+                />
               </div>
 
               <div className="mt-4 rounded-lg border border-border2 bg-foreground/[0.02] p-2">
@@ -2826,7 +3050,7 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                       </AreaChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="flex h-full items-center justify-center text-sm text-muted">K 线数据载入中</div>
+                    <div className="flex h-full items-center justify-center text-sm text-muted">{t("mvp.klineLoading")}</div>
                   )}
                 </div>
                 {gammaFlipLevel !== null || callWallLevel !== null || putWallLevel !== null || maxPainLevel !== null ? (
@@ -2853,39 +3077,46 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
               <div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <WalletCards className="h-4 w-4 text-gold" />
-                  期权合约筛选器
+                  {t("mvp.optionsScreener")}
                 </div>
                 <p className="mt-1 max-w-3xl text-[11px] leading-5 text-muted">
-                  {optionsInsights?.framework_summary ?? OPTION_FRAMEWORK_INTRO}
+                  {optionsInsights?.framework_summary ?? getOptionFrameworkIntro(locale)}
                 </p>
               </div>
             </div>
 
             {optionsInsights?.combined_insight ? (
               <div className="mt-3 rounded-lg border border-gold/20 bg-gold/5 px-3 py-2">
-                <div className="text-[10px] font-medium text-gold">阿吉深度洞察</div>
+                <div className="text-[10px] font-medium text-gold">{t("mvp.ajiDeepInsight")}</div>
                 <p className="mt-1 text-[11px] leading-5 text-muted-foreground">{optionsInsights.combined_insight}</p>
               </div>
             ) : reportLoading ? (
-              <p className="mt-2 text-[11px] text-muted">阿吉深度洞察生成中…</p>
+              <p className="mt-2 text-[11px] text-muted">{t("mvp.insightsGenerating")}</p>
             ) : null}
 
             <p className="mt-2 text-[10px] leading-5 text-muted">
-              {optionsInsights?.contracts_note ?? OPTION_TABLE_LEGEND}
+              {optionsInsights?.contracts_note ?? getOptionTableLegend(locale)}
             </p>
-            <p className="mt-1 text-[10px] leading-5 text-muted">{PLAYBOOK_SCREENER_FOOTNOTE}</p>
+            <p className="mt-1 text-[10px] leading-5 text-muted">{getPlaybookScreenerFootnote(locale)}</p>
 
             <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-[1fr_280px]">
               <div className="overflow-hidden rounded-lg border border-border2">
                 <div className="border-b border-border2 bg-foreground/[0.02] px-3 py-1.5 text-[10px] text-muted">
-                  流动性筛选合约（{direction === "bull" ? "看涨 Call" : "看跌 Put"}，非异动榜）
+                  {formatMessage(t("mvp.liquidityContracts"), {
+                    side:
+                      direction === "bear"
+                        ? t("mvp.putSide")
+                        : direction === "bull"
+                          ? t("mvp.callSide")
+                          : t("mvp.callSide"),
+                  })}
                 </div>
                 <div className="grid grid-cols-[0.9fr_0.9fr_0.8fr_0.8fr_1fr] bg-foreground/[0.03] px-3 py-2 text-[11px] text-muted">
-                  <span>合约</span>
-                  <span>到期日</span>
-                  <span title="距离到期的交易日天数">剩余天数</span>
-                  <span title="隐含波动率 Implied Volatility">隐含波动率</span>
-                  <span title="当日成交量 / 未平仓合约数 Open Interest">成交量/持仓</span>
+                  <span>{t("mvp.contract")}</span>
+                  <span>{t("mvp.expiry")}</span>
+                  <span title={t("mvp.dte")}>{t("mvp.dte")}</span>
+                  <span title={t("mvp.iv")}>{t("mvp.iv")}</span>
+                  <span title={t("mvp.volOi")}>{t("mvp.volOi")}</span>
                 </div>
                 {optionCandidates.length > 0 ? (
                   optionCandidates.slice(0, 6).map((row) => (
@@ -2902,24 +3133,24 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                     </div>
                   ))
                 ) : (
-                  <div className="border-t border-border2 px-3 py-8 text-center text-sm text-muted">期权链暂不可用</div>
+                  <div className="border-t border-border2 px-3 py-8 text-center text-sm text-muted">{t("mvp.chainUnavailable")}</div>
                 )}
               </div>
 
               <div className="space-y-2">
                 <div>
-                  <div className="text-[10px] font-medium text-muted-foreground">结构 vs 预期波动</div>
+                  <div className="text-[10px] font-medium text-muted-foreground">{t("mvp.structureVsEm")}</div>
                   {gammaFlipLevel !== null && gexSpot !== null ? (
                     <p className="mt-0.5 text-[10px] leading-4 text-muted">
-                      Gamma Flip {money(gammaFlipLevel)} · 对比各期限 Expected Move 范围
+                      {formatMessage(t("mvp.flipVsEm"), { flip: money(gammaFlipLevel) })}
                     </p>
                   ) : (
-                    <p className="mt-0.5 text-[10px] text-muted">Gamma Flip 暂不可用</p>
+                    <p className="mt-0.5 text-[10px] text-muted">{t("mvp.flipUnavailable")}</p>
                   )}
                 </div>
                 {(stockOverview?.expectedMoves ?? []).slice(0, 3).map((move) => {
                   const aiMove = expectedMoveReads.get(move.bucket);
-                  const flipCompare = compareFlipToExpectedMove(gexSpot, gammaFlipLevel, move.pct);
+                  const flipCompare = compareFlipToExpectedMove(gexSpot, gammaFlipLevel, move.pct, locale);
                   const row: ExpectedMoveRow = {
                     ...move,
                     bucketZh: move.bucketZh ?? aiMove?.bucket_zh,
@@ -2932,9 +3163,9 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                     className="w-full rounded-lg border border-border2 bg-foreground/[0.02] px-3 py-2 text-left transition hover:border-gold/40 hover:bg-gold/5 cursor-pointer"
                   >
                     <div className="text-[11px] font-medium text-foreground">
-                      {aiMove?.bucket_zh ?? expectedMoveBucketLabel(move.bucket)}
+                      {aiMove?.bucket_zh ?? expectedMoveBucketLabel(move.bucket, locale)}
                     </div>
-                    <div className="mt-0.5 text-[10px] text-muted">{expectedMoveBucketHint(move.bucket)}</div>
+                    <div className="mt-0.5 text-[10px] text-muted">{expectedMoveBucketHint(move.bucket, locale)}</div>
                     <div className="mt-1 font-mono text-sm text-foreground">
                       ±{move.pct.toFixed(2)}% · {money(move.straddleUsd)}
                     </div>

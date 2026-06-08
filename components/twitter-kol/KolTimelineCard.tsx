@@ -40,7 +40,7 @@ export default function KolTimelineCard({
       >
         {item.avatar_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.avatar_url} alt={label} className="h-full w-full object-cover" />
+          <img src={item.avatar_url} alt={label} loading="lazy" className="h-full w-full object-cover" />
         ) : (
           <span className="flex h-full w-full items-center justify-center bg-panel2 text-[10px] font-semibold text-gold">
             {initials(label)}

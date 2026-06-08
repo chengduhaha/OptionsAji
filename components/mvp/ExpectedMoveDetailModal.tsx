@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { fetchPlaybookHints } from "@/lib/playbook-hints";
 import { expectedMoveBucketHint, expectedMoveBucketLabel } from "@/lib/option-framework";
 import type { StockOverviewContract } from "@/lib/contracts";
+import { useI18n } from "@/lib/i18n/context";
 
 export type ExpectedMoveRow = StockOverviewContract["expectedMoves"][number] & {
   bucketZh?: string;
@@ -28,17 +29,18 @@ export default function ExpectedMoveDetailModal({
   interpretation?: string;
   onClose: () => void;
 }) {
+  const { locale } = useI18n();
   const [playbookHints, setPlaybookHints] = useState<string[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-    void fetchPlaybookHints("expected_move").then((bullets) => {
+    void fetchPlaybookHints("expected_move", locale).then((bullets) => {
       if (!cancelled) setPlaybookHints(bullets);
     });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -49,8 +51,8 @@ export default function ExpectedMoveDetailModal({
   }, [onClose]);
 
   const bucketZh =
-    move.bucketZh ?? expectedMoveBucketLabel(move.bucket);
-  const hint = expectedMoveBucketHint(move.bucket);
+    move.bucketZh ?? expectedMoveBucketLabel(move.bucket, locale);
+  const hint = expectedMoveBucketHint(move.bucket, locale);
   const spot = move.spot;
   const lower =
     spot !== null && spot !== undefined

@@ -148,6 +148,19 @@ export const extraZh: DictionaryTree = {
       bear: "下跌情景",
       neutral: "中性情景",
     },
+    inferredDirection: {
+      auto: "自动推断",
+      bull: "偏多",
+      bear: "偏空",
+      neutral: "中性",
+    },
+    session: {
+      preMarket: "盘前",
+      preMarketFull: "盘前交易",
+      marketOpen: "盘中",
+      afterHours: "盘后",
+      closed: "休市",
+    },
     index: {
       strong: "偏强",
       weak: "偏弱",
@@ -159,6 +172,9 @@ export const extraZh: DictionaryTree = {
       extremeBull: "极度看涨",
       optimistic: "偏乐观",
       balanced: "均衡",
+      putActive: "Put 活跃",
+      callActive: "Call 活跃",
+      volumeRatio: "P/C 成交量比 · 全市场 Put/Call 近似",
     },
     regime: {
       reasoning: {
@@ -573,6 +589,19 @@ export const extraEn: DictionaryTree = {
       bear: "Bear scenario",
       neutral: "Neutral scenario",
     },
+    inferredDirection: {
+      auto: "Auto",
+      bull: "Bullish bias",
+      bear: "Bearish bias",
+      neutral: "Neutral bias",
+    },
+    session: {
+      preMarket: "Pre-market",
+      preMarketFull: "Pre-market",
+      marketOpen: "Market open",
+      afterHours: "After hours",
+      closed: "Closed",
+    },
     index: {
       strong: "Strong",
       weak: "Weak",
@@ -584,6 +613,9 @@ export const extraEn: DictionaryTree = {
       extremeBull: "Extremely bullish",
       optimistic: "Optimistic",
       balanced: "Balanced",
+      putActive: "Put active",
+      callActive: "Call active",
+      volumeRatio: "P/C volume ratio · market-wide Put/Call approx.",
     },
     regime: {
       reasoning: {

@@ -1,4 +1,5 @@
 import { buildMvpAccessHeaders } from "@/lib/access-key";
+import type { Locale } from "@/lib/i18n/types";
 
 export const PLAYBOOK_HINTS_FALLBACK: Record<string, string[]> = {
   expected_move: [
@@ -18,18 +19,42 @@ export const PLAYBOOK_HINTS_FALLBACK: Record<string, string[]> = {
   ],
 };
 
-export async function fetchPlaybookHints(topic: string): Promise<string[]> {
+const PLAYBOOK_HINTS_FALLBACK_EN: Record<string, string[]> = {
+  expected_move: [
+    "Expected Move = ATM call mid + ATM put mid (straddle) ÷ spot.",
+    "Iron condors often place wings outside the expected move.",
+    "Pre-earnings IV lift can widen straddle-implied moves—pair with IV Rank.",
+  ],
+  unusual_flow: [
+    "Five-step filter: cap >$20B, premium >$500k, 14<DTE<60 to cut noise.",
+    "Volume >> prior OI with trades at ask suggests new opening interest.",
+    "Avoid deep OTM strikes; prefer ATM or slight ITM / call spreads.",
+  ],
+  screener: [
+    "Screener filters by inferred direction + liquidity—not unusual-activity list.",
+    "Buyers often prefer DTE 30–60; IV Rank <30% buyer-friendly, >70% seller-friendly.",
+    "Cross-check market regime and expected-move risk gauge.",
+  ],
+};
+
+export function getPlaybookHintsFallback(topic: string, locale: Locale = "zh"): string[] {
+  const key = topic.trim().toLowerCase().replace(/-/g, "_");
+  const map = locale === "en" ? PLAYBOOK_HINTS_FALLBACK_EN : PLAYBOOK_HINTS_FALLBACK;
+  return map[key] ?? map.screener;
+}
+
+export async function fetchPlaybookHints(topic: string, locale: Locale = "zh"): Promise<string[]> {
   const key = topic.trim().toLowerCase().replace(/-/g, "_");
   try {
     const res = await fetch(`/api/mvp/playbook-hints?topic=${encodeURIComponent(key)}`, {
       cache: "no-store",
       headers: buildMvpAccessHeaders(),
     });
-    if (!res.ok) return PLAYBOOK_HINTS_FALLBACK[key] ?? PLAYBOOK_HINTS_FALLBACK.screener;
+    if (!res.ok) return getPlaybookHintsFallback(key, locale);
     const data = (await res.json()) as { bullets?: string[] };
     if (Array.isArray(data.bullets) && data.bullets.length > 0) return data.bullets;
   } catch {
     /* use fallback */
   }
-  return PLAYBOOK_HINTS_FALLBACK[key] ?? PLAYBOOK_HINTS_FALLBACK.screener;
+  return getPlaybookHintsFallback(key, locale);
 }

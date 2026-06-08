@@ -61,17 +61,22 @@ export default function TwitterKolPage() {
     return map;
   }, [hubEntries]);
 
-  const loadHub = useCallback(async (opts?: { silent?: boolean }) => {
+  const loadHub = useCallback(async (opts?: { silent?: boolean; force?: boolean }) => {
     const cacheKey = `hub:${locale}`;
     const cached = hubCache.get(cacheKey);
-    if (cached && cacheFresh(cached.cachedAt)) {
+    if (cached && cacheFresh(cached.cachedAt) && !opts?.force) {
+      setHubEntries(cached.data);
+      setLoadingHub(false);
+      return;
+    }
+    if (cached) {
       setHubEntries(cached.data);
       if (!opts?.silent) setLoadingHub(false);
     } else if (!opts?.silent) {
       setLoadingHub(true);
     }
     try {
-      const data = await api.discord.kolHub({ menu_slot: "twitter_kol", hours: 168, locale });
+      const data = await api.discord.kolHub({ menu_slot: "twitter_kol", hours: 72, locale });
       const list = data.items ?? [];
       hubCache.set(cacheKey, { data: list, cachedAt: Date.now() });
       setHubEntries(list);
@@ -86,11 +91,19 @@ export default function TwitterKolPage() {
   }, [locale, t]);
 
   const fetchTimeline = useCallback(
-    async (opts?: { append?: boolean; before?: string | null; silent?: boolean }) => {
+    async (opts?: { append?: boolean; before?: string | null; silent?: boolean; force?: boolean }) => {
       const append = opts?.append ?? false;
       const authorsKey = Array.from(selectedAuthors).sort().join(",");
       const cacheKey = `timeline:${locale}:${authorsKey}:${opts?.before ?? "head"}`;
       const cached = !append ? timelineCache.get(cacheKey) : undefined;
+      if (!append && cached && cacheFresh(cached.cachedAt) && !opts?.force) {
+        setItems(cached.items);
+        setUpdatedAt(cached.updatedAt);
+        setNextBefore(cached.nextBefore);
+        setHasMore(cached.hasMore);
+        setLoadingTimeline(false);
+        return;
+      }
       if (cached && cacheFresh(cached.cachedAt)) {
         setItems(cached.items);
         setUpdatedAt(cached.updatedAt);
@@ -106,7 +119,7 @@ export default function TwitterKolPage() {
       try {
         const data = await api.discord.timeline({
           menu_slot: "twitter_kol",
-          hours: 168,
+          hours: 72,
           limit: 30,
           authors: Array.from(selectedAuthors),
           before_timestamp: opts?.before ?? undefined,
@@ -145,7 +158,7 @@ export default function TwitterKolPage() {
   const refreshAll = useCallback(async () => {
     hubCache.delete(`hub:${locale}`);
     timelineCache.clear();
-    await Promise.all([loadHub(), fetchTimeline()]);
+    await Promise.all([loadHub({ force: true }), fetchTimeline({ force: true })]);
   }, [fetchTimeline, loadHub, locale]);
 
   useEffect(() => {
@@ -192,7 +205,7 @@ export default function TwitterKolPage() {
     if (entry) setDetailEntry(entry);
   }
 
-  const loading = loadingHub || loadingTimeline;
+  const loading = (loadingHub && hubEntries.length === 0) || (loadingTimeline && items.length === 0);
 
   return (
     <div className="mx-auto max-w-[900px] space-y-5 p-4 md:p-6">

@@ -3,6 +3,7 @@
 import { clsx } from "clsx";
 import { Info } from "lucide-react";
 import { useState } from "react";
+import type { Locale } from "@/lib/i18n/types";
 
 interface DataLabelProps {
   label: string;
@@ -62,7 +63,27 @@ export function interpretNetGex(gexBn: number): { interpretation: string; sentim
   return { interpretation: `负 Gamma ${gexBn.toFixed(1)}B → 做市商追涨杀跌放大波动，对应趋势情景`, sentiment: "bear" };
 }
 
-export function interpretPCR(pcr: number): { interpretation: string; sentiment: "bull" | "bear" | "neutral" } {
+export function interpretPCR(
+  pcr: number,
+  locale: Locale = "zh",
+): { interpretation: string; sentiment: "bull" | "bear" | "neutral" } {
+  if (locale === "en") {
+    if (pcr > 1.2) {
+      return {
+        interpretation: "Put activity extreme → deeply bearish sentiment; possible contrarian buy setup",
+        sentiment: "bull",
+      };
+    }
+    if (pcr > 1) return { interpretation: "Puts more active than calls → cautious tone", sentiment: "bear" };
+    if (pcr < 0.5) {
+      return {
+        interpretation: "Call activity extreme → euphoric tone; watch for pullback risk",
+        sentiment: "bear",
+      };
+    }
+    if (pcr < 0.7) return { interpretation: "Calls more active than puts → optimistic tone", sentiment: "bull" };
+    return { interpretation: "Put/Call volume balanced — no extreme sentiment", sentiment: "neutral" };
+  }
   if (pcr > 1.2) return { interpretation: "Put 异常活跃 → 市场极度看跌，可能是反向买入情景", sentiment: "bull" };
   if (pcr > 1) return { interpretation: "Put 比 Call 活跃 → 市场偏谨慎", sentiment: "bear" };
   if (pcr < 0.5) return { interpretation: "Call 异常活跃 → 市场极度看涨，需警惕回调风险", sentiment: "bear" };
@@ -70,7 +91,28 @@ export function interpretPCR(pcr: number): { interpretation: string; sentiment: 
   return { interpretation: "Put/Call 成交量均衡，市场无极端情绪", sentiment: "neutral" };
 }
 
-export function interpretVix(vix: number): { interpretation: string; sentiment: "bull" | "bear" | "neutral" } {
+export function interpretVix(
+  vix: number,
+  locale: Locale = "zh",
+): { interpretation: string; sentiment: "bull" | "bear" | "neutral" } {
+  if (locale === "en") {
+    if (vix > 30) {
+      return {
+        interpretation: `VIX ${vix.toFixed(1)} → fear zone; avoid naked short vol, focus on hedges`,
+        sentiment: "bear",
+      };
+    }
+    if (vix > 20) {
+      return { interpretation: `VIX ${vix.toFixed(1)} → elevated vol; options premium rich`, sentiment: "neutral" };
+    }
+    if (vix < 13) {
+      return {
+        interpretation: `VIX ${vix.toFixed(1)} → very low vol; watch for vol mean-reversion`,
+        sentiment: "neutral",
+      };
+    }
+    return { interpretation: `VIX ${vix.toFixed(1)} → normal volatility range`, sentiment: "neutral" };
+  }
   if (vix > 30) return { interpretation: `VIX ${vix.toFixed(1)} → 恐慌区域，避免裸卖期权，关注对冲`, sentiment: "bear" };
   if (vix > 20) return { interpretation: `VIX ${vix.toFixed(1)} → 波动偏高，期权溢价明显`, sentiment: "neutral" };
   if (vix < 13) return { interpretation: `VIX ${vix.toFixed(1)} → 极度低波动，注意波动率回归风险`, sentiment: "neutral" };
