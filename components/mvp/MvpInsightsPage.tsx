@@ -1890,9 +1890,10 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
   const rootClassName = isDashboard
     ? "h-full overflow-y-auto bg-background text-foreground"
     : "min-h-screen bg-background text-foreground";
-  const initialWarRoomCache = isPro ? getFreshWarRoomCache(locale) : null;
+  const initialWarRoomCache = isPro && section !== "ticker" ? getFreshWarRoomCache(locale) : null;
   const initialRegimeCode = initialWarRoomCache?.data.marketInsights.data?.regime?.code ?? null;
-  const initialReportCache = isPro ? getFreshReportCache("SPY", "bull", initialRegimeCode) : null;
+  const initialReportCache =
+    isPro && section !== "ticker" ? getFreshReportCache("SPY", "bull", initialRegimeCode) : null;
   const [warRoom, setWarRoom] = useState<WarRoomData>(initialWarRoomCache?.data ?? EMPTY_WAR_ROOM);
   const [warLoading, setWarLoading] = useState(!initialWarRoomCache);
   const [warRoomUpdatedAt, setWarRoomUpdatedAt] = useState<string | null>(initialWarRoomCache?.updatedAt ?? null);
@@ -1998,20 +1999,22 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
 
   useEffect(() => {
     if (!ready) return;
+    if (section === "ticker") return;
     void loadWarRoom({ force: true });
     const timer = window.setInterval(() => {
       void loadWarRoom({ silent: true });
     }, WAR_ROOM_REFRESH_MS);
     return () => window.clearInterval(timer);
-  }, [loadWarRoom, ready]);
+  }, [loadWarRoom, ready, section]);
 
   useEffect(() => {
     const onLocaleChange = () => {
+      if (section === "ticker") return;
       void loadWarRoom({ force: true });
     };
     window.addEventListener(LOCALE_CHANGE_EVENT, onLocaleChange);
     return () => window.removeEventListener(LOCALE_CHANGE_EVENT, onLocaleChange);
-  }, [loadWarRoom]);
+  }, [loadWarRoom, section]);
 
   const currentMarketRegime = warRoom.marketInsights.data?.regime ?? null;
 
@@ -2084,11 +2087,12 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
   }, [symbol, currentMarketRegime, tier, token, openUnlock]);
 
   useEffect(() => {
+    if (section === "ticker") return;
     if (tier !== "pro") return;
     if (initialReportLoadedRef.current) return;
     initialReportLoadedRef.current = true;
     void runStockReport("SPY");
-  }, [runStockReport, tier]);
+  }, [runStockReport, tier, section]);
 
   const signals = warRoom.signals.data?.signals ?? [];
   const ruleMarketState = classifyMarket(warRoom.overview.data, signals, locale);
