@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 type TurnstileWidgetProps = {
   siteKey: string;
-  action: "login" | "register";
+  action: "login" | "register" | "resend";
   resetKey: number;
   onToken: (token: string | null) => void;
   onError?: () => void;

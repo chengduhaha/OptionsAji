@@ -17,6 +17,8 @@ export default function RegisterPage() {
   const [code, setCode] = useState("");
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
+  const [resendTurnstileToken, setResendTurnstileToken] = useState<string | null>(null);
+  const [resendTurnstileResetKey, setResendTurnstileResetKey] = useState(0);
   const [pendingEmail, setPendingEmail] = useState("");
   const [verificationExpiresAt, setVerificationExpiresAt] = useState<string | null>(null);
   const [debugCode, setDebugCode] = useState<string | null>(null);
@@ -45,6 +47,8 @@ export default function RegisterPage() {
       setDebugCode(resp.verification_code);
       setPhase("verify");
       setInfo("验证码已发送到您的邮箱，请查收（含垃圾箱）。");
+      setResendTurnstileToken(null);
+      setResendTurnstileResetKey((value) => value + 1);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "注册失败");
       setTurnstileToken(null);
@@ -62,14 +66,22 @@ export default function RegisterPage() {
     if (!pendingEmail.trim()) return;
     setError(null);
     setInfo(null);
+    if (turnstileSiteKey && !resendTurnstileToken) {
+      setError("请先完成人机验证。");
+      return;
+    }
     setBusy(true);
     try {
-      const resp = await resendVerification(pendingEmail);
+      const resp = await resendVerification(pendingEmail, resendTurnstileToken);
       setVerificationExpiresAt(resp.verification_expires_at);
       setDebugCode(resp.verification_code);
       setInfo("新的验证码已发送，请查收邮箱。");
+      setResendTurnstileToken(null);
+      setResendTurnstileResetKey((value) => value + 1);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "发送失败");
+      setResendTurnstileToken(null);
+      setResendTurnstileResetKey((value) => value + 1);
     } finally {
       setBusy(false);
     }
@@ -189,9 +201,18 @@ export default function RegisterPage() {
             >
               {busy ? "验证中…" : "验证并登录"}
             </button>
+            {turnstileSiteKey ? (
+              <TurnstileWidget
+                siteKey={turnstileSiteKey}
+                action="resend"
+                resetKey={resendTurnstileResetKey}
+                onToken={setResendTurnstileToken}
+                onError={handleTurnstileError}
+              />
+            ) : null}
             <button
               type="button"
-              disabled={busy || !ready}
+              disabled={busy || !ready || (Boolean(turnstileSiteKey) && !resendTurnstileToken)}
               onClick={() => void onResendCode()}
               className="w-full rounded-lg border border-border bg-card py-2.5 text-[13px] text-muted-foreground transition hover:border-primary/40 hover:text-foreground disabled:opacity-50"
             >

@@ -121,10 +121,10 @@ export const api = {
         method: "POST",
         body: JSON.stringify(payload),
       }),
-    resendVerification: (email: string) =>
+    resendVerification: (email: string, turnstileToken?: string | null) =>
       fetchJSON<AuthResendVerificationContract>("/api/auth/register/resend", {
         method: "POST",
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, turnstile_token: turnstileToken ?? null }),
       }),
     login: (payload: { email: string; password: string; turnstile_token?: string | null }) =>
       fetchJSON<AuthTokenContract>("/api/auth/login", {

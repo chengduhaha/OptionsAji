@@ -34,7 +34,7 @@ type AuthContextValue = {
     turnstileToken?: string | null,
   ) => Promise<AuthRegisterContract>;
   verifyRegistration: (email: string, code: string) => Promise<void>;
-  resendVerification: (email: string) => Promise<AuthResendVerificationContract>;
+  resendVerification: (email: string, turnstileToken?: string | null) => Promise<AuthResendVerificationContract>;
   logout: () => Promise<void>;
   refreshMe: () => Promise<void>;
   isAdmin: boolean;
@@ -138,8 +138,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [persistToken],
   );
 
-  const resendVerification = useCallback(async (email: string) => {
-    return api.auth.resendVerification(email.trim());
+  const resendVerification = useCallback(async (email: string, turnstileToken?: string | null) => {
+    return api.auth.resendVerification(email.trim(), turnstileToken ?? null);
   }, []);
 
   const logout = useCallback(async () => {
