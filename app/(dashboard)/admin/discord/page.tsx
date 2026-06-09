@@ -31,6 +31,10 @@ const SLOT_LABELS_FALLBACK: Record<string, string> = {
 
 function parseError(payload: unknown): string {
   if (!payload || typeof payload !== "object") return "请求失败";
+  const err = (payload as { error?: { message?: unknown } }).error;
+  if (err && typeof err.message === "string" && err.message.trim()) {
+    return err.message;
+  }
   const detail = (payload as { detail?: unknown }).detail;
   if (typeof detail === "string") return detail;
   if (typeof detail === "object" && detail && "message" in detail) {
