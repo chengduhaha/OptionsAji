@@ -43,8 +43,9 @@ function resolveTimeoutMs(): number {
   return DEFAULT_BACKEND_TIMEOUT_MS;
 }
 
-function buildForwardHeaders(req: Request, initHeaders?: HeadersInit): Headers {
+function buildForwardHeaders(req: Request, targetUrl: string, initHeaders?: HeadersInit): Headers {
   const hdrs = new Headers(initHeaders ?? {});
+  hdrs.set("Host", new URL(targetUrl).host);
   if (!hdrs.has("Accept")) hdrs.set("Accept", "application/json");
   const requestId = req.headers.get("x-request-id");
   if (requestId) hdrs.set("X-Request-Id", requestId);
@@ -110,7 +111,7 @@ async function proxyJsonThroughBackend(
   req: Request,
   init?: ProxyBackendInit,
 ): Promise<Response> {
-  const hdrs = buildForwardHeaders(req, init?.headers);
+  const hdrs = buildForwardHeaders(req, target, init?.headers);
   try {
     const upstream = await fetchWithTimeout(target, {
       ...init,
@@ -207,7 +208,7 @@ export async function proxySseToBackend(
 
   const normalized = normalizeBackendPath(backendPath);
   const target = `${base.replace(/\/$/, "")}${normalized}`;
-  const headers = buildForwardHeaders(req, init?.headers);
+  const headers = buildForwardHeaders(req, target, init?.headers);
   headers.set("Accept", "text/event-stream");
 
   const payload = req.method === "GET" || req.method === "HEAD" ? undefined : await req.text();

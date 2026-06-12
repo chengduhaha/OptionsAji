@@ -21,6 +21,7 @@ async function forward(req: NextRequest, segments: string[]): Promise<Response> 
   const targetUrl = `${base.replace(/\/$/, "")}/api/auth/${subpath}${incoming.search}`;
 
   const headers = new Headers();
+  headers.set("Host", new URL(targetUrl).host);
   headers.set("Accept", "application/json");
   const ct = req.headers.get("content-type");
   if (ct) headers.set("Content-Type", ct);
