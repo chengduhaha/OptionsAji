@@ -40,6 +40,82 @@ interface BacktestResult {
   trades: BacktestTrade[];
 }
 
+interface TradesApiResponse {
+  items?: Array<{
+    id: number;
+    member?: string;
+    chamber: string;
+    symbol: string;
+    date?: string | null;
+    type?: string;
+    amount_range?: string;
+  }>;
+}
+
+interface LeaderboardApiEntry {
+  member?: string;
+  chamber: string;
+  trade_count: number;
+  annualized_return_pct?: number;
+  avg_return_pct?: number;
+  best_trade?: { symbol?: string };
+}
+
+interface BacktestApiTrade {
+  symbol: string;
+  buy_date: string;
+  buy_price: number;
+  current_price: number;
+  shares?: number;
+  return_pct?: number;
+}
+
+interface BacktestApiResponse {
+  initial_capital: number;
+  final_value: number;
+  total_return_pct: number;
+  trade_count: number;
+  trade_log?: BacktestApiTrade[];
+  error?: string;
+  message?: string;
+  detail?: string;
+}
+
+function mapTradeRow(row: NonNullable<TradesApiResponse["items"]>[number]): CongressTrade {
+  return {
+    id: row.id,
+    member_name: row.member ?? "—",
+    chamber: row.chamber,
+    symbol: row.symbol,
+    trade_date: row.date ?? "—",
+    transaction_type: row.type ?? "—",
+    amount_range: row.amount_range ?? "—",
+  };
+}
+
+function mapLeaderboardEntry(row: LeaderboardApiEntry): LeaderboardEntry {
+  return {
+    member_name: row.member ?? "—",
+    chamber: row.chamber,
+    trade_count: row.trade_count,
+    hypothetical_roi_pct: row.annualized_return_pct ?? row.avg_return_pct ?? 0,
+    best_trade_symbol: row.best_trade?.symbol ?? "—",
+  };
+}
+
+function mapBacktestTrade(row: BacktestApiTrade): BacktestTrade {
+  const shares = row.shares ?? 0;
+  const pnl = shares > 0 ? shares * (row.current_price - row.buy_price) : 0;
+  return {
+    symbol: row.symbol,
+    buy_date: row.buy_date,
+    buy_price: row.buy_price,
+    current_price: row.current_price,
+    pnl,
+    pnl_pct: row.return_pct ?? 0,
+  };
+}
+
 type Tab = "trades" | "leaderboard" | "backtest";
 
 export default function CongressPage() {
@@ -68,8 +144,9 @@ export default function CongressPage() {
       if (symbolQ) p.set("symbol", symbolQ);
       const res = await fetch(`/api/congress/trades?${p}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setTrades(data.trades ?? data ?? []);
+      const data = (await res.json()) as TradesApiResponse;
+      const rows = Array.isArray(data.items) ? data.items : [];
+      setTrades(rows.map(mapTradeRow));
     } catch (e) {
       setTradesError(e instanceof Error ? e.message : "加载失败");
     } finally {
@@ -83,8 +160,9 @@ export default function CongressPage() {
     try {
       const res = await fetch("/api/congress/leaderboard");
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setLb(data.leaderboard ?? data ?? []);
+      const data = await res.json() as { leaderboard?: LeaderboardApiEntry[] };
+      const rows = Array.isArray(data.leaderboard) ? data.leaderboard : [];
+      setLb(rows.map(mapLeaderboardEntry));
       setLbFetched(true);
     } catch { } finally {
       setLbLoading(false);
@@ -101,10 +179,24 @@ export default function CongressPage() {
       const res = await fetch("/api/congress/backtest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ member: btMember, chamber: btChamber, capital: parseFloat(btCapital) || 100_000 }),
+        body: JSON.stringify({
+          member: btMember,
+          chamber: btChamber,
+          initial_capital: parseFloat(btCapital) || 100_000,
+        }),
       });
-      if (!res.ok) { const err = await res.json(); throw new Error(err?.detail ?? `HTTP ${res.status}`); }
-      setBtResult(await res.json());
+      const data = (await res.json()) as BacktestApiResponse;
+      if (!res.ok) throw new Error(data.message ?? data.detail ?? `HTTP ${res.status}`);
+      if (data.error) throw new Error(data.message ?? "未找到符合条件的交易记录");
+      const trades = (data.trade_log ?? []).map(mapBacktestTrade);
+      setBtResult({
+        initial_capital: data.initial_capital,
+        final_value: data.final_value,
+        total_return_pct: data.total_return_pct,
+        trade_count: data.trade_count,
+        winning_trades: trades.filter((t) => t.pnl_pct > 0).length,
+        trades,
+      });
     } catch (e) {
       setBtError(e instanceof Error ? e.message : "回测失败");
     } finally {
