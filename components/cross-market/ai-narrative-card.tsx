@@ -34,7 +34,7 @@ export function AiNarrativeCard({
             <div>
               <div className="text-sm font-semibold text-foreground">AI 深度分析</div>
               <div className="font-terminal text-[10px] text-[#7A8BA8] mt-0.5">
-                Ontology 融合引擎 · 基于实时跨市场数据 · 刚刚更新
+                多源概率融合 · 基于实时跨市场数据 · 刚刚更新
               </div>
             </div>
           </div>

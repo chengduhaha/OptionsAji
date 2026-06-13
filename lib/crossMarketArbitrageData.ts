@@ -22,7 +22,7 @@ export interface ArbitrageOpportunity {
   aiNarrative: string
 }
 
-/** Static ontology-style patterns for scanner sidebar when API returns no rows. */
+/** Static sidebar patterns for scanner when API returns no rows. */
 export const patterns = [
   {
     id: 'kol-watch',

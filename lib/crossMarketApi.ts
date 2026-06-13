@@ -1,5 +1,5 @@
 /**
- * Cross-market + ontology HTTP client. All paths hit Next.js route handlers
+ * Cross-market HTTP client. All paths hit Next.js route handlers
  * that proxy to OPTIONS_AJI_BACKEND_URL (see app/api/cross-market/*).
  */
 
@@ -8,28 +8,22 @@ export interface HotEvent {
   title_zh: string;
   event_type: string;
   event_time: string;
-  probabilities: {
-    options: number;
-    polymarket: number;
-    social: number;
-    institutional: number;
-  };
-  consensus: number;
-  disagreement: number;
-  arbitrage_direction: string;
+  polymarket_probability: number;
+  related_ticker?: string | null;
+  volume_24h?: number | null;
+  liquidity?: number | null;
+  slug?: string | null;
 }
 
 export interface BackendArbitrageOpportunity {
   event_id: string;
   question: string;
-  options_probability: number;
   polymarket_probability: number;
-  social_probability: number;
-  institutional_probability: number;
-  consensus_probability: number;
-  disagreement: number;
-  arbitrage_direction: string;
-  confidence_score: number;
+  related_ticker?: string | null;
+  volume_24h?: number | null;
+  liquidity?: number | null;
+  slug?: string | null;
+  event_type?: string;
 }
 
 export interface FeedItem {
@@ -56,23 +50,6 @@ export interface StockOverviewCrossMarket {
   high?: number | null;
   low?: number | null;
   data_source?: string;
-}
-
-export interface OntologyTrace {
-  trace_id: string;
-  source: string;
-  query: string;
-  matched_pattern: string | null;
-  used_objects: string[];
-  used_relations: string[];
-  created_at: string;
-}
-
-export interface OntologyInspectorPayload {
-  objects: string[];
-  relations: string[];
-  patterns: string[];
-  recent_traces: OntologyTrace[];
 }
 
 async function parseJson<T>(res: Response, path: string): Promise<T> {
@@ -109,44 +86,6 @@ export async function getCrossMarketQuote(symbol: string): Promise<StockOverview
   const clean = encodeURIComponent(symbol.toUpperCase());
   const res = await fetch(`/api/cross-market/quote/${clean}`, noStore);
   return parseJson(res, `/api/cross-market/quote/${clean}`);
-}
-
-export interface CopilotQueryResponse {
-  response: string;
-  error?: string;
-}
-
-export async function queryCopilot(query: string, traderId = "demo_user"): Promise<CopilotQueryResponse> {
-  const res = await fetch("/api/copilot/query", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, trader_id: traderId }),
-    ...noStore,
-  });
-  const data = (await res.json().catch(() => ({}))) as CopilotQueryResponse & { detail?: unknown };
-  if (!res.ok) {
-    const msg =
-      typeof data.error === "string"
-        ? data.error
-        : `copilot ${res.status}: ${JSON.stringify(data.detail ?? data).slice(0, 200)}`;
-    throw new Error(msg);
-  }
-  return data;
-}
-
-export async function fetchOntologyObjects(): Promise<{ objects: string[] }> {
-  const res = await fetch("/api/ontology/objects", noStore);
-  return parseJson(res, "/api/ontology/objects");
-}
-
-export async function fetchOntologyPatterns(): Promise<{ patterns: string[] }> {
-  const res = await fetch("/api/ontology/patterns", noStore);
-  return parseJson(res, "/api/ontology/patterns");
-}
-
-export async function getOntologyInspector(): Promise<OntologyInspectorPayload> {
-  const res = await fetch("/api/ontology/inspector", noStore);
-  return parseJson(res, "/api/ontology/inspector");
 }
 
 export async function getCrossMarketDiagnostics(): Promise<unknown> {

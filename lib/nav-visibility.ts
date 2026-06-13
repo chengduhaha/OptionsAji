@@ -20,8 +20,6 @@ export const KNOWN_NAV_IDS = [
   "cross_market",
   "cross_scanner",
   "cross_feed",
-  "ontology_copilot",
-  "ontology_inspector",
 ] as const;
 
 export type NavMenuId = (typeof KNOWN_NAV_IDS)[number];
@@ -33,13 +31,7 @@ export const NAV_GROUP_LABELS: Record<string, { label: string; childIds: NavMenu
   },
   cross_market_group: {
     label: "跨市场",
-    childIds: [
-      "cross_market",
-      "cross_scanner",
-      "cross_feed",
-      "ontology_copilot",
-      "ontology_inspector",
-    ],
+    childIds: ["cross_market", "cross_scanner", "cross_feed"],
   },
 };
 
@@ -61,10 +53,8 @@ export const NAV_ITEM_LABELS: Record<NavMenuId, string> = {
   darkpool: "暗池雷达",
   congress: "国会山追踪",
   cross_market: "跨市场总览",
-  cross_scanner: "定价差异扫描",
+  cross_scanner: "PM 市场列表",
   cross_feed: "跨市场信息流",
-  ontology_copilot: "本体 Copilot",
-  ontology_inspector: "本体调试台",
 };
 
 export function defaultNavVisibility(): Record<string, boolean> {
@@ -111,8 +101,6 @@ export function pathnameToMenuId(
   if (p === "/cross-market/feed" || p.startsWith("/cross-market/feed/")) return "cross_feed";
   if (p === "/cross-market" || (p.startsWith("/cross-market/") && !p.includes("/scanner") && !p.includes("/feed")))
     return "cross_market";
-  if (p.startsWith("/copilot")) return "ontology_copilot";
-  if (p.startsWith("/inspector")) return "ontology_inspector";
   if (p.startsWith("/admin/users")) return "admin_users";
   if (p.startsWith("/admin/menu")) return "admin_menu";
   if (p.startsWith("/admin/access-keys")) return "admin_access_keys";

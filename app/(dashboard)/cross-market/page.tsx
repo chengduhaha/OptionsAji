@@ -3,40 +3,46 @@ import Link from "next/link";
 import type { HotEvent } from "@/lib/crossMarket";
 import { getServerOrigin } from "@/lib/serverOrigin";
 
+function formatVolume(v: number | null | undefined): string {
+  if (v == null || v <= 0) return "—";
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
+  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`;
+  return String(Math.round(v));
+}
+
 export default async function CrossMarketHomePage() {
   const origin = await getServerOrigin();
   const res = await fetch(`${origin}/api/cross-market/events/hot`, { cache: "no-store" });
   const data = (res.ok ? await res.json() : { events: [] }) as { events: HotEvent[] };
   const events = data.events ?? [];
-  const avgDisagreement =
-    events.length > 0 ? (events.reduce((sum, event) => sum + event.disagreement, 0) / events.length) * 100 : 0;
-  const topPolymarket = events[0]?.probabilities.polymarket ?? 0;
-  const highRiskCount = events.filter((event) => event.disagreement > 0.15).length;
+  const withTicker = events.filter((e) => e.related_ticker).length;
+  const totalVolume = events.reduce((sum, e) => sum + (e.volume_24h ?? 0), 0);
+  const topPm = events[0]?.polymarket_probability ?? 0;
 
   const cards = [
     {
-      title: "波动率环境",
-      subtitle: "跨源概率平均背离",
-      value: `${avgDisagreement.toFixed(1)}%`,
-      hint: "背离越高，期权与预测市场分歧越大",
-    },
-    {
-      title: "事件流动性",
-      subtitle: "今日热点事件数量",
+      title: "热点数量",
+      subtitle: "美股相关 Polymarket 市场",
       value: `${events.length}`,
-      hint: "来自 Polymarket 与多源融合",
+      hint: "经关键词与 $TICKER 过滤",
     },
     {
-      title: "高背离观察项",
-      subtitle: "背离 > 15% ",
-      value: `${highRiskCount}`,
-      hint: "可优先查看定价差异扫描",
+      title: "含标的",
+      subtitle: "可映射到美股代码",
+      value: `${withTicker}`,
+      hint: "仅识别 $SYMBOL 或 (NVDA) 形式",
     },
     {
-      title: "预测市场热度",
-      subtitle: "列表首条 PM 概率",
-      value: `${(topPolymarket * 100).toFixed(1)}%`,
-      hint: "仅示意，非投资建议",
+      title: "合计成交",
+      subtitle: "列表 24h 成交量加总",
+      value: formatVolume(totalVolume),
+      hint: "无成交量字段时显示 —",
+    },
+    {
+      title: "榜首概率",
+      subtitle: "排序首条 Yes 隐含概率",
+      value: `${(topPm * 100).toFixed(1)}%`,
+      hint: "来自 Polymarket outcomePrices",
     },
   ];
 
@@ -46,8 +52,7 @@ export default async function CrossMarketHomePage() {
         <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-medium">Cross-market</p>
         <h1 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">跨市场总览</h1>
         <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
-          一览预测市场与多源概率结构。数据经 Next.js 代理至后端；生产环境请配置{" "}
-          <span className="font-mono text-primary">OPTIONS_AJI_BACKEND_URL</span>。
+          聚合与美股相关的 Polymarket 预测市场热点（宏观、财报、单股主题）。数据经 Next.js 代理至后端 Gamma API。
         </p>
         <p className="text-xs text-muted-foreground/80 max-w-3xl leading-relaxed">
           仅供教育与研究用途，不构成投资建议、交易建议、荐股、投顾服务或收益承诺；不提供经纪、订单执行、资金托管或资产管理服务。
@@ -71,13 +76,13 @@ export default async function CrossMarketHomePage() {
 
       <article className="rounded-xl border border-border bg-card/60 backdrop-blur-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-          <h2 className="text-base font-semibold text-foreground">跨市场热点事件</h2>
+          <h2 className="text-base font-semibold text-foreground">美股相关预测市场</h2>
           <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{events.length} 条</span>
         </div>
         <div className="p-5 space-y-1">
           {events.length === 0 ? (
             <p className="text-sm text-muted-foreground py-8 text-center">
-              暂无事件数据。请确认后端已启动且 Polymarket 可访问。
+              暂无匹配市场。请确认后端可访问 Polymarket Gamma API。
             </p>
           ) : (
             events.map((event) => (
@@ -90,12 +95,18 @@ export default async function CrossMarketHomePage() {
                     {event.title_zh}
                   </Link>
                 </div>
-                <div className="text-xs text-muted-foreground mt-1.5 space-x-2 flex flex-wrap gap-y-1">
-                  <span>预测市场 {(event.probabilities.polymarket * 100).toFixed(1)}%</span>
+                <div className="text-xs text-muted-foreground mt-1.5 flex flex-wrap gap-x-2 gap-y-1">
+                  <span>Yes {(event.polymarket_probability * 100).toFixed(1)}%</span>
                   <span>·</span>
-                  <span>背离 {(event.disagreement * 100).toFixed(1)}%</span>
-                  <span>·</span>
-                  <span>方向 {event.arbitrage_direction}</span>
+                  <span>24h 量 {formatVolume(event.volume_24h)}</span>
+                  {event.related_ticker ? (
+                    <>
+                      <span>·</span>
+                      <Link href={`/stock/${event.related_ticker}/overview`} className="text-primary hover:underline">
+                        {event.related_ticker}
+                      </Link>
+                    </>
+                  ) : null}
                 </div>
               </div>
             ))
@@ -108,16 +119,13 @@ export default async function CrossMarketHomePage() {
           href="/cross-market/scanner"
           className="inline-flex items-center px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90"
         >
-          定价差异扫描
+          市场列表
         </Link>
         <Link
           href="/cross-market/feed"
           className="inline-flex items-center px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-glass"
         >
           跨市场信息流
-        </Link>
-        <Link href="/copilot" className="inline-flex items-center px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-glass">
-          本体 Copilot
         </Link>
       </div>
     </div>

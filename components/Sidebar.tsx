@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   AlertTriangle,
   BookOpen,
-  Bot,
   Building2,
   ChevronDown,
   ChevronRight,
@@ -13,7 +12,6 @@ import {
   Eye,
   Globe2,
   LayoutDashboard,
-  Layers,
   LineChart,
   Network,
   Newspaper,
@@ -70,10 +68,8 @@ const NAV_GROUPS = [
     label: "跨市场",
     items: [
       { id: "cross_market", label: "跨市场总览", href: "/cross-market", icon: Globe2 },
-      { id: "cross_scanner", label: "定价差异扫描", href: "/cross-market/scanner", icon: ScanSearch },
+      { id: "cross_scanner", label: "PM 市场列表", href: "/cross-market/scanner", icon: ScanSearch },
       { id: "cross_feed", label: "跨市场信息流", href: "/cross-market/feed", icon: Newspaper },
-      { id: "ontology_copilot", label: "本体 Copilot", href: "/copilot", icon: Bot, badge: "NEW" },
-      { id: "ontology_inspector", label: "本体调试台", href: "/inspector", icon: Layers },
     ],
   },
 ];
@@ -103,11 +99,7 @@ function NavItem({
               ? pathname.startsWith("/cross-market/scanner")
               : item.id === "cross_feed"
                 ? pathname.startsWith("/cross-market/feed")
-                : item.id === "ontology_copilot"
-                  ? pathname.startsWith("/copilot")
-                  : item.id === "ontology_inspector"
-                    ? pathname.startsWith("/inspector")
-                    : item.id === "profile"
+                : item.id === "profile"
             ? pathname === "/profile" || pathname.startsWith("/profile/")
             : item.id === "admin_users"
             ? pathname.startsWith("/admin/users")
