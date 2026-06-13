@@ -21,10 +21,11 @@ export default function UnusualOptionsPage() {
   useEffect(() => { load(); }, [load]);
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="h-full overflow-y-auto p-6 space-y-5">
       <div className="flex items-center gap-3 flex-wrap">
         <TrendingUp className="w-5 h-5 text-gold" />
         <h1 className="text-xl font-bold text-text">异常期权活动</h1>
+        <p className="text-[11px] text-muted w-full">基于标普500成分股期权快照 · Vol/OI 异动筛选</p>
         <div className="flex gap-3 ml-4 items-center">
           <label className="text-[12px] text-muted">
             Vol/OI 最小:

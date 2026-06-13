@@ -38,9 +38,18 @@ function isBullishDirection(direction: string | undefined): boolean {
   return direction?.toLowerCase() === "bullish";
 }
 
+interface FlowResponse {
+  items: FlowItem[];
+  generated_at?: string;
+  scope_label_zh?: string;
+  ranking_label_zh?: string;
+  symbol_count?: number;
+}
+
 export default function DarkPoolPage() {
   const [tide, setTide] = useState<MarketTide | null>(null);
   const [flow, setFlow] = useState<FlowItem[]>([]);
+  const [meta, setMeta] = useState<Pick<FlowResponse, "generated_at" | "scope_label_zh" | "ranking_label_zh" | "symbol_count">>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,11 +64,18 @@ export default function DarkPoolPage() {
         fetch("/api/darkpool/flow-summary"),
       ]);
       if (!tideRes.ok || !flowRes.ok) throw new Error("加载失败");
-      const [tideData, flowData] = await Promise.all([tideRes.json(), flowRes.json()]);
+      const [tideData, flowData] = await Promise.all([tideRes.json(), flowRes.json()]) as [
+        { today?: MarketTide; scope_label_zh?: string; symbol_count?: number; generated_at?: string },
+        FlowResponse,
+      ];
       setTide(tideData.today ?? null);
-      const items: FlowItem[] = flowData.items ?? [];
-      items.sort((a, b) => Math.abs(b.net_flow_usd) - Math.abs(a.net_flow_usd));
-      setFlow(items);
+      setFlow(flowData.items ?? []);
+      setMeta({
+        generated_at: flowData.generated_at ?? tideData.generated_at,
+        scope_label_zh: flowData.scope_label_zh ?? tideData.scope_label_zh,
+        ranking_label_zh: flowData.ranking_label_zh,
+        symbol_count: flowData.symbol_count ?? tideData.symbol_count,
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "加载失败");
     } finally {
@@ -76,7 +92,13 @@ export default function DarkPoolPage() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-foreground">暗池雷达</h1>
-            <p className="text-sm text-muted-foreground">机构资金流向与期权市场情绪分析</p>
+            <p className="text-sm text-muted-foreground">期权权利金流向与市场情绪（非 FINRA 暗池成交数据）</p>
+            {meta.scope_label_zh ? (
+              <p className="text-[11px] text-muted-foreground/80 mt-1">
+                数据范围：{meta.scope_label_zh}
+                {meta.symbol_count != null ? ` · 已同步 ${meta.symbol_count} 只标的` : ""}
+              </p>
+            ) : null}
           </div>
         </div>
         <button onClick={fetchData} disabled={loading} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-glass border border-glass-border text-sm text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all disabled:opacity-50">
@@ -93,6 +115,7 @@ export default function DarkPoolPage() {
           <div className="flex items-center gap-2 mb-5">
             <BarChart2 className="w-4 h-4 text-primary" />
             <h2 className="text-base font-semibold text-foreground">市场潮汐</h2>
+            <p className="text-[11px] text-muted-foreground">当日全量已同步标的聚合</p>
             <span className={clsx("ml-auto px-2 py-0.5 rounded text-[10px] font-bold uppercase", isBullishDirection(tide.tide_direction) ? "bg-green-500/20 text-green-400" : tide.tide_direction?.toLowerCase() === "neutral" ? "bg-zinc-500/20 text-zinc-400" : "bg-red-500/20 text-red-400")}>
               {isBullishDirection(tide.tide_direction) ? "偏多" : tide.tide_direction?.toLowerCase() === "neutral" ? "中性" : "偏空"}
             </span>
@@ -133,7 +156,10 @@ export default function DarkPoolPage() {
         <div className="rounded-xl border border-glass-border bg-glass/40 overflow-hidden">
           <div className="px-4 py-3 border-b border-glass-border bg-glass/60">
             <h2 className="text-base font-semibold text-foreground">期权资金流向排行</h2>
-            <p className="text-[11px] text-muted">按净 Call 流向排序</p>
+            <p className="text-[11px] text-muted-foreground">
+              {meta.ranking_label_zh ?? "当日快照 · 按估算权利金总额排名"}
+              {meta.generated_at ? ` · 截至 ${new Date(meta.generated_at).toLocaleString("zh-CN")}` : ""}
+            </p>
           </div>
           {flow.length === 0 && !error && <div className="p-8 text-center text-muted-foreground text-sm">暂无数据</div>}
           {flow.length > 0 && (

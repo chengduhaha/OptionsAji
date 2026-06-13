@@ -10,6 +10,7 @@ export interface HotEvent {
   event_time: string;
   polymarket_probability: number;
   related_ticker?: string | null;
+  related_tickers?: string[];
   volume_24h?: number | null;
   liquidity?: number | null;
   slug?: string | null;
@@ -32,6 +33,30 @@ export interface XpozHotResponse {
   source: string;
   configured: boolean;
   items: XpozHotItem[];
+}
+
+export interface SocialPostItem {
+  source: string;
+  author?: string | null;
+  title?: string | null;
+  content?: string | null;
+  url?: string | null;
+  score?: number | null;
+  comments_count?: number | null;
+  created_at: string;
+}
+
+export interface XpozTickerDetail {
+  symbol: string;
+  generated_at_utc: string;
+  configured: boolean;
+  mentions_24h: number;
+  mention_growth_pct: number;
+  sentiment_score: number;
+  direction: string;
+  twitter_mentions: number;
+  reddit_mentions: number;
+  posts: SocialPostItem[];
 }
 
 export interface StockOverviewCrossMarket {

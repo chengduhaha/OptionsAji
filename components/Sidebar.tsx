@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  AlertTriangle,
   BookOpen,
   Building2,
   ChevronDown,
@@ -11,11 +10,8 @@ import {
   Crosshair,
   Eye,
   Globe2,
-  LayoutDashboard,
   LineChart,
   Network,
-  RadioTower,
-  ScanLine,
   AtSign,
   Settings,
   Sparkles,
@@ -26,6 +22,8 @@ import {
   Shield,
   KeyRound,
   WalletCards,
+  TrendingUp,
+  LayoutDashboard,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { useMemo, useState } from "react";
@@ -43,10 +41,8 @@ const NAV_GROUPS = [
       { id: "aji_insights", label: "市场洞察", href: "/", icon: Zap },
       { id: "ticker_insights", label: "标的深析", href: "/ticker", icon: Crosshair },
       { id: "twitter_kol", label: "Twitter大牛", href: "/twitter-kol", icon: AtSign, badge: "NEW" },
-      { id: "dash", label: "市场总览", href: "/market", icon: LayoutDashboard },
-      { id: "scanner", label: "期权数据筛选器", href: "/scanner", icon: ScanLine },
+      { id: "unusual_options", label: "异常期权活动", href: "/options/unusual", icon: TrendingUp },
       { id: "stock", label: "个股深度", href: "/stock/SPY", icon: LineChart },
-      { id: "feed", label: "统一信息流", href: "/feed", icon: RadioTower },
       { id: "ai", label: "AI 分析师", href: "/ai", icon: Sparkles, badge: "AI" },
       { id: "learn", label: "期权学院", href: "/learn", icon: BookOpen },
       { id: "macro", label: "宏观经济", href: "/macro", icon: Activity },
@@ -57,7 +53,6 @@ const NAV_GROUPS = [
   {
     label: "另类数据",
     items: [
-      { id: "divergence", label: "散户背离扫描", href: "/scanner/divergence", icon: AlertTriangle, badge: "NEW" },
       { id: "darkpool", label: "暗池雷达", href: "/dark-pool", icon: Eye },
       { id: "congress", label: "国会山追踪", href: "/congress", icon: Building2, badge: "HOT" },
     ],
@@ -65,7 +60,7 @@ const NAV_GROUPS = [
   {
     label: "跨市场",
     items: [
-      { id: "cross_market", label: "预测市场", href: "/cross-market", icon: Globe2 },
+      { id: "cross_market", label: "Polymarket 热点", href: "/cross-market", icon: Globe2 },
       { id: "cross_xpoz", label: "社交热度", href: "/cross-market/xpoz", icon: AtSign },
     ],
   },
@@ -84,13 +79,11 @@ function NavItem({
       ? pathname === "/"
       : item.id === "twitter_kol"
         ? pathname === "/twitter-kol" || pathname.startsWith("/twitter-kol/")
-        : item.id === "dash"
-        ? pathname === "/market" || pathname.startsWith("/market/")
+        : item.id === "unusual_options"
+        ? pathname === "/options/unusual" || pathname.startsWith("/options/unusual/")
         : item.id === "stock"
         ? pathname.startsWith("/stock")
-        : item.id === "scanner"
-          ? pathname === "/scanner"
-          : item.id === "cross_market"
+        : item.id === "cross_market"
             ? pathname === "/cross-market" || (pathname.startsWith("/cross-market/") && !pathname.startsWith("/cross-market/xpoz"))
             : item.id === "cross_xpoz"
               ? pathname.startsWith("/cross-market/xpoz")

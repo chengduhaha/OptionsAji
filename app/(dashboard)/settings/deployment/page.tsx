@@ -27,16 +27,16 @@ async function checkEndpoint(path: string): Promise<{ ok: boolean; detail: strin
 export default function DeploymentHealthPage() {
   const [checks, setChecks] = useState<CheckResult[]>([
     { name: "后端集成状态", state: "pending", detail: "检查中..." },
-    { name: "市场总览接口", state: "pending", detail: "检查中..." },
-    { name: "统一信息流接口", state: "pending", detail: "检查中..." },
+    { name: "异常期权接口", state: "pending", detail: "检查中..." },
+    { name: "信息流 API（内部）", state: "pending", detail: "检查中..." },
   ]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [integration, overview, feed] = await Promise.all([
+      const [integration, unusual, feed] = await Promise.all([
         checkEndpoint("/api/integration/status"),
-        checkEndpoint("/api/market/overview"),
+        checkEndpoint("/api/options/unusual?vol_oi_min=3&volume_min=200"),
         checkEndpoint("/api/feed/unified?limit=1"),
       ]);
       if (cancelled) return;
@@ -47,12 +47,12 @@ export default function DeploymentHealthPage() {
           detail: integration.detail,
         },
         {
-          name: "市场总览接口",
-          state: overview.ok ? "ok" : "error",
-          detail: overview.detail,
+          name: "异常期权接口",
+          state: unusual.ok ? "ok" : "error",
+          detail: unusual.detail,
         },
         {
-          name: "统一信息流接口",
+          name: "信息流 API（内部）",
           state: feed.ok ? "ok" : "error",
           detail: feed.detail,
         },

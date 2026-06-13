@@ -4,17 +4,14 @@ export const KNOWN_NAV_IDS = [
   "aji_insights",
   "ticker_insights",
   "twitter_kol",
-  "dash",
-  "scanner",
+  "unusual_options",
   "stock",
-  "feed",
   "ai",
   "learn",
   "macro",
   "supply_graph",
   "settings",
   "profile",
-  "divergence",
   "darkpool",
   "congress",
   "cross_market",
@@ -26,7 +23,7 @@ export type NavMenuId = (typeof KNOWN_NAV_IDS)[number];
 export const NAV_GROUP_LABELS: Record<string, { label: string; childIds: NavMenuId[] }> = {
   alt_data: {
     label: "另类数据",
-    childIds: ["divergence", "darkpool", "congress"],
+    childIds: ["darkpool", "congress"],
   },
   cross_market_group: {
     label: "跨市场",
@@ -38,20 +35,17 @@ export const NAV_ITEM_LABELS: Record<NavMenuId, string> = {
   aji_insights: "市场洞察",
   ticker_insights: "标的深析",
   twitter_kol: "Twitter美股大牛追踪",
-  dash: "市场总览",
-  scanner: "期权数据筛选器",
+  unusual_options: "异常期权活动",
   stock: "个股深度",
-  feed: "统一信息流",
   ai: "AI 分析师",
   learn: "期权学院",
   macro: "宏观经济",
   supply_graph: "产业星图",
   settings: "设置",
   profile: "个人中心",
-  divergence: "散户背离扫描",
   darkpool: "暗池雷达",
   congress: "国会山追踪",
-  cross_market: "预测市场",
+  cross_market: "Polymarket 热点",
   cross_xpoz: "社交热度",
 };
 
@@ -82,11 +76,9 @@ export function pathnameToMenuId(
   if (p === "/" || p === "/mvp") return "aji_insights";
   if (p === "/ticker" || p.startsWith("/ticker/")) return "ticker_insights";
   if (p === "/twitter-kol" || p.startsWith("/twitter-kol/")) return "twitter_kol";
-  if (p === "/market" || p.startsWith("/market/")) return "dash";
-  if (p === "/scanner/divergence" || p.startsWith("/scanner/divergence/")) return "divergence";
-  if (p === "/scanner") return "scanner";
+  if (p === "/market" || p.startsWith("/market/")) return "unusual_options";
+  if (p === "/options/unusual" || p.startsWith("/options/unusual/")) return "unusual_options";
   if (p.startsWith("/stock")) return "stock";
-  if (p === "/feed" || p.startsWith("/feed/")) return "feed";
   if (p === "/ai" || p.startsWith("/ai/")) return "ai";
   if (p === "/learn" || p.startsWith("/learn/")) return "learn";
   if (p === "/macro" || p.startsWith("/macro/")) return "macro";

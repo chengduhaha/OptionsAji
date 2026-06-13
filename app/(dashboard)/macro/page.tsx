@@ -137,16 +137,27 @@ function buildTreasuryFallback(row: Record<string, unknown> | undefined): string
   return "2Y/10Y 未明显倒挂，利率曲线压力相对温和；盘中更应结合 VIX、美元和指数动量确认。";
 }
 
-function localCalendarRead(events: any[]): string {
+function weekStartMonday(value: string): string {
+  const d = new Date(`${value}T00:00:00Z`);
+  const day = d.getUTCDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setUTCDate(d.getUTCDate() + diff);
+  return d.toISOString().slice(0, 10);
+}
+
+function localCalendarRead(events: any[], fromDate: string, toDate: string): string {
+  if (events.length === 0) {
+    return `${fromDate} 至 ${toDate} 暂无美国经济日历事件；交易重心更可能回到个股、财报与期权结构。`;
+  }
   const highCount = events.filter((ev) => ev.impact === "High").length;
   const mediumCount = events.filter((ev) => ev.impact === "Medium").length;
   if (highCount > 0) {
-    return `当天有 ${highCount} 个高影响宏观事件，数据公布前不宜重仓追方向，先等 10Y、美元和指数期货确认。`;
+    return `本周（${fromDate} ~ ${toDate}）有 ${highCount} 个高影响宏观事件，数据公布前不宜重仓追方向，先等 10Y、美元和指数期货确认。`;
   }
   if (mediumCount > 0) {
-    return `当天有 ${mediumCount} 个中影响事件，宏观风险不低，但通常需要结合盘中量价反应验证。`;
+    return `本周有 ${mediumCount} 个中影响事件，宏观风险不低，需结合盘中量价反应验证。`;
   }
-  return "当天宏观日历冲击较低，交易重心更可能回到个股新闻、财报、资金流和期权结构。";
+  return `本周宏观日历冲击较低（${events.length} 个事件），交易重心更可能回到个股新闻、财报、资金流和期权结构。`;
 }
 
 export default function MacroPage() {
@@ -157,18 +168,18 @@ export default function MacroPage() {
   const [calendarInsights, setCalendarInsights] = useState<MacroCalendarInsightsContract | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-
-  const rangeEnd = useMemo(() => shiftDate(selectedDate, 1), [selectedDate]);
+  const weekStart = useMemo(() => weekStartMonday(selectedDate), [selectedDate]);
+  const rangeEnd = useMemo(() => shiftDate(weekStart, 7), [weekStart]);
 
   useEffect(() => {
     let cancelled = false;
     setLoadError(null);
     setLoading(true);
     Promise.allSettled([
-      api.macro.calendar(selectedDate, rangeEnd, "US"),
+      api.macro.calendar(weekStart, rangeEnd, "US"),
       api.macro.treasury(30),
       api.market.mvpMarketInsights(),
-      api.market.mvpMacroCalendarInsights(selectedDate, rangeEnd, "US"),
+      api.market.mvpMacroCalendarInsights(weekStart, rangeEnd, "US"),
     ])
       .then(([calRes, treasRes, marketRes, calInsightRes]) => {
         if (cancelled) return;
@@ -209,17 +220,17 @@ export default function MacroPage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedDate, rangeEnd]);
+  }, [weekStart, rangeEnd]);
 
   const latestRate = treasury[0] as Record<string, unknown> | undefined;
   const yieldCurve = latestRate ? treasuryRowToCurve(latestRate) : [];
   const hasTreasuryPoints = yieldCurve.some((p) => p.rate != null);
   const treasuryRead = marketInsights?.treasury?.summary || buildTreasuryFallback(latestRate);
-  const calendarRead = calendarInsights?.market_read_zh || localCalendarRead(calendar);
+  const calendarRead = calendarInsights?.market_read_zh || localCalendarRead(calendar, weekStart, rangeEnd);
   const insightEvents = calendarInsights?.events ?? [];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="h-full overflow-y-auto p-6 space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <Globe className="w-5 h-5 text-gold" />
@@ -231,11 +242,11 @@ export default function MacroPage() {
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={() => setSelectedDate((d) => shiftDate(d, -1))}
+            onClick={() => setSelectedDate((d) => shiftDate(weekStartMonday(d), -7))}
             className="inline-flex h-9 items-center gap-1 rounded-lg border border-border2 px-3 text-xs text-muted transition hover:border-gold/40 hover:text-gold"
           >
             <ChevronLeft className="h-4 w-4" />
-            前一天
+            上一周
           </button>
           <label className="inline-flex h-9 items-center gap-2 rounded-lg border border-border2 bg-panel2 px-3 text-xs text-muted">
             <CalendarDays className="h-4 w-4 text-gold" />
@@ -251,14 +262,14 @@ export default function MacroPage() {
             onClick={() => setSelectedDate(beijingDateString())}
             className="h-9 rounded-lg border border-border2 px-3 text-xs text-muted transition hover:border-gold/40 hover:text-gold"
           >
-            今天
+            本周
           </button>
           <button
             type="button"
-            onClick={() => setSelectedDate((d) => shiftDate(d, 1))}
+            onClick={() => setSelectedDate((d) => shiftDate(weekStartMonday(d), 7))}
             className="inline-flex h-9 items-center gap-1 rounded-lg border border-border2 px-3 text-xs text-muted transition hover:border-gold/40 hover:text-gold"
           >
-            后一天
+            下一周
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
@@ -334,7 +345,7 @@ export default function MacroPage() {
             <div>
               <h2 className="text-sm font-semibold text-text">经济日历解读</h2>
               <p className="mt-1 text-xs text-muted">
-                {selectedDate} 北京时间交易日前后事件 · 支持切换日期和查看历史
+                {weekStart} ~ {shiftDate(rangeEnd, -1)} 本周美国经济事件
               </p>
             </div>
             <span className="rounded-full border border-border2 px-2.5 py-1 text-[11px] text-muted">
@@ -364,7 +375,7 @@ export default function MacroPage() {
         {loading ? (
           <div className="p-8 text-center text-muted text-sm">加载中...</div>
         ) : calendar.length === 0 && insightEvents.length === 0 ? (
-          <div className="p-8 text-center text-muted text-sm">当天暂无美国经济日历数据</div>
+          <div className="p-8 text-center text-muted text-sm">本周暂无美国经济日历数据</div>
         ) : (
           <div className="divide-y divide-border2">
             {(insightEvents.length ? insightEvents : calendar).slice(0, 80).map((ev: any, i: number) => {
