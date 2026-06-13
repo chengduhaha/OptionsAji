@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import type { HotEvent } from "@/lib/crossMarket";
-import { getServerOrigin } from "@/lib/serverOrigin";
+import { fetchServerJson } from "@/lib/serverDataFetch";
 
 function formatVolume(v: number | null | undefined): string {
   if (v == null || v <= 0) return "—";
@@ -11,9 +11,11 @@ function formatVolume(v: number | null | undefined): string {
 }
 
 export default async function CrossMarketPolymarketPage() {
-  const origin = await getServerOrigin();
-  const res = await fetch(`${origin}/api/cross-market/polymarket/hot?limit=20`, { cache: "no-store" });
-  const data = (res.ok ? await res.json() : { events: [] }) as { events: HotEvent[] };
+  const data = await fetchServerJson<{ events: HotEvent[] }>(
+    "/api/cross-market/polymarket/hot?limit=20",
+    "/api/cross-market/polymarket/hot?limit=20",
+    { events: [] },
+  );
   const events = data.events ?? [];
   const withTicker = events.filter((e) => e.related_ticker).length;
   const totalVolume = events.reduce((sum, e) => sum + (e.volume_24h ?? 0), 0);

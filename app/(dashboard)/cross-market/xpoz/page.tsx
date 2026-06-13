@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import type { XpozHotItem } from "@/lib/crossMarket";
-import { getServerOrigin } from "@/lib/serverOrigin";
+import { fetchServerJson } from "@/lib/serverDataFetch";
 
 const DIR_ZH: Record<string, string> = {
   bullish: "偏多",
@@ -16,13 +16,15 @@ function formatMentions(n: number): string {
 }
 
 export default async function CrossMarketXpozPage() {
-  const origin = await getServerOrigin();
-  const res = await fetch(`${origin}/api/cross-market/xpoz/hot?limit=15`, { cache: "no-store" });
-  const data = (res.ok ? await res.json() : { items: [], configured: false }) as {
+  const data = await fetchServerJson<{
     items: XpozHotItem[];
     configured: boolean;
     generated_at_utc?: string;
-  };
+  }>(
+    "/api/cross-market/xpoz/hot?limit=15",
+    "/api/cross-market/xpoz/hot?limit=15",
+    { items: [], configured: false },
+  );
   const items = data.items ?? [];
   const totalMentions = items.reduce((sum, row) => sum + row.mentions_24h, 0);
   const bullish = items.filter((row) => row.direction === "bullish").length;
