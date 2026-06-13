@@ -5,7 +5,7 @@ import { BarChart2, Eye, RefreshCw, TrendingDown, TrendingUp } from "lucide-reac
 import { clsx } from "clsx";
 
 interface MarketTide {
-  trade_date: string;
+  date?: string;
   call_premium_total: number;
   put_premium_total: number;
   net_call_flow: number;
@@ -19,16 +19,23 @@ interface FlowItem {
   symbol: string;
   call_premium: number;
   put_premium: number;
-  net_flow: number;
+  net_flow_usd: number;
   call_volume: number;
   put_volume: number;
+  direction?: string;
+  total_premium_usd?: number;
 }
 
-function fmt(v: number) {
+function fmt(v: number | null | undefined) {
+  if (v == null || Number.isNaN(v)) return "—";
   const abs = Math.abs(v);
   if (abs >= 1e9) return `${(v / 1e9).toFixed(2)}B`;
   if (abs >= 1e6) return `${(v / 1e6).toFixed(1)}M`;
   return `${v.toFixed(0)}`;
+}
+
+function isBullishDirection(direction: string | undefined): boolean {
+  return direction?.toLowerCase() === "bullish";
 }
 
 export default function DarkPoolPage() {
@@ -50,7 +57,9 @@ export default function DarkPoolPage() {
       if (!tideRes.ok || !flowRes.ok) throw new Error("加载失败");
       const [tideData, flowData] = await Promise.all([tideRes.json(), flowRes.json()]);
       setTide(tideData.today ?? null);
-      setFlow(flowData.items ?? flowData ?? []);
+      const items: FlowItem[] = flowData.items ?? [];
+      items.sort((a, b) => Math.abs(b.net_flow_usd) - Math.abs(a.net_flow_usd));
+      setFlow(items);
     } catch (e) {
       setError(e instanceof Error ? e.message : "加载失败");
     } finally {
@@ -59,7 +68,7 @@ export default function DarkPoolPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="h-full overflow-y-auto p-6 space-y-6">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
@@ -84,8 +93,8 @@ export default function DarkPoolPage() {
           <div className="flex items-center gap-2 mb-5">
             <BarChart2 className="w-4 h-4 text-primary" />
             <h2 className="text-base font-semibold text-foreground">市场潮汐</h2>
-            <span className={clsx("ml-auto px-2 py-0.5 rounded text-[10px] font-bold uppercase", tide.tide_direction === "BULLISH" ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400")}>
-              {tide.tide_direction === "BULLISH" ? "偏多" : "偏空"}
+            <span className={clsx("ml-auto px-2 py-0.5 rounded text-[10px] font-bold uppercase", isBullishDirection(tide.tide_direction) ? "bg-green-500/20 text-green-400" : tide.tide_direction?.toLowerCase() === "neutral" ? "bg-zinc-500/20 text-zinc-400" : "bg-red-500/20 text-red-400")}>
+              {isBullishDirection(tide.tide_direction) ? "偏多" : tide.tide_direction?.toLowerCase() === "neutral" ? "中性" : "偏空"}
             </span>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -143,9 +152,9 @@ export default function DarkPoolPage() {
                     <td className="px-4 py-3 text-right text-green-400">{fmt(item.call_premium)}</td>
                     <td className="px-4 py-3 text-right text-red-400">{fmt(item.put_premium)}</td>
                     <td className="px-4 py-3 text-right">
-                      <span className={clsx("flex items-center justify-end gap-1 font-medium", item.net_flow >= 0 ? "text-green-400" : "text-red-400")}>
-                        {item.net_flow >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                        {item.net_flow >= 0 ? "+" : ""}{fmt(item.net_flow)}
+                      <span className={clsx("flex items-center justify-end gap-1 font-medium", item.net_flow_usd >= 0 ? "text-green-400" : "text-red-400")}>
+                        {item.net_flow_usd >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                        {item.net_flow_usd >= 0 ? "+" : ""}{fmt(item.net_flow_usd)}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right text-muted-foreground">{item.call_volume?.toLocaleString()}</td>
