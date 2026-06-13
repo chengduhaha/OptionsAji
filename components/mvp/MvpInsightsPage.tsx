@@ -6,7 +6,6 @@ import {
   AlertTriangle,
   BarChart3,
   CalendarClock,
-  CheckCircle2,
   ChevronDown,
   ChevronUp,
   Clock3,
@@ -20,7 +19,6 @@ import {
   RefreshCw,
   Search,
   Sparkles,
-  Target,
   TrendingDown,
   TrendingUp,
   WalletCards,
@@ -1484,64 +1482,6 @@ function mergeGexHistory(payload: JsonRecord | null, profile: JsonRecord | null)
     .slice(-90);
 }
 
-function buildTradePlan(args: {
-  brief?: string;
-  marketCode: MvpMarketRegimeCode;
-  events: EventItem[];
-  vix: number | null;
-  vixChange: number | null;
-  locale: Locale;
-}): string[] {
-  const plan: string[] = [];
-  if (args.brief?.trim()) {
-    plan.push(args.brief.trim());
-  }
-  const topEvent = args.events[0];
-  if (topEvent) {
-    plan.push(
-      args.locale === "en"
-        ? `Lead with "${topEvent.title}" for scenario planning; wait for post-open volume on related names.`
-        : `盘前主线先围绕「${topEvent.title}」做情景推演，相关标的只等开盘后量价确认。`,
-    );
-  }
-  if (args.locale === "en") {
-    if (args.marketCode === "risk_off") {
-      plan.push("Risk-Off tape — review exposure and hedges before directional bets.");
-    } else if (args.marketCode === "elevated_vol") {
-      plan.push("High-vol regime — options premium and gamma sensitivity high; size down.");
-    } else if (args.marketCode === "risk_on") {
-      plan.push("Risk-On tone — watch sector leadership and term structure; regime ≠ guaranteed rally.");
-    } else if (args.marketCode === "range_bound") {
-      plan.push("Range-bound — narrow the watch list; wait for index and VIX to break together.");
-    } else {
-      plan.push("Transitional — mixed signals; wait 15–30 min after the open to confirm SPY/QQQ volume.");
-    }
-    if ((args.vixChange ?? 0) > 3 || (args.vix ?? 0) >= 20) {
-      plan.push("Rising VIX — favor spreads or smaller size over naked long options.");
-    } else {
-      plan.push("Vol contained — stocks: key levels; options: DTE, volume, OI, and bid-ask.");
-    }
-  } else {
-    if (args.marketCode === "risk_off") {
-      plan.push("盘面处于避险环境（Risk-Off），宜先梳理敞口与对冲需求，再讨论方向假设。");
-    } else if (args.marketCode === "elevated_vol") {
-      plan.push("高波动环境下，期权溢价与 Gamma 敏感度高，优先控制权利金与仓位规模。");
-    } else if (args.marketCode === "risk_on") {
-      plan.push("风险偏好偏积极（Risk-On），可观察板块强弱与期限结构，避免将环境标签等同于上涨结论。");
-    } else if (args.marketCode === "range_bound") {
-      plan.push("中性震荡格局，缩小观察名单，等待指数与波动率给出同向突破。");
-    } else {
-      plan.push("过渡观察阶段，指标存在分歧，开盘后等待 15–30 分钟再验证 SPY/QQQ 量价。");
-    }
-    if ((args.vixChange ?? 0) > 3 || (args.vix ?? 0) >= 20) {
-      plan.push("VIX 抬升时减少裸买期权，优先用价差或更小仓位控制权利金损耗。");
-    } else {
-      plan.push("波动率未明显失控时，正股看关键区间，期权看 DTE、成交量、OI 和买卖价差。");
-    }
-  }
-  return plan.slice(0, 5);
-}
-
 function inferStockDirection(report: Pick<StockReport, "overview" | "smart">): Direction {
   const change = num(report.overview.data?.bar?.changePct);
   const smart = report.smart.data;
@@ -2019,11 +1959,20 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
   const currentMarketRegime = warRoom.marketInsights.data?.regime ?? null;
 
   const runStockReport = useCallback(async (nextSymbol?: string) => {
+    // #region agent log
+    fetch('http://localhost:7624/ingest/0cf5a954-e39e-48b9-9faf-5dd802e29c1d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'4f1d15'},body:JSON.stringify({sessionId:'4f1d15',location:'MvpInsightsPage.tsx:runStockReport:entry',message:'runStockReport called',data:{tier,section,nextSymbol:nextSymbol??null,symbol,ready},timestamp:Date.now(),hypothesisId:'A,D'})}).catch(()=>{});
+    // #endregion
     if (tier === "guest") {
+      // #region agent log
+      fetch('http://localhost:7624/ingest/0cf5a954-e39e-48b9-9faf-5dd802e29c1d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'4f1d15'},body:JSON.stringify({sessionId:'4f1d15',location:'MvpInsightsPage.tsx:runStockReport:guest-block',message:'blocked guest tier',data:{},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
       openUnlock("login", "登录后生成标的深度分析");
       return;
     }
     if (tier !== "pro") {
+      // #region agent log
+      fetch('http://localhost:7624/ingest/0cf5a954-e39e-48b9-9faf-5dd802e29c1d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'4f1d15'},body:JSON.stringify({sessionId:'4f1d15',location:'MvpInsightsPage.tsx:runStockReport:trial-block',message:'blocked non-pro tier',data:{tier},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
       openUnlock("access_key", "Pro 会员可生成完整标的深度分析");
       return;
     }
@@ -2060,6 +2009,9 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
     const inferredDirection = inferStockDirection({ overview, smart });
     setDirection(inferredDirection);
     const candidates = normalizeOptionCandidates(chainData, inferredDirection);
+    // #region agent log
+    fetch('http://localhost:7624/ingest/0cf5a954-e39e-48b9-9faf-5dd802e29c1d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'4f1d15'},body:JSON.stringify({sessionId:'4f1d15',location:'MvpInsightsPage.tsx:runStockReport:after-fetch',message:'parallel fetch settled',data:{sym,inferredDirection,candidateCount:candidates.length,apiErrors:{quote:quote.error,overview:overview.error,chain:chain.error,gex:gex.error,gexErrorField:(gex.data as JsonRecord|null)?.error??null,unusual:unusual.error,smart:smart.error,priceTarget:priceTarget.error},chainCount:asArray(chainData?.contracts).length,hasOverview:!!overviewData,spot:reportSpot},timestamp:Date.now(),hypothesisId:'B,C,E'})}).catch(()=>{});
+    // #endregion
     const strictUnusual = asArray(unusual.data?.items).map(asRecord).slice(0, 5);
     const hotOpts = normalizeOptionActivity(chainData).slice(0, 5);
     const unusualForInsight = strictUnusual.length > 0 ? strictUnusual : hotOpts;
@@ -2078,6 +2030,9 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
       }, token),
     );
     const nextReport = { quote, overview, priceTarget, smart, chain, gex, gexHistory, unusual, optionsInsights };
+    // #region agent log
+    fetch('http://localhost:7624/ingest/0cf5a954-e39e-48b9-9faf-5dd802e29c1d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'4f1d15'},body:JSON.stringify({sessionId:'4f1d15',location:'MvpInsightsPage.tsx:runStockReport:complete',message:'report assembled',data:{sym,hasCombinedInsight:!!optionsInsights.data?.combined_insight,combinedInsightLen:(optionsInsights.data?.combined_insight??'').length,optionsInsightsError:optionsInsights.error,frameworkSummaryLen:(optionsInsights.data?.framework_summary??'').length,expectedMovesCount:(optionsInsights.data?.expected_moves??[]).length},timestamp:Date.now(),hypothesisId:'B,E'})}).catch(()=>{});
+    // #endregion
     cachedStockReports.set(reportCacheKey(sym, inferredDirection, regimeCode), {
       data: nextReport,
       cachedAt: Date.now(),
@@ -2233,23 +2188,6 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
     netGexValue !== null ? `${netGexValue >= 0 ? "+" : ""}${netGexValue.toFixed(2)}B` : "—";
   const netGexTone: "green" | "red" | "default" =
     netGexValue === null ? "default" : netGexValue >= 0 ? "green" : "red";
-  const mvpTradePlan = asArray(warRoom.mvp.data?.trade_plan)
-    .map((item) => String(item).trim())
-    .filter(Boolean)
-    .slice(0, 6);
-  const tradePlan = mvpTradePlan.length > 0
-    ? mvpTradePlan
-    : buildTradePlan({
-        brief: warRoom.brief.data?.brief,
-        marketCode: marketState.code,
-        events,
-        vix: overview?.volatility.vix ?? null,
-        vixChange: overview?.volatility.vixChangePct ?? null,
-        locale,
-      });
-  const watchPreview = tradePlan[0] ?? null;
-  const watchRemainder = tradePlan.slice(1);
-
   return (
     <RootTag className={rootClassName}>
       <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-5 px-4 py-4 md:px-6 lg:px-8">
@@ -2641,38 +2579,6 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
                   ))
                 )}
               </div>
-            </div>
-
-            {/* Layer 5 · Watch list */}
-            <div className="mt-6 border-t border-border2 pt-5">
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                <Target className="h-4 w-4 text-green" />
-                {t("mvp.watchListTitle")}
-              </div>
-              <p className="mt-1 text-xs text-muted">{t("mvp.watchListHint")}</p>
-              {watchPreview ? (
-                <div className="mt-4 flex items-start gap-2 rounded-lg border border-green/20 bg-green/5 px-3 py-2.5 text-sm leading-6 text-muted-foreground">
-                  <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-green" />
-                  <span>{watchPreview}</span>
-                </div>
-              ) : null}
-              {watchRemainder.length > 0 ? (
-                <LockedContent
-                  required="pro"
-                  currentTier={tier}
-                  title={t("mvp.proWatchList")}
-                  onUnlock={(reason) => openUnlock(reason, t("mvp.proWatchListUnlock"))}
-                >
-                  <div className="mt-3 space-y-3">
-                    {watchRemainder.map((item) => (
-                      <div key={item} className="flex items-start gap-2 text-sm leading-6 text-muted-foreground">
-                        <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-green" />
-                        <span>{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </LockedContent>
-              ) : null}
             </div>
 
             {allWarErrors.length > 0 ? (
