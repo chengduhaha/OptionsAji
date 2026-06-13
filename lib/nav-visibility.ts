@@ -18,8 +18,7 @@ export const KNOWN_NAV_IDS = [
   "darkpool",
   "congress",
   "cross_market",
-  "cross_scanner",
-  "cross_feed",
+  "cross_xpoz",
 ] as const;
 
 export type NavMenuId = (typeof KNOWN_NAV_IDS)[number];
@@ -31,7 +30,7 @@ export const NAV_GROUP_LABELS: Record<string, { label: string; childIds: NavMenu
   },
   cross_market_group: {
     label: "跨市场",
-    childIds: ["cross_market", "cross_scanner", "cross_feed"],
+    childIds: ["cross_market", "cross_xpoz"],
   },
 };
 
@@ -52,9 +51,8 @@ export const NAV_ITEM_LABELS: Record<NavMenuId, string> = {
   divergence: "散户背离扫描",
   darkpool: "暗池雷达",
   congress: "国会山追踪",
-  cross_market: "跨市场总览",
-  cross_scanner: "PM 市场列表",
-  cross_feed: "跨市场信息流",
+  cross_market: "预测市场",
+  cross_xpoz: "社交热度",
 };
 
 export function defaultNavVisibility(): Record<string, boolean> {
@@ -97,10 +95,10 @@ export function pathnameToMenuId(
   if (p === "/profile" || p.startsWith("/profile/")) return "profile";
   if (p === "/dark-pool" || p.startsWith("/dark-pool/")) return "darkpool";
   if (p === "/congress" || p.startsWith("/congress/")) return "congress";
-  if (p === "/cross-market/scanner" || p.startsWith("/cross-market/scanner/")) return "cross_scanner";
-  if (p === "/cross-market/feed" || p.startsWith("/cross-market/feed/")) return "cross_feed";
-  if (p === "/cross-market" || (p.startsWith("/cross-market/") && !p.includes("/scanner") && !p.includes("/feed")))
-    return "cross_market";
+  if (p === "/cross-market/xpoz" || p.startsWith("/cross-market/xpoz/")) return "cross_xpoz";
+  if (p === "/cross-market/scanner" || p.startsWith("/cross-market/scanner/")) return "cross_market";
+  if (p === "/cross-market/feed" || p.startsWith("/cross-market/feed/")) return "cross_xpoz";
+  if (p === "/cross-market" || p.startsWith("/cross-market/")) return "cross_market";
   if (p.startsWith("/admin/users")) return "admin_users";
   if (p.startsWith("/admin/menu")) return "admin_menu";
   if (p.startsWith("/admin/access-keys")) return "admin_access_keys";

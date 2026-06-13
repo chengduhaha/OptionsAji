@@ -8,14 +8,11 @@ BASE="${BASE%/}"
 
 echo "Backend: $BASE"
 
-code_hot=$(curl -sS -o /tmp/cm_hot.json -w "%{http_code}" "$BASE/api/cross-market/events/hot")
-echo "GET /api/cross-market/events/hot -> $code_hot"
+code_hot=$(curl -sS -o /tmp/cm_hot.json -w "%{http_code}" "$BASE/api/cross-market/polymarket/hot?limit=10")
+echo "GET /api/cross-market/polymarket/hot -> $code_hot"
 
-code_feed=$(curl -sS -o /tmp/cm_feed.json -w "%{http_code}" "$BASE/api/cross-market/feed")
-echo "GET /api/cross-market/feed -> $code_feed"
-
-code_scan=$(curl -sS -o /tmp/cm_scan.json -w "%{http_code}" "$BASE/api/cross-market/scanner/arbitrage")
-echo "GET /api/cross-market/scanner/arbitrage -> $code_scan"
+code_xpoz=$(curl -sS -o /tmp/cm_xpoz.json -w "%{http_code}" "$BASE/api/cross-market/xpoz/hot?limit=10")
+echo "GET /api/cross-market/xpoz/hot -> $code_xpoz"
 
 code_ibkr=$(curl -sS -o /tmp/cm_ibkr.json -w "%{http_code}" "$BASE/api/ibkr/health")
 echo "GET /api/ibkr/health -> $code_ibkr"
@@ -23,4 +20,4 @@ if [[ "$code_ibkr" == "200" ]]; then
   python3 -c "import json;d=json.load(open('/tmp/cm_ibkr.json'));print('  ibkr_enabled=%s connected=%s'%(d.get('ibkr_enabled'),d.get('connected')))" 2>/dev/null || true
 fi
 
-# Soft expectations: hot/feed/scanner should 200 when Polymarket reachable; feed may 200 with partial items; IBKR 200 with connected false when disabled.
+# Soft expectations: Polymarket and Xpoz endpoints should return 200; Xpoz may return configured=false when no API key is set.

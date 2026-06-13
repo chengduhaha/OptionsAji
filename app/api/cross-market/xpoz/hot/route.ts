@@ -5,7 +5,6 @@ import { proxyToBackend } from "@/lib/proxyBackend";
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
-  const qs = req.nextUrl.searchParams.toString();
-  const suffix = qs.length > 0 ? `?${qs}` : "";
-  return proxyToBackend(req, `/api/cross-market/scanner/arbitrage${suffix}`);
+  const suffix = req.nextUrl.search ? req.nextUrl.search : "";
+  return proxyToBackend(req, `/api/cross-market/xpoz/hot${suffix}`);
 }

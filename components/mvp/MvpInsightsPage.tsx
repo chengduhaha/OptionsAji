@@ -1959,20 +1959,11 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
   const currentMarketRegime = warRoom.marketInsights.data?.regime ?? null;
 
   const runStockReport = useCallback(async (nextSymbol?: string) => {
-    // #region agent log
-    fetch('http://localhost:7624/ingest/0cf5a954-e39e-48b9-9faf-5dd802e29c1d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'4f1d15'},body:JSON.stringify({sessionId:'4f1d15',location:'MvpInsightsPage.tsx:runStockReport:entry',message:'runStockReport called',data:{tier,section,nextSymbol:nextSymbol??null,symbol,ready},timestamp:Date.now(),hypothesisId:'A,D'})}).catch(()=>{});
-    // #endregion
     if (tier === "guest") {
-      // #region agent log
-      fetch('http://localhost:7624/ingest/0cf5a954-e39e-48b9-9faf-5dd802e29c1d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'4f1d15'},body:JSON.stringify({sessionId:'4f1d15',location:'MvpInsightsPage.tsx:runStockReport:guest-block',message:'blocked guest tier',data:{},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
       openUnlock("login", "登录后生成标的深度分析");
       return;
     }
     if (tier !== "pro") {
-      // #region agent log
-      fetch('http://localhost:7624/ingest/0cf5a954-e39e-48b9-9faf-5dd802e29c1d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'4f1d15'},body:JSON.stringify({sessionId:'4f1d15',location:'MvpInsightsPage.tsx:runStockReport:trial-block',message:'blocked non-pro tier',data:{tier},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
       openUnlock("access_key", "Pro 会员可生成完整标的深度分析");
       return;
     }
@@ -2009,9 +2000,6 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
     const inferredDirection = inferStockDirection({ overview, smart });
     setDirection(inferredDirection);
     const candidates = normalizeOptionCandidates(chainData, inferredDirection);
-    // #region agent log
-    fetch('http://localhost:7624/ingest/0cf5a954-e39e-48b9-9faf-5dd802e29c1d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'4f1d15'},body:JSON.stringify({sessionId:'4f1d15',location:'MvpInsightsPage.tsx:runStockReport:after-fetch',message:'parallel fetch settled',data:{sym,inferredDirection,candidateCount:candidates.length,apiErrors:{quote:quote.error,overview:overview.error,chain:chain.error,gex:gex.error,gexErrorField:(gex.data as JsonRecord|null)?.error??null,unusual:unusual.error,smart:smart.error,priceTarget:priceTarget.error},chainCount:asArray(chainData?.contracts).length,hasOverview:!!overviewData,spot:reportSpot},timestamp:Date.now(),hypothesisId:'B,C,E'})}).catch(()=>{});
-    // #endregion
     const strictUnusual = asArray(unusual.data?.items).map(asRecord).slice(0, 5);
     const hotOpts = normalizeOptionActivity(chainData).slice(0, 5);
     const unusualForInsight = strictUnusual.length > 0 ? strictUnusual : hotOpts;
@@ -2030,9 +2018,6 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
       }, token),
     );
     const nextReport = { quote, overview, priceTarget, smart, chain, gex, gexHistory, unusual, optionsInsights };
-    // #region agent log
-    fetch('http://localhost:7624/ingest/0cf5a954-e39e-48b9-9faf-5dd802e29c1d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'4f1d15'},body:JSON.stringify({sessionId:'4f1d15',location:'MvpInsightsPage.tsx:runStockReport:complete',message:'report assembled',data:{sym,hasCombinedInsight:!!optionsInsights.data?.combined_insight,combinedInsightLen:(optionsInsights.data?.combined_insight??'').length,optionsInsightsError:optionsInsights.error,frameworkSummaryLen:(optionsInsights.data?.framework_summary??'').length,expectedMovesCount:(optionsInsights.data?.expected_moves??[]).length},timestamp:Date.now(),hypothesisId:'B,E'})}).catch(()=>{});
-    // #endregion
     cachedStockReports.set(reportCacheKey(sym, inferredDirection, regimeCode), {
       data: nextReport,
       cachedAt: Date.now(),

@@ -14,17 +14,15 @@ import {
   LayoutDashboard,
   LineChart,
   Network,
-  Newspaper,
   RadioTower,
   ScanLine,
-  ScanSearch,
+  AtSign,
   Settings,
   Sparkles,
   Star,
   User,
   Zap,
   Activity,
-  AtSign,
   Shield,
   KeyRound,
   WalletCards,
@@ -67,9 +65,8 @@ const NAV_GROUPS = [
   {
     label: "跨市场",
     items: [
-      { id: "cross_market", label: "跨市场总览", href: "/cross-market", icon: Globe2 },
-      { id: "cross_scanner", label: "PM 市场列表", href: "/cross-market/scanner", icon: ScanSearch },
-      { id: "cross_feed", label: "跨市场信息流", href: "/cross-market/feed", icon: Newspaper },
+      { id: "cross_market", label: "预测市场", href: "/cross-market", icon: Globe2 },
+      { id: "cross_xpoz", label: "社交热度", href: "/cross-market/xpoz", icon: AtSign },
     ],
   },
 ];
@@ -94,11 +91,9 @@ function NavItem({
         : item.id === "scanner"
           ? pathname === "/scanner"
           : item.id === "cross_market"
-            ? pathname === "/cross-market"
-            : item.id === "cross_scanner"
-              ? pathname.startsWith("/cross-market/scanner")
-              : item.id === "cross_feed"
-                ? pathname.startsWith("/cross-market/feed")
+            ? pathname === "/cross-market" || (pathname.startsWith("/cross-market/") && !pathname.startsWith("/cross-market/xpoz"))
+            : item.id === "cross_xpoz"
+              ? pathname.startsWith("/cross-market/xpoz")
                 : item.id === "profile"
             ? pathname === "/profile" || pathname.startsWith("/profile/")
             : item.id === "admin_users"
