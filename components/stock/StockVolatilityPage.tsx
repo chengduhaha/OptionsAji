@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
   Line,
   LineChart,
@@ -9,26 +8,62 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useEffect, useState } from "react";
 
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY ?? "";
 
 export default function StockVolatilityPage({ symbol }: { symbol: string }) {
   const [data, setData] = useState<Record<string, unknown> | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let c = false;
+    setLoading(true);
+    setError(null);
     (async () => {
-      const res = await fetch(`/api/stock/${encodeURIComponent(symbol)}/volatility`, {
-        headers: { "X-API-Key": API_KEY },
-        cache: "no-store",
-      });
-      if (!res.ok || c) return;
-      setData((await res.json()) as Record<string, unknown>);
+      try {
+        const res = await fetch(`/api/stock/${encodeURIComponent(symbol)}/volatility`, {
+          headers: { "X-API-Key": API_KEY },
+          cache: "no-store",
+        });
+        if (c) return;
+        if (!res.ok) {
+          const t = await res.text();
+          setError(`${res.status}: ${t.slice(0, 120)}`);
+          setData(null);
+          return;
+        }
+        setData((await res.json()) as Record<string, unknown>);
+      } catch (e) {
+        if (!c) {
+          setError(e instanceof Error ? e.message : "加载失败");
+          setData(null);
+        }
+      } finally {
+        if (!c) setLoading(false);
+      }
     })();
     return () => {
       c = true;
     };
   }, [symbol]);
+
+  if (loading) {
+    return (
+      <div className="p-5 text-sm text-muted">波动率数据加载中…</div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="p-5">
+        <div className="rounded-lg border border-red/30 bg-red/5 px-3 py-2 text-xs text-red">
+          {error ?? "无法加载波动率数据"}
+        </div>
+      </div>
+    );
+  }
 
   const ivVsHv = (data?.ivVsHv as { points?: { date: string; hv20: number }[] }) ?? {
     points: [],

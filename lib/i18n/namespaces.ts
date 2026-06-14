@@ -434,6 +434,18 @@ export const extraZh: DictionaryTree = {
       copyright: "© 2026 OptionsAji · 免责声明：本平台仅提供数据分析与教育内容，不构成投资建议。交易有风险，请自行判断。",
     },
   },
+  polymarket: {
+    title: "Polymarket 热点",
+    subtitle: "与美股相关的 Polymarket 预测市场：宏观（Fed）、财报、单股主题等，按 24h 成交量排序。",
+    hotMarkets: "热门市场",
+    yesProb: "Yes 概率",
+    eventType: {
+      earnings: "财报",
+      macro_release: "宏观",
+      geopolitical: "地缘",
+      equity: "个股",
+    },
+  },
 };
 
 export const extraEn: DictionaryTree = {
@@ -869,6 +881,18 @@ export const extraEn: DictionaryTree = {
       refund: "Refund policy",
       contact: "Contact",
       copyright: "© 2026 OptionsAji · Disclaimer: education and analysis only—not investment advice. Trade at your own risk.",
+    },
+  },
+  polymarket: {
+    title: "Polymarket hot",
+    subtitle: "US-equity Polymarket markets: macro, earnings, single-name themes — sorted by 24h volume.",
+    hotMarkets: "Hot markets",
+    yesProb: "Yes prob.",
+    eventType: {
+      earnings: "Earnings",
+      macro_release: "Macro",
+      geopolitical: "Geopolitical",
+      equity: "Equity",
     },
   },
 };

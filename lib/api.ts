@@ -147,7 +147,10 @@ export const api = {
     actives: () => fetchJSON("/api/market/actives"),
     hours: () => fetchJSON("/api/market/hours"),
     indices: () => fetchJSON("/api/market/indices"),
-    overview: () => fetchJSON<MarketOverviewContract>("/api/market/overview"),
+    overview: (refresh = false) =>
+      fetchJSON<MarketOverviewContract>(
+        refresh ? "/api/market/overview?refresh=true" : "/api/market/overview",
+      ),
     aiSummary: () => fetchJSON("/api/market/ai-summary"),
     brief: (locale?: Locale) =>
       fetchJSON<AgentBriefContract>(`/api/agent/brief?${withLocale(new URLSearchParams(), locale)}`),
@@ -229,6 +232,28 @@ export const api = {
       if (volOiMin) params.set("vol_oi_min", String(volOiMin));
       if (volumeMin) params.set("volume_min", String(volumeMin));
       return fetchJSON(`/api/options/unusual?${params}`);
+    },
+    unusualV2: (opts?: {
+      minScore?: number;
+      page?: number;
+      pageSize?: number;
+      sortBy?: string;
+      order?: string;
+      volumeMin?: number;
+    }) => {
+      const params = new URLSearchParams();
+      if (opts?.minScore != null) params.set("min_score", String(opts.minScore));
+      if (opts?.page != null) params.set("page", String(opts.page));
+      if (opts?.pageSize != null) params.set("page_size", String(opts.pageSize));
+      if (opts?.sortBy) params.set("sort_by", opts.sortBy);
+      if (opts?.order) params.set("order", opts.order);
+      if (opts?.volumeMin != null) params.set("volume_min", String(opts.volumeMin));
+      return fetchJSON<{
+        items: Array<Record<string, unknown>>;
+        total: number;
+        page: number;
+        page_size: number;
+      }>(`/api/options/unusual-v2?${params}`);
     },
     atmHistory: (symbol: string, expiration: string, contractType = "call", daysBack = 60) =>
       fetchJSON(`/api/options/atm-history/${symbol}?expiration=${expiration}&contract_type=${contractType}&days_back=${daysBack}`),

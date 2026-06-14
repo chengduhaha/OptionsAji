@@ -5,6 +5,7 @@
 
 export interface HotEvent {
   event_id: string;
+  title_en: string;
   title_zh: string;
   event_type: string;
   event_time: string;
@@ -83,9 +84,14 @@ async function parseJson<T>(res: Response, path: string): Promise<T> {
 
 const noStore: RequestInit = { cache: "no-store" };
 
-export async function getHotEvents(): Promise<{ events: HotEvent[] }> {
-  const res = await fetch("/api/cross-market/events/hot", noStore);
-  return parseJson(res, "/api/cross-market/events/hot");
+export async function getHotEvents(limit = 30): Promise<{ events: HotEvent[] }> {
+  const res = await fetch(`/api/cross-market/polymarket/hot?limit=${limit}`, noStore);
+  return parseJson(res, "/api/cross-market/polymarket/hot");
+}
+
+export function hotEventTitle(event: HotEvent, locale: "zh" | "en"): string {
+  if (locale === "zh") return event.title_zh || event.title_en;
+  return event.title_en || event.title_zh;
 }
 
 export async function getXpozHot(limit = 15): Promise<XpozHotResponse> {

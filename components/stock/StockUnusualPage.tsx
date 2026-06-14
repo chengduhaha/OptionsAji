@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import TourOverlay from "@/components/ui/TourOverlay";
 
@@ -46,38 +47,58 @@ export default function StockUnusualPage({ symbol }: { symbol: string }) {
   const [sortBy, setSortBy] = useState<"score" | "estimated_flow" | "volume" | "strike">("score");
   const [order, setOrder] = useState<"desc" | "asc">("desc");
   const [page, setPage] = useState(1);
+  const [minScore, setMinScore] = useState(40);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let c = false;
+    setLoading(true);
+    setError(null);
     (async () => {
       const qs = new URLSearchParams({
         page: String(page),
         page_size: "40",
         sort_by: sortBy,
         order,
-        min_score: "60",
+        min_score: String(minScore),
       });
-      const res = await fetch(
-        `/api/stock/${encodeURIComponent(symbol)}/unusual-v2?${qs.toString()}`,
-        { headers: { "X-API-Key": API_KEY }, cache: "no-store" },
-      );
-      if (!res.ok || c) return;
-      const j = (await res.json()) as PagePayload;
-      if (c) return;
-      setRows(Array.isArray(j.items) ? j.items : []);
-      setMeta({ total: j.total ?? 0, page: j.page ?? page });
+      try {
+        const res = await fetch(
+          `/api/stock/${encodeURIComponent(symbol)}/unusual-v2?${qs.toString()}`,
+          { headers: { "X-API-Key": API_KEY }, cache: "no-store" },
+        );
+        if (c) return;
+        if (!res.ok) {
+          const t = await res.text();
+          setError(`${res.status}: ${t.slice(0, 120)}`);
+          setRows([]);
+          return;
+        }
+        const j = (await res.json()) as PagePayload;
+        if (c) return;
+        setRows(Array.isArray(j.items) ? j.items : []);
+        setMeta({ total: j.total ?? 0, page: j.page ?? page });
+      } catch (e) {
+        if (!c) {
+          setError(e instanceof Error ? e.message : "加载失败");
+          setRows([]);
+        }
+      } finally {
+        if (!c) setLoading(false);
+      }
     })();
     return () => {
       c = true;
     };
-  }, [symbol, page, sortBy, order]);
+  }, [symbol, page, sortBy, order, minScore]);
 
   return (
     <div className="p-5 space-y-4" id="unusual-root">
       <TourOverlay
         pageKey={`stock-unusual-${symbol}`}
         steps={[
-          { title: "异常评分", content: "≥60（可调）为多因子合成：OI 变化、Vol/OI、IV 偏离、资金流估计、价差。" },
+          { title: "异常评分", content: "≥40（可调）为多因子合成：OI 变化、Vol/OI、IV 偏离、资金流估计、价差。" },
           { title: "筛选与排序", content: "使用列头语义按钮切换排序字段；资金流为 mid×volume×|delta|×100 的粗略估计。" },
           { title: "分页", content: "分页浏览更长列表；数据来源为后端定期同步的期权快照。" },
         ]}
@@ -85,10 +106,29 @@ export default function StockUnusualPage({ symbol }: { symbol: string }) {
       <div className="flex flex-wrap items-center gap-3" id="filters">
         <h2 className="text-[13px] font-semibold">异常期权活动 v2</h2>
         <span className="text-[11px] text-muted">共 {meta.total} 条（当前页）</span>
+        <label className="text-[11px] text-muted ml-auto">
+          最低评分
+          <input
+            type="number"
+            value={minScore}
+            onChange={(e) => {
+              setPage(1);
+              setMinScore(Number(e.target.value));
+            }}
+            className="ml-1 w-14 px-2 py-0.5 bg-panel border border-border2 rounded text-[11px]"
+          />
+        </label>
       </div>
       <p className="text-[11px] text-muted bg-panel border border-border2 rounded-[8px] px-3 py-2 leading-relaxed">
-        阈值说明：后端默认 min_score≥60。首次访问 Redis 可能没有 OI 环比，可多刷新几次以获得 🔥 OI 突增信号。
+        多因子评分与「异常期权活动」全市场页同源。需要 AI 解读与策略建议？前往{" "}
+        <Link href={`/ticker?symbol=${encodeURIComponent(symbol)}`} className="text-gold hover:underline">
+          标的深析
+        </Link>
+        。首次访问 Redis 可能没有 OI 环比，可多刷新几次以获得 OI 突增信号。
       </p>
+      {error ? (
+        <div className="rounded-lg border border-red/30 bg-red/5 px-3 py-2 text-xs text-red">{error}</div>
+      ) : null}
       <div className="flex flex-wrap gap-2 text-[11px]" id="sort-bar">
         {(
           [
@@ -138,44 +178,54 @@ export default function StockUnusualPage({ symbol }: { symbol: string }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-border2 font-mono">
-            {rows.map((r, i) => (
-              <tr key={`${r.strike_price}-${r.expiration_date}-${i}`}>
-                <td className="py-1.5 px-2 text-gold font-semibold">{r.score}</td>
-                <td className="py-1.5 px-2 uppercase">{r.contract_type}</td>
-                <td className="py-1.5 px-2">{r.strike_price}</td>
-                <td className="py-1.5 px-2 text-muted">{r.expiration_date}</td>
-                <td className="py-1.5 px-2">{r.volume ?? "—"}</td>
-                <td className="py-1.5 px-2">{r.open_interest ?? "—"}</td>
-                <td className="py-1.5 px-2">{r.volOiRatio?.toFixed(2) ?? "—"}</td>
-                <td className="py-1.5 px-2">
-                  {typeof r.oiChangePct === "number" ? `${(r.oiChangePct * 100).toFixed(0)}%` : "—"}
-                </td>
-                <td className="py-1.5 px-2">
-                  {typeof r.estimatedFlowUsd === "number"
-                    ? r.estimatedFlowUsd >= 1_000_000
-                      ? `${(r.estimatedFlowUsd / 1_000_000).toFixed(2)}M`
-                      : `${(r.estimatedFlowUsd / 1000).toFixed(0)}K`
-                    : "—"}
-                </td>
-                <td className="py-1.5 px-2 text-muted whitespace-nowrap">
-                  {formatLastTrade(r.lastTradeAt)}
-                </td>
-                <td className="py-1.5 px-2 text-[10px] text-muted leading-snug max-w-[220px]">
-                  {r.reasons.join(" · ")}
+            {loading ? (
+              <tr>
+                <td colSpan={11} className="py-8 text-center text-muted text-[12px]">
+                  加载中…
                 </td>
               </tr>
-            ))}
+            ) : (
+              rows.map((r, i) => (
+                <tr key={`${r.strike_price}-${r.expiration_date}-${i}`}>
+                  <td className="py-1.5 px-2 text-gold font-semibold">{r.score}</td>
+                  <td className="py-1.5 px-2 uppercase">{r.contract_type}</td>
+                  <td className="py-1.5 px-2">{r.strike_price}</td>
+                  <td className="py-1.5 px-2 text-muted">{r.expiration_date}</td>
+                  <td className="py-1.5 px-2">{r.volume ?? "—"}</td>
+                  <td className="py-1.5 px-2">{r.open_interest ?? "—"}</td>
+                  <td className="py-1.5 px-2">{r.volOiRatio?.toFixed(2) ?? "—"}</td>
+                  <td className="py-1.5 px-2">
+                    {typeof r.oiChangePct === "number" ? `${(r.oiChangePct * 100).toFixed(0)}%` : "—"}
+                  </td>
+                  <td className="py-1.5 px-2">
+                    {typeof r.estimatedFlowUsd === "number"
+                      ? r.estimatedFlowUsd >= 1_000_000
+                        ? `${(r.estimatedFlowUsd / 1_000_000).toFixed(2)}M`
+                        : `${(r.estimatedFlowUsd / 1000).toFixed(0)}K`
+                      : "—"}
+                  </td>
+                  <td className="py-1.5 px-2 text-muted whitespace-nowrap">
+                    {formatLastTrade(r.lastTradeAt)}
+                  </td>
+                  <td className="py-1.5 px-2 text-[10px] text-muted leading-snug max-w-[220px]">
+                    {r.reasons.join(" · ")}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
-        {rows.length === 0 && (
-          <div className="text-center text-muted text-[12px] py-8">暂无达到阈值的异常合约</div>
+        {!loading && rows.length === 0 && !error && (
+          <div className="text-center text-muted text-[12px] py-8">
+            暂无达到评分 {minScore} 的异常合约，请降低阈值或稍后刷新
+          </div>
         )}
       </div>
       <div className="flex items-center gap-3 text-[12px]" id="pagination">
         <button
           type="button"
           className="px-2 py-1 border border-border2 rounded-md disabled:opacity-40"
-          disabled={page <= 1}
+          disabled={page <= 1 || loading}
           onClick={() => setPage((p) => Math.max(1, p - 1))}
         >
           上一页
@@ -184,7 +234,7 @@ export default function StockUnusualPage({ symbol }: { symbol: string }) {
         <button
           type="button"
           className="px-2 py-1 border border-border2 rounded-md disabled:opacity-40"
-          disabled={rows.length < 40}
+          disabled={rows.length < 40 || loading}
           onClick={() => setPage((p) => p + 1)}
         >
           下一页

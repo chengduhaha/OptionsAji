@@ -1876,8 +1876,12 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
     const today = beijingDateString(0);
     const tomorrow = beijingDateString(1);
     const authToken = tier === "guest" ? null : token;
+    const overviewRefresh = Boolean(opts?.force) || !opts?.silent;
     const baseTasks = [
-      ["overview", settle<MarketOverviewContract>(() => api.market.overview())],
+      [
+        "overview",
+        settle<MarketOverviewContract>(() => api.market.overview(overviewRefresh)),
+      ],
       ["signals", settle<SignalsFeedEnvelopeContract>(() => api.market.signalsFeed(locale))],
       [
         "mvp",
@@ -2255,6 +2259,11 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
             </div>
 
             {/* Layer 1 · Market pulse strip */}
+            {warRoom.overview.error ? (
+              <div className="mt-4 rounded-lg border border-red/30 bg-red/5 px-3 py-2 text-xs text-red">
+                {warRoom.overview.error}
+              </div>
+            ) : null}
             {warLoading && pulseRows.length === 0 ? (
               <PulseSkeleton />
             ) : (

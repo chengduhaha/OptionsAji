@@ -24,15 +24,15 @@ export interface StrategyExecutionCardProps {
 export function StrategyExecutionCard({ legs, summary }: StrategyExecutionCardProps) {
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="rounded-xl border border-[#1E2D4A] bg-[#131E35] overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#1E2D4A]">
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-[#3DBF7A]/15 border border-[#3DBF7A]/30 flex items-center justify-center">
               <ArrowUpDown className="w-4 h-4 text-[#3DBF7A]" />
             </div>
             <div>
               <div className="text-sm font-semibold text-foreground">执行建议</div>
-              <div className="font-terminal text-[10px] text-[#7A8BA8] mt-0.5">跨市场组合 · 请结合账户与合规</div>
+              <div className="font-terminal text-[10px] text-muted mt-0.5">跨市场组合 · 请结合账户与合规</div>
             </div>
           </div>
           <Button
@@ -45,7 +45,7 @@ export function StrategyExecutionCard({ legs, summary }: StrategyExecutionCardPr
           </Button>
         </div>
 
-        <div className="hidden md:grid grid-cols-[80px_120px_80px_1fr_100px_180px] gap-3 px-5 py-2.5 text-[10px] font-terminal text-[#4A5A73] uppercase tracking-wider border-b border-[#1E2D4A]/50">
+        <div className="hidden md:grid grid-cols-[80px_120px_80px_1fr_100px_180px] gap-3 px-5 py-2.5 text-[10px] font-terminal text-muted uppercase tracking-wider border-b border-border/50">
           <span>腿</span>
           <span>市场</span>
           <span>操作</span>
@@ -61,7 +61,7 @@ export function StrategyExecutionCard({ legs, summary }: StrategyExecutionCardPr
               className="grid grid-cols-1 md:grid-cols-[80px_120px_80px_1fr_100px_180px] gap-3 px-5 py-4 items-center hover:bg-foreground/[0.02] transition-colors"
             >
               <div className="flex items-center gap-2">
-                <Badge className="font-terminal text-[10px] bg-[#1A2640] text-[#7A8BA8] border-[#1E2D4A]">
+                <Badge className="font-terminal text-[10px] bg-panel text-muted border-border">
                   {leg.leg}
                 </Badge>
               </div>
@@ -97,10 +97,10 @@ export function StrategyExecutionCard({ legs, summary }: StrategyExecutionCardPr
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button type="button" className="p-0.5 rounded hover:bg-foreground/5">
-                      <Info className="w-3 h-3 text-[#4A5A73]" />
+                      <Info className="w-3 h-3 text-muted" />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-[#1A2640] border-[#1E2D4A] text-xs text-[#7A8BA8] max-w-[160px]">
+                  <TooltipContent className="bg-panel border-border text-xs text-muted max-w-[160px]">
                     {leg.risk}
                   </TooltipContent>
                 </Tooltip>
@@ -109,26 +109,26 @@ export function StrategyExecutionCard({ legs, summary }: StrategyExecutionCardPr
           ))}
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-5 py-4 border-t border-[#1E2D4A] bg-[#0F1729]/40">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-5 py-4 border-t border-border bg-background/40">
           <div className="flex items-center gap-2">
             <TrendingDown className="w-3.5 h-3.5 text-[#D4AF37]" />
-            <span className="text-xs text-[#7A8BA8]">
+            <span className="text-xs text-muted">
               <span className="font-semibold text-[#D4AF37]">组合特点:</span> {summary.tagline}
             </span>
           </div>
           <div className="flex items-center gap-4 ml-auto">
             <div className="text-center">
-              <div className="font-terminal text-[10px] text-[#4A5A73] uppercase tracking-wider">最大收益</div>
+              <div className="font-terminal text-[10px] text-muted uppercase tracking-wider">最大收益</div>
               <div className="font-terminal text-sm font-bold text-[#3DBF7A]">{summary.maxProfit}</div>
             </div>
             <div className="w-px h-8 bg-[#1E2D4A]" />
             <div className="text-center">
-              <div className="font-terminal text-[10px] text-[#4A5A73] uppercase tracking-wider">最大风险</div>
+              <div className="font-terminal text-[10px] text-muted uppercase tracking-wider">最大风险</div>
               <div className="font-terminal text-sm font-bold text-[#D44A4A]">{summary.maxRisk}</div>
             </div>
             <div className="w-px h-8 bg-[#1E2D4A]" />
             <div className="text-center">
-              <div className="font-terminal text-[10px] text-[#4A5A73] uppercase tracking-wider">期望年化</div>
+              <div className="font-terminal text-[10px] text-muted uppercase tracking-wider">期望年化</div>
               <div className="font-terminal text-sm font-bold text-[#D4AF37]">{summary.evAnnual}</div>
             </div>
           </div>

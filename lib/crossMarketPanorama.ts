@@ -158,7 +158,8 @@ export function buildSyntheticTimeSeries(
   );
 }
 
-export function adaptHotEventToPanorama(event: HotEvent): EventPanoramaViewModel {
+export function adaptHotEventToPanorama(event: HotEvent, displayTitle?: string): EventPanoramaViewModel {
+  const title = displayTitle ?? event.title_zh ?? event.title_en;
   const poly = pct01(event.polymarket_probability);
   const consensusPct = poly;
 
@@ -172,7 +173,7 @@ export function adaptHotEventToPanorama(event: HotEvent): EventPanoramaViewModel
       borderColor: "rgba(212,175,55,0.35)",
       subLabel: `YES 隐含 ${event.polymarket_probability.toFixed(2)}`,
       detail: event.volume_24h ? `24h 成交 ${Math.round(event.volume_24h).toLocaleString()}` : "成交量未披露",
-      tooltip: `${event.title_zh} — Polymarket 当前 Yes 概率 ${poly}%`,
+      tooltip: `${title} — Polymarket 当前 Yes 概率 ${poly}%`,
       rank: 1,
     },
   ];
@@ -206,7 +207,7 @@ export function adaptHotEventToPanorama(event: HotEvent): EventPanoramaViewModel
     eventId: event.event_id,
     header: {
       badgeLabel: typeLabel,
-      titleText: event.title_zh,
+      titleText: title,
       metaTicker: event.related_ticker ?? undefined,
       eventTimeDisplay,
       settlementNote: "Polymarket Gamma API · 延迟约 15 分钟",

@@ -4,14 +4,8 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { clsx } from "clsx";
 import { ChevronDown, ChevronUp, TrendingUp } from "lucide-react";
-import type { HotEvent } from "@/lib/crossMarketApi";
-
-const EVENT_TYPE_ZH: Record<string, string> = {
-  earnings: "财报",
-  macro_release: "宏观",
-  geopolitical: "地缘",
-  equity: "个股",
-};
+import { hotEventTitle, type HotEvent } from "@/lib/crossMarketApi";
+import { useI18n } from "@/lib/i18n/context";
 
 function formatVolume(v: number | null | undefined): string {
   if (v == null || v <= 0) return "—";
@@ -31,6 +25,7 @@ interface PolymarketHotViewProps {
 }
 
 export function PolymarketHotView({ events }: PolymarketHotViewProps) {
+  const { locale, t } = useI18n();
   const listRef = useRef<HTMLDivElement>(null);
   const [showTickers, setShowTickers] = useState(false);
 
@@ -41,7 +36,7 @@ export function PolymarketHotView({ events }: PolymarketHotViewProps) {
   const tickerRows = withTicker.flatMap((event) =>
     tickersForEvent(event).map((ticker) => ({
       ticker,
-      title: event.title_zh,
+      title: hotEventTitle(event, locale),
       eventId: event.event_id,
     })),
   );
@@ -54,9 +49,9 @@ export function PolymarketHotView({ events }: PolymarketHotViewProps) {
     <div className="max-w-6xl mx-auto px-4 py-8 space-y-10">
       <header className="space-y-2 border-b border-border pb-6">
         <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-medium">Polymarket</p>
-        <h1 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">Polymarket 热点</h1>
+        <h1 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">{t("polymarket.title")}</h1>
         <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
-          与美股相关的 Polymarket 预测市场：宏观（Fed）、财报、单股主题等，按 24h 成交量排序。
+          {t("polymarket.subtitle")}
         </p>
       </header>
 
@@ -123,7 +118,7 @@ export function PolymarketHotView({ events }: PolymarketHotViewProps) {
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-primary" />
-            热门市场
+            {t("polymarket.hotMarkets")}
           </h2>
           <span className="text-[10px] text-muted-foreground uppercase">{events.length} 条</span>
         </div>
@@ -148,7 +143,7 @@ export function PolymarketHotView({ events }: PolymarketHotViewProps) {
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2 mb-1.5">
                         <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-primary/10 text-primary border border-primary/20">
-                          {EVENT_TYPE_ZH[event.event_type] ?? event.event_type}
+                          {t(`polymarket.eventType.${event.event_type}`, event.event_type)}
                         </span>
                         {tickers.map((t) => (
                           <Link
@@ -164,12 +159,12 @@ export function PolymarketHotView({ events }: PolymarketHotViewProps) {
                         href={`/event/${encodeURIComponent(event.event_id)}`}
                         className="font-medium text-foreground hover:text-primary transition-colors line-clamp-2"
                       >
-                        {event.title_zh}
+                        {hotEventTitle(event, locale)}
                       </Link>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-2xl font-mono font-bold text-primary tabular-nums">{prob.toFixed(1)}%</div>
-                      <div className="text-[10px] text-muted-foreground">Yes 概率</div>
+                      <div className="text-[10px] text-muted-foreground">{t("polymarket.yesProb")}</div>
                     </div>
                   </div>
 

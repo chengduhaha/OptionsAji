@@ -6,6 +6,7 @@ import { FormEvent, useState } from "react";
 import { clsx } from "clsx";
 
 const HOT = ["SPY", "QQQ", "AAPL", "TSLA", "NVDA", "AMZN", "MSFT", "META"];
+const API_KEY = process.env.NEXT_PUBLIC_API_KEY ?? "";
 
 const TABS: { segment: string; label: string }[] = [
   { segment: "", label: "概览" },
@@ -24,6 +25,10 @@ export default function StockChrome({ symbol }: { symbol: string }) {
     const sym = q.trim().toUpperCase();
     if (!sym) return;
     const tail = pathname.replace(/^\/stock\/[^/]+/, "");
+    void fetch(`/api/stock/${encodeURIComponent(sym)}/overview`, {
+      headers: { "X-API-Key": API_KEY },
+      cache: "no-store",
+    });
     router.push(`/stock/${sym}${tail}`);
   };
 

@@ -3,6 +3,7 @@
 import { Fragment, useState, useEffect, useCallback, useMemo } from "react";
 import { Building2, ChevronDown, ChevronUp, Info, RefreshCw, Search } from "lucide-react";
 import { clsx } from "clsx";
+import { useAuth } from "@/lib/auth-context";
 
 interface CongressTrade {
   id: number;
@@ -60,6 +61,7 @@ function parseMemberKey(key: string): { member: string; chamber: string } | null
 type Tab = "trades" | "backtest";
 
 export default function CongressPage() {
+  const { isAdmin, token } = useAuth();
   const [tab, setTab] = useState<Tab>("trades");
   const [trades, setTrades] = useState<CongressTrade[]>([]);
   const [tradesLoading, setTradesLoading] = useState(true);
@@ -74,6 +76,8 @@ export default function CongressPage() {
   const [btLoading, setBtLoading] = useState(false);
   const [btResult, setBtResult] = useState<BacktestResult | null>(null);
   const [btError, setBtError] = useState<string | null>(null);
+  const [profileSyncing, setProfileSyncing] = useState(false);
+  const [profileSyncMsg, setProfileSyncMsg] = useState<string | null>(null);
 
   const fetchMembers = useCallback(async () => {
     try {
@@ -247,15 +251,49 @@ export default function CongressPage() {
 
   return (
     <div className="h-full overflow-y-auto p-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
-          <Building2 className="w-5 h-5 text-blue-400" />
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+            <Building2 className="w-5 h-5 text-blue-400" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-foreground">国会山追踪</h1>
+            <p className="text-sm text-muted-foreground">参众两院议员交易申报与情景回测</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-xl font-bold text-foreground">国会山追踪</h1>
-          <p className="text-sm text-muted-foreground">参众两院议员交易申报与情景回测</p>
-        </div>
+        {isAdmin ? (
+          <button
+            type="button"
+            disabled={profileSyncing || !token}
+            onClick={async () => {
+              if (!token) return;
+              setProfileSyncing(true);
+              setProfileSyncMsg(null);
+              try {
+                const res = await fetch("/api/admin/sync/congress-profiles", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({ limit: 50 }),
+                });
+                if (!res.ok) throw new Error((await res.text()).slice(0, 160));
+                setProfileSyncMsg("议员简介生成任务已在后台启动");
+              } catch (e) {
+                setProfileSyncMsg(e instanceof Error ? e.message : "同步失败");
+              } finally {
+                setProfileSyncing(false);
+              }
+            }}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-glass border border-gold/30 text-sm text-gold hover:border-gold/50 disabled:opacity-50"
+          >
+            <RefreshCw className={clsx("w-4 h-4", profileSyncing && "animate-spin")} />
+            {profileSyncing ? "同步中…" : "同步议员简介"}
+          </button>
+        ) : null}
       </div>
+      {profileSyncMsg ? <p className="text-xs text-muted-foreground">{profileSyncMsg}</p> : null}
 
       <div className="flex gap-1 p-1 rounded-xl bg-glass border border-glass-border w-fit">
         {([

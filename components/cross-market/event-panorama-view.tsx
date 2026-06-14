@@ -11,9 +11,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   adaptHotEventToPanorama,
   getHotEvents,
+  hotEventTitle,
   type EventPanoramaViewModel,
-  type HotEvent,
 } from "@/lib/crossMarket";
+import { useI18n } from "@/lib/i18n/context";
 
 function PanoramaSkeleton() {
   return (
@@ -30,6 +31,7 @@ function PanoramaSkeleton() {
 }
 
 export function EventPanoramaView({ eventIdParam }: { eventIdParam: string }) {
+  const { locale } = useI18n();
   const decodedId = decodeURIComponent(eventIdParam);
   const [vm, setVm] = useState<EventPanoramaViewModel | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -38,18 +40,15 @@ export function EventPanoramaView({ eventIdParam }: { eventIdParam: string }) {
     let cancelled = false;
     (async () => {
       try {
-        const { events } = await getHotEvents();
+        const { events } = await getHotEvents(30);
         if (cancelled) return;
-        let picked: HotEvent | undefined = events.find((e) => e.event_id === decodedId);
-        if (!picked && events.length > 0) {
-          picked = events[0];
-        }
+        const picked = events.find((e) => e.event_id === decodedId);
         if (!picked) {
-          setError("未获取到事件数据，请稍后重试。");
+          setError(`未找到事件「${decodedId}」，请从热点列表重新进入。`);
           setVm(null);
           return;
         }
-        setVm(adaptHotEventToPanorama(picked));
+        setVm(adaptHotEventToPanorama(picked, hotEventTitle(picked, locale)));
         setError(null);
       } catch (e) {
         if (!cancelled) {
@@ -61,7 +60,7 @@ export function EventPanoramaView({ eventIdParam }: { eventIdParam: string }) {
     return () => {
       cancelled = true;
     };
-  }, [decodedId]);
+  }, [decodedId, locale]);
 
   if (error && !vm) {
     return (
@@ -112,7 +111,7 @@ export function EventPanoramaView({ eventIdParam }: { eventIdParam: string }) {
 
           <section className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className="w-1 h-5 rounded-full bg-[#3DBF7A]" />
+              <div className="w-1 h-5 rounded-full bg-green" />
               <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">
                 跨市场执行建议
               </h2>

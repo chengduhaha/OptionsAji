@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import type { MacroCalendarInsightsContract, MvpMarketInsightsContract } from "@/lib/contracts";
+import { useMvpTier } from "@/hooks/useMvpTier";
 import { CalendarDays, ChevronLeft, ChevronRight, Globe, Sparkles } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
@@ -161,6 +162,7 @@ function localCalendarRead(events: any[], fromDate: string, toDate: string): str
 }
 
 export default function MacroPage() {
+  const { tier, ready, token } = useMvpTier();
   const [selectedDate, setSelectedDate] = useState(beijingDateString());
   const [calendar, setCalendar] = useState<any[]>([]);
   const [treasury, setTreasury] = useState<any[]>([]);
@@ -172,14 +174,16 @@ export default function MacroPage() {
   const rangeEnd = useMemo(() => shiftDate(weekStart, 7), [weekStart]);
 
   useEffect(() => {
+    if (!ready) return;
     let cancelled = false;
+    const authToken = tier === "guest" ? null : token;
     setLoadError(null);
     setLoading(true);
     Promise.allSettled([
       api.macro.calendar(weekStart, rangeEnd, "US"),
       api.macro.treasury(30),
-      api.market.mvpMarketInsights(),
-      api.market.mvpMacroCalendarInsights(weekStart, rangeEnd, "US"),
+      api.market.mvpMarketInsights(authToken),
+      api.market.mvpMacroCalendarInsights(weekStart, rangeEnd, "US", authToken),
     ])
       .then(([calRes, treasRes, marketRes, calInsightRes]) => {
         if (cancelled) return;
@@ -220,7 +224,7 @@ export default function MacroPage() {
     return () => {
       cancelled = true;
     };
-  }, [weekStart, rangeEnd]);
+  }, [weekStart, rangeEnd, ready, tier, token]);
 
   const latestRate = treasury[0] as Record<string, unknown> | undefined;
   const yieldCurve = latestRate ? treasuryRowToCurve(latestRate) : [];

@@ -30,14 +30,14 @@ function CustomTooltip({
 }) {
   if (!active || !payload) return null;
   return (
-    <div className="rounded-lg border border-[#1E2D4A] bg-[#131E35]/95 backdrop-blur-sm p-3 shadow-xl">
-      <div className="font-terminal text-[10px] text-[#7A8BA8] mb-2">{label}</div>
+    <div className="rounded-lg border border-border bg-card/95 backdrop-blur-sm p-3 shadow-xl">
+      <div className="font-terminal text-[10px] text-muted mb-2">{label}</div>
       <div className="space-y-1">
         {payload.map((entry) => (
           <div key={String(entry.dataKey)} className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-              <span className="text-[11px] text-[#B8C8DC]">{entry.name}</span>
+              <span className="text-[11px] text-foreground/80">{entry.name}</span>
             </div>
             <span className="font-terminal text-[11px] font-bold" style={{ color: entry.color }}>
               {entry.value}%
@@ -58,13 +58,13 @@ export function ProbabilityTimeSeries({ data }: ProbabilityTimeSeriesProps) {
   const refLabel = data[refIdx]?.date ?? "";
 
   return (
-    <div className="rounded-xl border border-[#1E2D4A] bg-[#131E35] p-5">
+    <div className="rounded-xl border border-border bg-card p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
           <div className="w-1 h-5 rounded-full bg-[#4A8FD4]" />
           <div>
             <div className="text-sm font-semibold text-foreground">概率时序追踪</div>
-            <div className="font-terminal text-[10px] text-[#7A8BA8] mt-0.5">过去 {data.length} 天 · 分歧演变（终端点锁定实时四源）</div>
+            <div className="font-terminal text-[10px] text-muted mt-0.5">过去 {data.length} 天 · 分歧演变（终端点锁定实时四源）</div>
           </div>
         </div>
       </div>
@@ -83,7 +83,7 @@ export function ProbabilityTimeSeries({ data }: ProbabilityTimeSeriesProps) {
       <div className="h-[240px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1E2D4A" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
 
             {refLabel ? (
               <ReferenceLine
@@ -102,19 +102,19 @@ export function ProbabilityTimeSeries({ data }: ProbabilityTimeSeriesProps) {
 
             <XAxis
               dataKey="date"
-              tick={{ fill: "#4A5A73", fontSize: 9, fontFamily: "monospace" }}
-              axisLine={{ stroke: "#1E2D4A" }}
+              tick={{ fill: "var(--muted)", fontSize: 9, fontFamily: "monospace" }}
+              axisLine={{ stroke: "var(--border)" }}
               tickLine={false}
               interval={2}
             />
             <YAxis
               domain={[0, 100]}
-              tick={{ fill: "#4A5A73", fontSize: 9, fontFamily: "monospace" }}
+              tick={{ fill: "var(--muted)", fontSize: 9, fontFamily: "monospace" }}
               axisLine={false}
               tickLine={false}
               tickFormatter={(v) => `${v}%`}
             />
-            <RechartsTooltip content={<CustomTooltip />} cursor={{ stroke: "#1E2D4A" }} />
+            <RechartsTooltip content={<CustomTooltip />} cursor={{ stroke: "var(--border)" }} />
 
             {SERIES.map((s) => (
               <Line

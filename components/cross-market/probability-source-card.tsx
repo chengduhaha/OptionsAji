@@ -63,12 +63,12 @@ export function ProbabilitySourceCard({
           <Tooltip>
             <TooltipTrigger asChild>
               <button className="p-1 rounded-md hover:bg-foreground/5 transition-colors">
-                <Info className="w-3.5 h-3.5 text-[#4A5A73]" />
+                <Info className="w-3.5 h-3.5 text-muted" />
               </button>
             </TooltipTrigger>
             <TooltipContent
               side="top"
-              className="max-w-[220px] bg-[#1A2640] border-[#1E2D4A] text-xs text-[#7A8BA8]"
+              className="max-w-[220px] bg-panel border-border text-xs text-muted"
             >
               {tooltip}
             </TooltipContent>
@@ -103,7 +103,7 @@ export function ProbabilitySourceCard({
         </div>
 
         {/* Sub label */}
-        <div className="text-[11px] text-[#7A8BA8] leading-relaxed mb-2">{subLabel}</div>
+        <div className="text-[11px] text-muted leading-relaxed mb-2">{subLabel}</div>
 
         {/* Detail */}
         <div

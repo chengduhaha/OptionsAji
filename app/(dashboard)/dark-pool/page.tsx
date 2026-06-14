@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { BarChart2, Eye, RefreshCw, TrendingDown, TrendingUp } from "lucide-react";
 import { clsx } from "clsx";
+import { useAuth } from "@/lib/auth-context";
 
 interface MarketTide {
   date?: string;
@@ -47,11 +48,14 @@ interface FlowResponse {
 }
 
 export default function DarkPoolPage() {
+  const { isAdmin, token } = useAuth();
   const [tide, setTide] = useState<MarketTide | null>(null);
   const [flow, setFlow] = useState<FlowItem[]>([]);
   const [meta, setMeta] = useState<Pick<FlowResponse, "generated_at" | "scope_label_zh" | "ranking_label_zh" | "symbol_count">>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState<string | null>(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -83,6 +87,31 @@ export default function DarkPoolPage() {
     }
   }
 
+  async function runSp500Sync(full: boolean) {
+    if (!token) return;
+    setSyncing(true);
+    setSyncMsg(null);
+    try {
+      const res = await fetch("/api/admin/sync/sp500-options", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ full, batch_size: 50 }),
+      });
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error(t.slice(0, 160));
+      }
+      setSyncMsg(full ? "全量标普500期权同步已在后台启动" : "标普500期权批次同步已在后台启动");
+    } catch (e) {
+      setSyncMsg(e instanceof Error ? e.message : "同步失败");
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   return (
     <div className="h-full overflow-y-auto p-6 space-y-6">
       <div className="flex items-start justify-between">
@@ -101,11 +130,35 @@ export default function DarkPoolPage() {
             ) : null}
           </div>
         </div>
-        <button onClick={fetchData} disabled={loading} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-glass border border-glass-border text-sm text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all disabled:opacity-50">
-          <RefreshCw className={clsx("w-4 h-4", loading && "animate-spin")} />
-          刷新
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {isAdmin ? (
+            <>
+              <button
+                type="button"
+                onClick={() => void runSp500Sync(false)}
+                disabled={syncing}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-glass border border-gold/30 text-sm text-gold hover:border-gold/50 transition-all disabled:opacity-50"
+              >
+                {syncing ? "同步中…" : "同步标普500"}
+              </button>
+              <button
+                type="button"
+                onClick={() => void runSp500Sync(true)}
+                disabled={syncing}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-glass border border-gold/20 text-xs text-muted-foreground hover:text-gold transition-all disabled:opacity-50"
+              >
+                全量同步
+              </button>
+            </>
+          ) : null}
+          <button onClick={fetchData} disabled={loading} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-glass border border-glass-border text-sm text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all disabled:opacity-50">
+            <RefreshCw className={clsx("w-4 h-4", loading && "animate-spin")} />
+            刷新
+          </button>
+        </div>
       </div>
+
+      {syncMsg ? <div className="text-xs text-muted-foreground">{syncMsg}</div> : null}
 
       {error && <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-400 text-sm">{error}</div>}
       {loading && !error && <div className="rounded-xl border border-glass-border bg-glass/40 p-8 text-center text-muted-foreground text-sm">加载中…</div>}
