@@ -1982,12 +1982,11 @@ export default function MvpInsightsPage({ variant = "standalone", section = "all
       settle<SmartVsRetailContract>(() => api.social.smartVsRetail(sym)),
       settle<JsonRecord>(() =>
         api.options.chain(sym, undefined, undefined, {
-          realtime: true,
           limit: 400,
           strikeWindowPct: 0.2,
         }) as Promise<JsonRecord>,
       ),
-      settle<JsonRecord>(() => api.options.gex(sym, { realtime: true, limit: 500, strikeWindowPct: 0.2 }) as Promise<JsonRecord>),
+      settle<JsonRecord>(() => api.options.gex(sym, { limit: 500, strikeWindowPct: 0.2 }) as Promise<JsonRecord>),
       settle<JsonRecord>(() => fetchJson(`/api/stock/${encodeURIComponent(sym)}/gex/history`, token)),
       settle<JsonRecord>(() =>
         fetchJson(`/api/stock/${encodeURIComponent(sym)}/unusual-v2?page_size=20&min_score=20`, token),
