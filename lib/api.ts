@@ -35,8 +35,6 @@ import { DEFAULT_LOCALE, LOCALE_STORAGE_KEY } from "@/lib/i18n/dictionary";
 import type { Locale } from "@/lib/i18n/types";
 import { unwrapMvpEnvelope } from "@/lib/mvp-tier";
 
-const BASE = process.env.NEXT_PUBLIC_API_BASE || "";
-
 export function getClientLocale(): Locale {
   if (typeof window === "undefined") return DEFAULT_LOCALE;
   try {
@@ -91,7 +89,7 @@ function parseApiError(payload: JsonObject | null): string | null {
 async function fetchJSON<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers({ "Content-Type": "application/json" });
   new Headers(init?.headers).forEach((value, key) => headers.set(key, value));
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(path, {
     ...init,
     headers,
   });
