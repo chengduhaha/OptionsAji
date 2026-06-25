@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { clsx } from "clsx";
+import { apiFetch } from "@/lib/apiBase";
 
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY ?? "";
 
@@ -136,10 +137,10 @@ export default function StockFinancialsPage({ symbol }: { symbol: string }) {
   const load = useCallback(async () => {
     setLoading(true);
     const [finRes, metRes] = await Promise.all([
-      fetch(`/api/stock/${encodeURIComponent(symbol)}/financials?statement=${stmt}&period=${period}&limit=8`, {
+      apiFetch(`/api/stock/${encodeURIComponent(symbol)}/financials?statement=${stmt}&period=${period}&limit=8`, {
         headers: { "X-API-Key": API_KEY }, cache: "no-store",
       }),
-      fetch(`/api/stock/${encodeURIComponent(symbol)}/metrics?period=${period}`, {
+      apiFetch(`/api/stock/${encodeURIComponent(symbol)}/metrics?period=${period}`, {
         headers: { "X-API-Key": API_KEY }, cache: "no-store",
       }),
     ]);

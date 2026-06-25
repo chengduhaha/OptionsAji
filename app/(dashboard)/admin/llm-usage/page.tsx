@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, RefreshCw } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { apiFetch } from "@/lib/apiBase";
 
 type UsageBucket = {
   calls: number;
@@ -84,7 +85,7 @@ export default function AdminLlmUsagePage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/llm-usage?window=${encodeURIComponent(windowKey)}&limit=200`, {
+      const res = await apiFetch(`/api/admin/llm-usage?window=${encodeURIComponent(windowKey)}&limit=200`, {
         headers: { Authorization: `Bearer ${token}` },
         cache: "no-store",
       });

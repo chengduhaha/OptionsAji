@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { RefreshCw, Upload } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import type { DiscordAuthorProfileContract } from "@/lib/contracts";
+import { apiFetch } from "@/lib/apiBase";
 
 type SettingsPayload = {
   settings: Record<string, string[]>;
@@ -96,7 +97,7 @@ function AuthorProfileRow({
     setSaving(true);
     setRowError(null);
     try {
-      const res = await fetch("/api/admin/discord/author-profiles", {
+      const res = await apiFetch("/api/admin/discord/author-profiles", {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -126,7 +127,7 @@ function AuthorProfileRow({
       const form = new FormData();
       form.set("author", profile.author);
       form.set("file", file);
-      const res = await fetch("/api/admin/discord/author-profiles/avatar", {
+      const res = await apiFetch("/api/admin/discord/author-profiles/avatar", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: form,
@@ -249,7 +250,7 @@ export default function AdminDiscordPage() {
     if (!token) return;
     setRefreshingProfiles(true);
     try {
-      const res = await fetch("/api/admin/discord/author-profiles", {
+      const res = await apiFetch("/api/admin/discord/author-profiles", {
         headers: { Authorization: `Bearer ${token}` },
         cache: "no-store",
       });
@@ -268,7 +269,7 @@ export default function AdminDiscordPage() {
 
   const loadSettings = useCallback(async () => {
     if (!token) return;
-    const res = await fetch("/api/site/discord-menu-authors", {
+    const res = await apiFetch("/api/site/discord-menu-authors", {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
@@ -327,7 +328,7 @@ export default function AdminDiscordPage() {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/discord-menu-authors", {
+      const res = await apiFetch("/api/admin/discord-menu-authors", {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,

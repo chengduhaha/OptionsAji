@@ -10,6 +10,7 @@ import { api } from "@/lib/api";
 import { OPTIONS_AJI_API_KEY_LS, type AlertContract } from "@/lib/contracts";
 import { formatMessage } from "@/lib/i18n/dictionary";
 import { useI18n } from "@/lib/i18n/context";
+import { apiFetch } from "@/lib/apiBase";
 
 type CreemStatusPayload = {
   tier?: string;
@@ -99,7 +100,7 @@ export default function ProfilePage() {
       return;
     }
     try {
-      const res = await fetch("/api/creem/status", {
+      const res = await apiFetch("/api/creem/status", {
         cache: "no-store",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -201,7 +202,7 @@ export default function ProfilePage() {
     setCreemBusy(true);
     setCreemMsg(null);
     try {
-      const res = await fetch("/api/creem/checkout", {
+      const res = await apiFetch("/api/creem/checkout", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -223,7 +224,7 @@ export default function ProfilePage() {
     setCreemBusy(true);
     setCreemMsg(null);
     try {
-      const res = await fetch("/api/creem/portal", {
+      const res = await apiFetch("/api/creem/portal", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });

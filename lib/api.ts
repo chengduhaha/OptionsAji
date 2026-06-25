@@ -1,7 +1,8 @@
 /**
  * Typed API client for OptionsAji backend.
- * All calls go through Next.js /api proxy routes.
+ * Browser: same-origin /api proxy by default; set NEXT_PUBLIC_API_BASE to call FastAPI directly.
  */
+import { apiFetch } from "@/lib/apiBase";
 import type {
   AgentBriefContract,
   AnalystPriceTargetContract,
@@ -89,7 +90,11 @@ function parseApiError(payload: JsonObject | null): string | null {
 async function fetchJSON<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers({ "Content-Type": "application/json" });
   new Headers(init?.headers).forEach((value, key) => headers.set(key, value));
-  const res = await fetch(path, {
+  const apiKey = process.env.NEXT_PUBLIC_API_KEY?.trim();
+  if (apiKey && !headers.has("X-API-Key")) {
+    headers.set("X-API-Key", apiKey);
+  }
+  const res = await apiFetch(path, {
     ...init,
     headers,
   });

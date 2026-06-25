@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import TourOverlay from "@/components/ui/TourOverlay";
-
-const API_KEY = process.env.NEXT_PUBLIC_API_KEY ?? "";
+import { apiFetch } from "@/lib/apiBase";
 
 type UnusualRow = {
   score: number;
@@ -64,9 +63,9 @@ export default function StockUnusualPage({ symbol }: { symbol: string }) {
         min_score: String(minScore),
       });
       try {
-        const res = await fetch(
+        const res = await apiFetch(
           `/api/stock/${encodeURIComponent(symbol)}/unusual-v2?${qs.toString()}`,
-          { headers: { "X-API-Key": API_KEY }, cache: "no-store" },
+          { cache: "no-store" },
         );
         if (c) return;
         if (!res.ok) {

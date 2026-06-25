@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Briefcase, Plus, Trash2, TrendingUp, Activity, Zap, Clock } from "lucide-react";
 import { clsx } from "clsx";
+import { apiFetch } from "@/lib/apiBase";
 
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY ?? "";
 
@@ -61,7 +62,7 @@ export default function PortfolioPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/portfolio/greeks", {
+      const res = await apiFetch("/api/portfolio/greeks", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-API-Key": API_KEY },
         body: JSON.stringify(positions.map(p => ({ ticker: p.ticker, quantity: p.quantity }))),

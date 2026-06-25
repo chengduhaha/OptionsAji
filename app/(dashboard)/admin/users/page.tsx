@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import type { AuthUser } from "@/lib/auth-context";
+import { apiFetch } from "@/lib/apiBase";
 
 type RoleOption = "user" | "admin" | "disabled";
 
@@ -41,7 +42,7 @@ export default function AdminUsersPage() {
 
     let cancelled = false;
     setLoading(true);
-    fetch("/api/auth/admin/users", {
+    apiFetch("/api/auth/admin/users", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (res) => {
@@ -67,7 +68,7 @@ export default function AdminUsersPage() {
   async function patchRole(id: string, role: RoleOption) {
     if (!token) return;
     setError(null);
-    const res = await fetch(`/api/auth/admin/users/${encodeURIComponent(id)}`, {
+    const res = await apiFetch(`/api/auth/admin/users/${encodeURIComponent(id)}`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${token}`,

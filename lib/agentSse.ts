@@ -3,6 +3,7 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { formatMessage, resolveDictionaryValue } from "@/lib/i18n/dictionary";
 import type { Locale } from "@/lib/i18n/types";
+import { apiFetch } from "@/lib/apiBase";
 
 export type AgentSseEvent =
   | { type: "thinking"; content: string | null; ts_unix_ms?: number }
@@ -167,7 +168,7 @@ export async function runAgentViaSseStream(params: {
   };
 
   try {
-    const resp = await fetch("/api/agent/query", {
+    const resp = await apiFetch("/api/agent/query", {
       method: "POST",
       headers: headersRecord,
       body: JSON.stringify({

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useNavVisibility } from "@/lib/nav-visibility-context";
+import { apiFetch } from "@/lib/apiBase";
 import {
   KNOWN_NAV_IDS,
   NAV_GROUP_LABELS,
@@ -41,7 +42,7 @@ export default function AdminMenuPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/site/nav-visibility", {
+      const res = await apiFetch("/api/site/nav-visibility", {
         headers: { Authorization: `Bearer ${token}` },
         cache: "no-store",
       });
@@ -95,7 +96,7 @@ export default function AdminMenuPage() {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/nav-visibility", {
+      const res = await apiFetch("/api/admin/nav-visibility", {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,

@@ -1,3 +1,4 @@
+import { apiFetch } from "@/lib/apiBase";
 /**
  * Cross-market HTTP client. All paths hit Next.js route handlers
  * that proxy to OPTIONS_AJI_BACKEND_URL (see app/api/cross-market/*).
@@ -85,7 +86,7 @@ async function parseJson<T>(res: Response, path: string): Promise<T> {
 const noStore: RequestInit = { cache: "no-store" };
 
 export async function getHotEvents(limit = 30): Promise<{ events: HotEvent[] }> {
-  const res = await fetch(`/api/cross-market/polymarket/hot?limit=${limit}`, noStore);
+  const res = await apiFetch(`/api/cross-market/polymarket/hot?limit=${limit}`, noStore);
   return parseJson(res, "/api/cross-market/polymarket/hot");
 }
 
@@ -95,17 +96,17 @@ export function hotEventTitle(event: HotEvent, locale: "zh" | "en"): string {
 }
 
 export async function getXpozHot(limit = 15): Promise<XpozHotResponse> {
-  const res = await fetch(`/api/cross-market/xpoz/hot?limit=${limit}`, noStore);
+  const res = await apiFetch(`/api/cross-market/xpoz/hot?limit=${limit}`, noStore);
   return parseJson(res, "/api/cross-market/xpoz/hot");
 }
 
 export async function getCrossMarketQuote(symbol: string): Promise<StockOverviewCrossMarket> {
   const clean = encodeURIComponent(symbol.toUpperCase());
-  const res = await fetch(`/api/cross-market/quote/${clean}`, noStore);
+  const res = await apiFetch(`/api/cross-market/quote/${clean}`, noStore);
   return parseJson(res, `/api/cross-market/quote/${clean}`);
 }
 
 export async function getCrossMarketDiagnostics(): Promise<unknown> {
-  const res = await fetch("/api/cross-market/diagnostics/data-sources", noStore);
+  const res = await apiFetch("/api/cross-market/diagnostics/data-sources", noStore);
   return parseJson(res, "/api/cross-market/diagnostics/data-sources");
 }

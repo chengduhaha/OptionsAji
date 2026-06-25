@@ -4,6 +4,7 @@ import { Fragment, useState, useEffect, useCallback, useMemo } from "react";
 import { Building2, ChevronDown, ChevronUp, Info, RefreshCw, Search } from "lucide-react";
 import { clsx } from "clsx";
 import { useAuth } from "@/lib/auth-context";
+import { apiFetch } from "@/lib/apiBase";
 
 interface CongressTrade {
   id: number;
@@ -81,7 +82,7 @@ export default function CongressPage() {
 
   const fetchMembers = useCallback(async () => {
     try {
-      const res = await fetch("/api/congress/members");
+      const res = await apiFetch("/api/congress/members");
       if (!res.ok) return;
       const data = (await res.json()) as { members?: CongressMember[] };
       const rows = Array.isArray(data.members) ? data.members : [];
@@ -101,7 +102,7 @@ export default function CongressPage() {
       const p = new URLSearchParams();
       if (chamber !== "all") p.set("chamber", chamber);
       if (symbolQ) p.set("symbol", symbolQ);
-      const res = await fetch(`/api/congress/trades?${p}`);
+      const res = await apiFetch(`/api/congress/trades?${p}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = (await res.json()) as { items?: Array<{
         id: number;
@@ -146,7 +147,7 @@ export default function CongressPage() {
     if (profiles[key]) return;
     try {
       const p = new URLSearchParams({ member, chamber: ch });
-      const res = await fetch(`/api/congress/profile?${p}`);
+      const res = await apiFetch(`/api/congress/profile?${p}`);
       if (!res.ok) return;
       const data = (await res.json()) as MemberProfile;
       setProfiles((prev) => ({ ...prev, [key]: data }));
@@ -175,7 +176,7 @@ export default function CongressPage() {
     setBtError(null);
     setBtResult(null);
     try {
-      const res = await fetch("/api/congress/backtest", {
+      const res = await apiFetch("/api/congress/backtest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -270,7 +271,7 @@ export default function CongressPage() {
               setProfileSyncing(true);
               setProfileSyncMsg(null);
               try {
-                const res = await fetch("/api/admin/sync/congress-profiles", {
+                const res = await apiFetch("/api/admin/sync/congress-profiles", {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",

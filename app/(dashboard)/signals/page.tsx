@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { clsx } from "clsx";
 import { Star, Send, Bookmark } from "lucide-react";
+import { apiFetch } from "@/lib/apiBase";
 
 type Signal = {
   id: string;
@@ -341,7 +342,7 @@ export default function SignalsPage() {
     const syncedLabel = new Date().toISOString();
 
     try {
-      const sr = await fetch("/api/signals/feed", { cache: "no-store" });
+      const sr = await apiFetch("/api/signals/feed", { cache: "no-store" });
       const stxt = await sr.text();
       if (!sr.ok) {
         throw new Error(stxt || `signals HTTP ${sr.status}`);
@@ -365,7 +366,7 @@ export default function SignalsPage() {
         limit: "60",
         menu_slot: "messages",
       });
-      const nr = await fetch(`/api/messages?${params.toString()}`, { cache: "no-store" });
+      const nr = await apiFetch(`/api/messages?${params.toString()}`, { cache: "no-store" });
       const ntxt = await nr.text();
       if (!nr.ok) throw new Error(ntxt || `messages HTTP ${nr.status}`);
       const nj = JSON.parse(ntxt) as { messages?: DiscordRow[] };

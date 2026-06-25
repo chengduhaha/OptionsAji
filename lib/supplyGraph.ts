@@ -1,3 +1,4 @@
+import { apiFetch } from "@/lib/apiBase";
 export type GraphNode = {
   id: string;
   type: "company" | "segment" | "industry" | "product" | string;
@@ -105,12 +106,12 @@ function canUseDefaultSnapshot(query: GraphQuery): boolean {
 
 export async function fetchSupplyGraph(query: GraphQuery): Promise<SupplyGraphResponse> {
   const params = graphParams(query);
-  const res = await fetch(`/api/graph?${params.toString()}`);
+  const res = await apiFetch(`/api/graph?${params.toString()}`);
   return readJson<SupplyGraphResponse>(res);
 }
 
 export async function fetchGraphSnapshot(slug: string): Promise<SupplyGraphResponse> {
-  const res = await fetch(`/api/graph/snapshot/${encodeURIComponent(slug)}`);
+  const res = await apiFetch(`/api/graph/snapshot/${encodeURIComponent(slug)}`);
   return readJson<SupplyGraphResponse>(res);
 }
 
@@ -129,7 +130,7 @@ export async function fetchGraphBootstrap(query: GraphQuery): Promise<GraphBoots
     }
   }
   const params = graphParams(query);
-  const graph = await readJson<SupplyGraphResponse>(await fetch(`/api/graph/bootstrap?${params.toString()}`));
+  const graph = await readJson<SupplyGraphResponse>(await apiFetch(`/api/graph/bootstrap?${params.toString()}`));
   return {
     graph,
     views: metaViews(graph),
@@ -139,26 +140,26 @@ export async function fetchGraphBootstrap(query: GraphQuery): Promise<GraphBoots
 }
 
 export async function fetchGraphNode(nodeId: string): Promise<SupplyGraphResponse> {
-  const res = await fetch(`/api/graph/node/${encodeURIComponent(nodeId)}`);
+  const res = await apiFetch(`/api/graph/node/${encodeURIComponent(nodeId)}`);
   return readJson<SupplyGraphResponse>(res);
 }
 
 export async function searchSupplyGraph(q: string): Promise<GraphNode[]> {
   if (!q.trim()) return [];
-  const res = await fetch(`/api/graph/search?q=${encodeURIComponent(q)}&limit=8`);
+  const res = await apiFetch(`/api/graph/search?q=${encodeURIComponent(q)}&limit=8`);
   const data = await readJson<SupplyGraphResponse>(res);
   return data.nodes;
 }
 
 export async function fetchGraphViews(): Promise<GraphView[]> {
-  const res = await fetch("/api/graph/views");
+  const res = await apiFetch("/api/graph/views");
   const data = await readJson<{ meta?: { views?: GraphView[] } }>(res);
   return data.meta?.views ?? [];
 }
 
 export async function fetchGraphTimeline(focus: string, depth: number): Promise<string[]> {
   const params = new URLSearchParams({ focus: focus || "SPCX", depth: String(depth || 2) });
-  const res = await fetch(`/api/graph/timeline?${params.toString()}`);
+  const res = await apiFetch(`/api/graph/timeline?${params.toString()}`);
   const data = await readJson<{ meta?: { dates?: string[] } }>(res);
   return data.meta?.dates ?? [];
 }
@@ -170,7 +171,7 @@ export type GraphInsightResponse = {
 };
 
 export async function fetchGraphInsight(payload: Record<string, unknown>): Promise<GraphInsightResponse> {
-  const res = await fetch("/api/graph/insight", {
+  const res = await apiFetch("/api/graph/insight", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -194,7 +195,7 @@ export async function saveGraphView(
   },
   token?: string | null,
 ): Promise<GraphView> {
-  const res = await fetch("/api/graph/views", {
+  const res = await apiFetch("/api/graph/views", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

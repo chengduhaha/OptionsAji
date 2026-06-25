@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, ListFilter } from "lucide-react";
+import { apiFetch } from "@/lib/apiBase";
 
 type DayMap = Record<string, any[]>;
 
@@ -44,7 +45,7 @@ export default function EarningsPage() {
     setLoading(true);
     const from = fmt(weekDays[0]!);
     const to = fmt(weekDays[4]!);
-    fetch(`/api/earnings/calendar-view?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`)
+    apiFetch(`/api/earnings/calendar-view?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`)
       .then(async (r) => {
         const j = (await r.json()) as { days?: DayMap; total?: number; error?: { message?: string } };
         if (!r.ok) throw new Error(j?.error?.message ?? "请求失败");

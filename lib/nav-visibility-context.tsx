@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { apiFetch } from "@/lib/apiBase";
 import {
   defaultNavVisibility,
   initialNavVisibilityForRole,
@@ -50,7 +51,7 @@ export function NavVisibilityProvider({ children }: { children: React.ReactNode 
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/site/nav-visibility", {
+      const res = await apiFetch("/api/site/nav-visibility", {
         headers: { Authorization: `Bearer ${token}` },
         cache: "no-store",
       });

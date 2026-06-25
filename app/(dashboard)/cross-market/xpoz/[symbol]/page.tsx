@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { clsx } from "clsx";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import type { XpozTickerDetail } from "@/lib/crossMarketApi";
+import { apiFetch } from "@/lib/apiBase";
 
 const DIR_ZH: Record<string, string> = {
   bullish: "偏多",
@@ -38,7 +39,7 @@ export default function XpozTickerDetailPage({ params }: { params: Promise<{ sym
       const sym = p.symbol.toUpperCase();
       setSymbol(sym);
       setLoading(true);
-      fetch(`/api/cross-market/xpoz/ticker/${encodeURIComponent(sym)}`, { cache: "no-store" })
+      apiFetch(`/api/cross-market/xpoz/ticker/${encodeURIComponent(sym)}`, { cache: "no-store" })
         .then((res) => res.json() as Promise<XpozTickerDetail>)
         .then((json) => {
           if (!cancelled) setData(json);

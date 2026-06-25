@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { BarChart2, Eye, RefreshCw, TrendingDown, TrendingUp } from "lucide-react";
 import { clsx } from "clsx";
 import { useAuth } from "@/lib/auth-context";
+import { apiFetch } from "@/lib/apiBase";
 
 interface MarketTide {
   date?: string;
@@ -64,8 +65,8 @@ export default function DarkPoolPage() {
     setError(null);
     try {
       const [tideRes, flowRes] = await Promise.all([
-        fetch("/api/darkpool/market-tide"),
-        fetch("/api/darkpool/flow-summary"),
+        apiFetch("/api/darkpool/market-tide"),
+        apiFetch("/api/darkpool/flow-summary"),
       ]);
       if (!tideRes.ok || !flowRes.ok) throw new Error("加载失败");
       const [tideData, flowData] = await Promise.all([tideRes.json(), flowRes.json()]) as [
@@ -92,7 +93,7 @@ export default function DarkPoolPage() {
     setSyncing(true);
     setSyncMsg(null);
     try {
-      const res = await fetch("/api/admin/sync/sp500-options", {
+      const res = await apiFetch("/api/admin/sync/sp500-options", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

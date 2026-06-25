@@ -5,6 +5,7 @@ import { RefreshCw } from "lucide-react";
 import { clsx } from "clsx";
 import GexChart from "@/components/gex/GexChart";
 import GexTrendChart, { type HistRow } from "@/components/gex/GexTrendChart";
+import { apiFetch } from "@/lib/apiBase";
 
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "dev-key-change-me";
 
@@ -81,7 +82,7 @@ export default function GexPage() {
 
   const fetchProfile = useCallback(async (sym: string) => {
     try {
-      const res = await fetch(`/api/gex/${encodeURIComponent(sym)}`, {
+      const res = await apiFetch(`/api/gex/${encodeURIComponent(sym)}`, {
         headers: { "X-API-Key": API_KEY },
       });
       if (!res.ok) throw new Error("Failed");
@@ -94,7 +95,7 @@ export default function GexPage() {
 
   const fetchHist = useCallback(async (sym: string) => {
     try {
-      const res = await fetch(`/api/stock/${encodeURIComponent(sym)}/gex/history`, {
+      const res = await apiFetch(`/api/stock/${encodeURIComponent(sym)}/gex/history`, {
         headers: { "X-API-Key": API_KEY },
         cache: "no-store",
       });

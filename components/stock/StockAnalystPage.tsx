@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { clsx } from "clsx";
+import { apiFetch } from "@/lib/apiBase";
 
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY ?? "";
 
@@ -53,7 +54,7 @@ export default function StockAnalystPage({ symbol }: { symbol: string }) {
     (async () => {
       try {
         setLoading(true);
-        const res = await fetch(`/api/analyst/${encodeURIComponent(symbol)}`, {
+        const res = await apiFetch(`/api/analyst/${encodeURIComponent(symbol)}`, {
           headers: { "X-API-Key": API_KEY },
           cache: "no-store",
         });

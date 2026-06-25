@@ -1,5 +1,6 @@
 import { buildMvpAccessHeaders } from "@/lib/access-key";
 import type { Locale } from "@/lib/i18n/types";
+import { apiFetch } from "@/lib/apiBase";
 
 export const PLAYBOOK_HINTS_FALLBACK: Record<string, string[]> = {
   expected_move: [
@@ -46,7 +47,7 @@ export function getPlaybookHintsFallback(topic: string, locale: Locale = "zh"): 
 export async function fetchPlaybookHints(topic: string, locale: Locale = "zh"): Promise<string[]> {
   const key = topic.trim().toLowerCase().replace(/-/g, "_");
   try {
-    const res = await fetch(`/api/mvp/playbook-hints?topic=${encodeURIComponent(key)}`, {
+    const res = await apiFetch(`/api/mvp/playbook-hints?topic=${encodeURIComponent(key)}`, {
       cache: "no-store",
       headers: buildMvpAccessHeaders(),
     });

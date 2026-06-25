@@ -5,6 +5,7 @@ import Link from "next/link";
 import clsx from "clsx";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
+import { apiFetch } from "@/lib/apiBase";
 
 type IntegrationPayload = {
   generated_at_utc?: string;
@@ -88,7 +89,7 @@ export default function SettingsPage() {
       return;
     }
     let cancel = false;
-    fetch("/api/billing/status", {
+    apiFetch("/api/billing/status", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ api_key: apiKey }),
@@ -132,7 +133,7 @@ export default function SettingsPage() {
       return;
     }
     let cancel = false;
-    fetch(`/api/alerts?api_key=${encodeURIComponent(apiKey)}`, { cache: "no-store" })
+    apiFetch(`/api/alerts?api_key=${encodeURIComponent(apiKey)}`, { cache: "no-store" })
       .then(async (res) => {
         const json = (await res.json()) as { data?: AlertItem[] };
         if (!cancel) setAlerts(json.data ?? []);
@@ -148,7 +149,7 @@ export default function SettingsPage() {
   useEffect(() => {
     let cancel = false;
     setLoading(true);
-    fetch("/api/integration/status?symbol=SPY")
+    apiFetch("/api/integration/status?symbol=SPY")
       .then(async (resp) => {
         const txt = await resp.text();
         if (!resp.ok) {
@@ -198,7 +199,7 @@ export default function SettingsPage() {
       setBillingMsg("请先输入至少 8 位 API 密钥并保存。");
       return;
     }
-    const res = await fetch("/api/billing/checkout", {
+    const res = await apiFetch("/api/billing/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ api_key: k }),
@@ -215,7 +216,7 @@ export default function SettingsPage() {
     setBillingMsg(null);
     const k = apiKey.trim();
     if (k.length < 8) return;
-    const res = await fetch("/api/billing/portal", {
+    const res = await apiFetch("/api/billing/portal", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ api_key: k }),
@@ -236,7 +237,7 @@ export default function SettingsPage() {
       return;
     }
     const threshold = Number(alertThreshold);
-    const res = await fetch("/api/alerts", {
+    const res = await apiFetch("/api/alerts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -251,7 +252,7 @@ export default function SettingsPage() {
       return;
     }
     setAlertMsg("预警创建成功。");
-    const refresh = await fetch(`/api/alerts?api_key=${encodeURIComponent(key)}`);
+    const refresh = await apiFetch(`/api/alerts?api_key=${encodeURIComponent(key)}`);
     const payload = (await refresh.json()) as { data?: AlertItem[] };
     setAlerts(payload.data ?? []);
   }

@@ -1,3 +1,4 @@
+import { apiFetch } from "@/lib/apiBase";
 import {
   OPTIONS_AJI_ACCESS_KEY_LS,
   buildMvpAccessHeaders,
@@ -164,7 +165,7 @@ export async function fetchAccessKeyStatus(
   }
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch("/api/access-keys/status", {
+  const res = await apiFetch("/api/access-keys/status", {
     method: "POST",
     headers,
     cache: "no-store",
@@ -208,7 +209,7 @@ export async function adminListAccessKeys(
   if (query?.key_type) qs.set("key_type", query.key_type);
   if (query?.bound_email) qs.set("bound_email", query.bound_email);
   const suffix = qs.toString() ? `?${qs}` : "";
-  const res = await fetch(`/api/access-keys${suffix}`, {
+  const res = await apiFetch(`/api/access-keys${suffix}`, {
     headers: adminAuthHeaders(token),
     cache: "no-store",
   });
@@ -222,7 +223,7 @@ export async function adminCreateAccessKey(
   token: string,
   body: { key_type: string; duration_days: number; note?: string; max_devices?: number },
 ): Promise<{ raw_key: string; data: AccessKeyAdminRow }> {
-  const res = await fetch("/api/access-keys", {
+  const res = await apiFetch("/api/access-keys", {
     method: "POST",
     headers: adminAuthHeaders(token),
     body: JSON.stringify(body),
@@ -240,7 +241,7 @@ export async function adminExtendAccessKey(
   keyPrefix: string,
   days: number,
 ): Promise<AccessKeyAdminRow> {
-  const res = await fetch(`/api/access-keys/${encodeURIComponent(keyPrefix)}/extend`, {
+  const res = await apiFetch(`/api/access-keys/${encodeURIComponent(keyPrefix)}/extend`, {
     method: "POST",
     headers: adminAuthHeaders(token),
     body: JSON.stringify({ days }),
@@ -251,7 +252,7 @@ export async function adminExtendAccessKey(
 }
 
 export async function adminRevokeAccessKey(token: string, keyPrefix: string): Promise<void> {
-  const res = await fetch(`/api/access-keys/${encodeURIComponent(keyPrefix)}/revoke`, {
+  const res = await apiFetch(`/api/access-keys/${encodeURIComponent(keyPrefix)}/revoke`, {
     method: "POST",
     headers: adminAuthHeaders(token),
   });
@@ -262,7 +263,7 @@ export async function adminRevokeAccessKey(token: string, keyPrefix: string): Pr
 }
 
 export async function adminUnbindAccessKeyDevice(token: string, keyPrefix: string): Promise<void> {
-  const res = await fetch(`/api/access-keys/${encodeURIComponent(keyPrefix)}/unbind-device`, {
+  const res = await apiFetch(`/api/access-keys/${encodeURIComponent(keyPrefix)}/unbind-device`, {
     method: "POST",
     headers: adminAuthHeaders(token),
   });
@@ -277,7 +278,7 @@ export async function adminPatchAccessKey(
   keyPrefix: string,
   body: { note?: string; expires_at?: string; duration_days?: number },
 ): Promise<AccessKeyAdminRow> {
-  const res = await fetch(`/api/access-keys/${encodeURIComponent(keyPrefix)}`, {
+  const res = await apiFetch(`/api/access-keys/${encodeURIComponent(keyPrefix)}`, {
     method: "PATCH",
     headers: adminAuthHeaders(token),
     body: JSON.stringify(body),
@@ -288,7 +289,7 @@ export async function adminPatchAccessKey(
 }
 
 export async function adminDeleteAccessKey(token: string, keyPrefix: string): Promise<void> {
-  const res = await fetch(`/api/access-keys/${encodeURIComponent(keyPrefix)}`, {
+  const res = await apiFetch(`/api/access-keys/${encodeURIComponent(keyPrefix)}`, {
     method: "DELETE",
     headers: adminAuthHeaders(token),
   });

@@ -47,6 +47,7 @@ import { LOCALE_CHANGE_EVENT, useI18n } from "@/lib/i18n/context";
 import type { Locale } from "@/lib/i18n/types";
 import { CHART, tooltipStyle } from "@/lib/chart-theme";
 import { buildMvpRequestHeaders } from "@/lib/access-key";
+import { apiFetch, resolveApiUrl } from "@/lib/apiBase";
 import { AccessKeyModal } from "@/components/access-key/AccessKeyModal";
 import { LockedContent } from "@/components/gate/LockedContent";
 import { UnlockPromptModal } from "@/components/gate/UnlockPromptModal";
@@ -534,9 +535,9 @@ async function fetchJson(
   authToken?: string | null,
   locale: Locale = "zh",
 ): Promise<JsonRecord> {
-  const url = new URL(path, typeof window !== "undefined" ? window.location.origin : "http://localhost");
+  const url = new URL(resolveApiUrl(path), typeof window !== "undefined" ? window.location.origin : "http://localhost");
   url.searchParams.set("locale", locale);
-  const res = await fetch(`${url.pathname}${url.search}`, {
+  const res = await apiFetch(`${url.pathname}${url.search}`, {
     cache: "no-store",
     headers: path.startsWith("/api/mvp") ? buildMvpRequestHeaders(undefined, authToken) : undefined,
   });

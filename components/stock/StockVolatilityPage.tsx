@@ -9,6 +9,7 @@ import {
   YAxis,
 } from "recharts";
 import { useEffect, useState } from "react";
+import { apiFetch } from "@/lib/apiBase";
 
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY ?? "";
 
@@ -23,7 +24,7 @@ export default function StockVolatilityPage({ symbol }: { symbol: string }) {
     setError(null);
     (async () => {
       try {
-        const res = await fetch(`/api/stock/${encodeURIComponent(symbol)}/volatility`, {
+        const res = await apiFetch(`/api/stock/${encodeURIComponent(symbol)}/volatility`, {
           headers: { "X-API-Key": API_KEY },
           cache: "no-store",
         });
@@ -149,7 +150,7 @@ function OptionsPriceHistory({ symbol }: { symbol: string }) {
       setLoading(true);
       setError(null);
       try {
-        const expsRes = await fetch(`/api/options/expirations/${encodeURIComponent(symbol)}`, {
+        const expsRes = await apiFetch(`/api/options/expirations/${encodeURIComponent(symbol)}`, {
           headers: { "X-API-Key": API_KEY }, cache: "no-store",
         });
         if (!expsRes.ok || c) { setLoading(false); return; }
@@ -162,10 +163,10 @@ function OptionsPriceHistory({ symbol }: { symbol: string }) {
         const expiry = future.length > 0 ? future[0] : exps[0];
 
         const [callRes, putRes] = await Promise.all([
-          fetch(`/api/options/atm-history/${encodeURIComponent(symbol)}?expiration=${expiry}&contract_type=call&days_back=60`, {
+          apiFetch(`/api/options/atm-history/${encodeURIComponent(symbol)}?expiration=${expiry}&contract_type=call&days_back=60`, {
             headers: { "X-API-Key": API_KEY }, cache: "no-store",
           }),
-          fetch(`/api/options/atm-history/${encodeURIComponent(symbol)}?expiration=${expiry}&contract_type=put&days_back=60`, {
+          apiFetch(`/api/options/atm-history/${encodeURIComponent(symbol)}?expiration=${expiry}&contract_type=put&days_back=60`, {
             headers: { "X-API-Key": API_KEY }, cache: "no-store",
           }),
         ]);
