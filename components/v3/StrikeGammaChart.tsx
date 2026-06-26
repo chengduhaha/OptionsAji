@@ -1,5 +1,7 @@
 "use client";
 
+import { formatMessage } from "@/lib/i18n/dictionary";
+import { useI18n } from "@/lib/i18n/context";
 type StrikeData = {
   strike: number;
   callGex: number;
@@ -18,10 +20,12 @@ export default function StrikeGammaChart({
   price: number;
   gammaFlip?: number;
 }) {
+  const { t } = useI18n();
+
   if (!strikes.length) {
     return (
       <p className="text-sm text-ink/60 py-10 text-center font-sans">
-        暂无 Strike Gamma 分布数据
+        {t("v3.chart.noStrike")}
       </p>
     );
   }
@@ -68,7 +72,7 @@ export default function StrikeGammaChart({
     refLines.push({
       val: gammaFlip,
       color: "#A799F0",
-      label: `Γ flip $${gammaFlip.toFixed(2)}`,
+      label: formatMessage(t("v3.chart.gammaFlipRef"), { value: gammaFlip.toFixed(2) }),
     });
   }
 
@@ -77,11 +81,11 @@ export default function StrikeGammaChart({
       <div className="flex flex-wrap gap-3 text-[11px] font-mono mb-3 text-ink/80">
         <span className="inline-flex items-center gap-1.5">
           <span className="w-3 h-3 bg-peach border-2 border-ink inline-block" />
-          Call GEX
+          {t("v3.chart.callGex")}
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="w-3 h-3 bg-lavender border-2 border-ink inline-block" />
-          Put GEX
+          {t("v3.chart.putGex")}
         </span>
       </div>
       <svg
@@ -90,7 +94,7 @@ export default function StrikeGammaChart({
         preserveAspectRatio="xMidYMid meet"
         className="min-w-[520px]"
         role="img"
-        aria-label={`${ticker} strike gamma distribution`}
+        aria-label={formatMessage(t("v3.chart.strikeAria"), { ticker })}
       >
         {[1, 0.5, 0, -0.5, -1].map((v) => {
           const y = PT + chartH / 2 - (v / 1) * (chartH / 2 - 6);

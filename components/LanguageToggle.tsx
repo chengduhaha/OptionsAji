@@ -7,17 +7,20 @@ import type { Locale } from "@/lib/i18n/types";
 const OPTIONS: Locale[] = ["zh", "en"];
 
 type LanguageToggleProps = {
-  variant?: "sidebar" | "header";
+  variant?: "sidebar" | "header" | "neo";
 };
 
 export default function LanguageToggle({ variant = "sidebar" }: LanguageToggleProps) {
   const { locale, setLocale, t } = useI18n();
   const isHeader = variant === "header";
+  const isNeo = variant === "neo";
 
   return (
     <div
       className={
-        isHeader
+        isNeo
+          ? "flex items-center gap-0.5 border-[3px] border-ink bg-cream p-0.5 shadow-neo-sm"
+          : isHeader
           ? "flex items-center gap-0.5 rounded-lg border border-border2 bg-panel/90 p-0.5 shadow-sm backdrop-blur-sm"
           : "flex items-center gap-1 rounded-lg border border-glass-border bg-glass p-1"
       }
@@ -26,7 +29,9 @@ export default function LanguageToggle({ variant = "sidebar" }: LanguageTogglePr
     >
       <Languages
         className={
-          isHeader
+          isNeo
+            ? "mx-1.5 h-4 w-4 text-ink"
+            : isHeader
             ? "mx-1.5 h-4 w-4 text-muted-foreground"
             : "mx-1 h-3.5 w-3.5 text-muted-foreground"
         }
@@ -42,10 +47,14 @@ export default function LanguageToggle({ variant = "sidebar" }: LanguageTogglePr
             aria-label={option === "zh" ? t("language.switchToZh") : t("language.switchToEn")}
             className={
               active
-                ? isHeader
+                ? isNeo
+                  ? "bg-peach border-2 border-ink px-2.5 py-1.5 text-[12px] font-bold font-mono text-ink shadow-neo-sm"
+                  : isHeader
                   ? "rounded-md bg-primary px-2.5 py-1.5 text-[12px] font-medium text-primary-foreground"
                   : "rounded-md bg-primary px-2 py-1 text-[11px] font-medium text-primary-foreground"
-                : isHeader
+                : isNeo
+                  ? "px-2.5 py-1.5 text-[12px] font-mono font-medium text-ink/60 transition-colors hover:text-ink"
+                  : isHeader
                   ? "rounded-md px-2.5 py-1.5 text-[12px] font-medium text-muted-foreground transition-colors hover:text-foreground"
                   : "rounded-md px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
             }

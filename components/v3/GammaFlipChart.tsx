@@ -12,6 +12,8 @@ import {
 } from "recharts";
 
 import type { HistRow } from "./NetGexTrendChart";
+import { formatMessage } from "@/lib/i18n/dictionary";
+import { useI18n } from "@/lib/i18n/context";
 
 const NEO_TOOLTIP = {
   backgroundColor: "#F5F2F0",
@@ -22,10 +24,12 @@ const NEO_TOOLTIP = {
 };
 
 export default function GammaFlipChart({ data }: { data: HistRow[] }) {
+  const { t } = useI18n();
+
   if (!data.length) {
     return (
       <p className="text-sm text-ink/60 py-10 text-center font-sans">
-        暂无 Gamma Flip 估算数据
+        {t("v3.chart.noFlip")}
       </p>
     );
   }
@@ -37,7 +41,7 @@ export default function GammaFlipChart({ data }: { data: HistRow[] }) {
     <div className="space-y-3">
       {typeof latestFlip === "number" ? (
         <div className="inline-block border-[3px] border-ink bg-lavender px-3 py-1.5 shadow-neo-sm font-mono text-sm font-bold">
-          当前估算: ${latestFlip.toFixed(2)}
+          {formatMessage(t("v3.chart.currentEstimate"), { value: latestFlip.toFixed(2) })}
         </div>
       ) : null}
       <ResponsiveContainer width="100%" height={260}>
@@ -62,7 +66,7 @@ export default function GammaFlipChart({ data }: { data: HistRow[] }) {
           <Line
             type="monotone"
             dataKey="flip"
-            name="Gamma Flip ($)"
+            name={t("v3.chart.gammaFlipLine")}
             stroke="#A799F0"
             strokeWidth={3}
             dot={sparse ? { r: 3, stroke: "#151617", strokeWidth: 2, fill: "#A799F0" } : false}

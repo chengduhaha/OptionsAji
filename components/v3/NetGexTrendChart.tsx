@@ -11,6 +11,8 @@ import {
   YAxis,
 } from "recharts";
 
+import { useI18n } from "@/lib/i18n/context";
+
 export type HistRow = {
   date: string;
   net?: number;
@@ -27,10 +29,12 @@ const NEO_TOOLTIP = {
 };
 
 export default function NetGexTrendChart({ data }: { data: HistRow[] }) {
+  const { t } = useI18n();
+
   if (!data.length) {
     return (
       <p className="text-sm text-ink/60 py-10 text-center font-sans">
-        暂无 Net GEX 趋势数据
+        {t("v3.chart.noNetGex")}
       </p>
     );
   }
@@ -71,7 +75,7 @@ export default function NetGexTrendChart({ data }: { data: HistRow[] }) {
           yAxisId="gx"
           type="monotone"
           dataKey="net"
-          name="Net GEX (Bn)"
+          name={t("v3.chart.netGexLine")}
           stroke="#FFBE98"
           strokeWidth={3}
           dot={sparse ? { r: 3, stroke: "#151617", strokeWidth: 2, fill: "#FFBE98" } : false}
@@ -81,7 +85,7 @@ export default function NetGexTrendChart({ data }: { data: HistRow[] }) {
           yAxisId="px"
           type="monotone"
           dataKey="close"
-          name="Close Price"
+          name={t("v3.chart.closePrice")}
           stroke="#151617"
           strokeWidth={2.5}
           dot={sparse ? { r: 3, stroke: "#151617", strokeWidth: 2, fill: "#F5F2F0" } : false}

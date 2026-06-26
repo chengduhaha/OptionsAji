@@ -8,11 +8,21 @@ export function apiBaseUrl(): string {
   return raw.replace(/\/$/, "");
 }
 
+/** Next.js proxy paths that differ on the direct FastAPI host. */
+export function remapDirectBackendPath(path: string): string {
+  const stockGexHistory = path.match(/^\/api\/stock\/([^/]+)\/gex\/history(\?.*)?$/);
+  if (stockGexHistory) {
+    const [, symbol, query = ""] = stockGexHistory;
+    return `/api/options/gex/history/${symbol}${query}`;
+  }
+  return path;
+}
+
 export function resolveApiUrl(path: string): string {
   const normalized = path.startsWith("/") ? path : `/${path}`;
   const base = apiBaseUrl();
   if (!base) return normalized;
-  return `${base}${normalized}`;
+  return `${base}${remapDirectBackendPath(normalized)}`;
 }
 
 export function usesDirectBackend(): boolean {
