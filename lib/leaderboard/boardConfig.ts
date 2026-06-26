@@ -1,0 +1,83 @@
+import type { BoardUiConfig } from "@/lib/leaderboard/types";
+
+export const BOARD_CONFIGS: Record<string, BoardUiConfig> = {
+  unusual: {
+    boardId: "unusual",
+    titleKey: "v3.boards.unusual.title",
+    answerKey: "v3.boards.unusual.answer",
+    heroColumn: "vol_oi_ratio",
+    columns: ["vol_oi_ratio", "volume", "oi", "turnover", "iv", "change_ratio"],
+    accent: "lavender",
+    showUnusualBadge: true,
+    paginated: true,
+  },
+  volume: {
+    boardId: "volume",
+    titleKey: "v3.boards.volume.title",
+    answerKey: "v3.boards.volume.answer",
+    heroColumn: "volume",
+    columns: ["volume", "turnover", "oi", "vol_oi_ratio", "iv", "change_ratio"],
+    accent: "peach",
+  },
+  "open-interest": {
+    boardId: "open-interest",
+    titleKey: "v3.boards.openInterest.title",
+    answerKey: "v3.boards.openInterest.answer",
+    heroColumn: "oi",
+    columns: ["oi", "volume", "oi_mcap", "iv", "dte"],
+    accent: "lavender",
+  },
+  turnover: {
+    boardId: "turnover",
+    titleKey: "v3.boards.turnover.title",
+    answerKey: "v3.boards.turnover.answer",
+    heroColumn: "turnover",
+    columns: ["turnover", "volume", "price", "oi", "iv"],
+    accent: "peach",
+  },
+  "high-iv": {
+    boardId: "high-iv",
+    titleKey: "v3.boards.highIv.title",
+    answerKey: "v3.boards.highIv.answer",
+    heroColumn: "iv",
+    columns: ["iv", "hv", "iv_hv", "volume", "dte"],
+    accent: "lavender",
+  },
+  "high-gamma": {
+    boardId: "high-gamma",
+    titleKey: "v3.boards.highGamma.title",
+    answerKey: "v3.boards.highGamma.answer",
+    heroColumn: "gamma",
+    columns: ["gamma", "delta", "vega", "theta", "oi", "dte"],
+    accent: "peach",
+  },
+  seller: {
+    boardId: "seller",
+    titleKey: "v3.boards.seller.title",
+    answerKey: "v3.boards.seller.answer",
+    heroColumn: "sell_ann",
+    columns: ["sell_ann", "sell_prob", "itm_prob", "iv", "spread", "dte"],
+    accent: "lavender",
+  },
+  liquidity: {
+    boardId: "liquidity",
+    titleKey: "v3.boards.liquidity.title",
+    answerKey: "v3.boards.liquidity.answer",
+    heroColumn: "spread",
+    columns: ["spread", "bid_vol", "ask_vol", "volume", "oi"],
+    accent: "peach",
+    invertHeroBar: true,
+  },
+};
+
+export const NAV_BOARDS = [
+  { href: "/options/unusual", labelKey: "v3.nav.unusual" },
+  { href: "/options/volume", labelKey: "v3.nav.volume" },
+  { href: "/options/open-interest", labelKey: "v3.nav.openInterest" },
+  { href: "/options/turnover", labelKey: "v3.nav.turnover" },
+  { href: "/options/high-iv", labelKey: "v3.nav.highIv" },
+  { href: "/options/high-gamma", labelKey: "v3.nav.highGamma" },
+  { href: "/options/seller", labelKey: "v3.nav.seller" },
+  { href: "/options/liquidity", labelKey: "v3.nav.liquidity" },
+  { href: "/options/gex", labelKey: "v3.nav.gex" },
+] as const;

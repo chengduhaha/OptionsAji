@@ -5,16 +5,12 @@ import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 
 import LanguageToggle from "@/components/LanguageToggle";
+import { NAV_BOARDS } from "@/lib/leaderboard/boardConfig";
 import { useI18n } from "@/lib/i18n/context";
 
 type V3OptionsShellProps = {
   children: React.ReactNode;
 };
-
-const NAV_ITEMS = [
-  { href: "/options/unusual", labelKey: "v3.nav.unusual" },
-  { href: "/options/gex", labelKey: "v3.nav.gex" },
-] as const;
 
 function useMarketSessionLabel(): string {
   const { t } = useI18n();
@@ -45,15 +41,18 @@ export default function V3OptionsShell({ children }: V3OptionsShellProps) {
     <div className="min-h-screen bg-cream text-ink">
       <div className="mx-auto max-w-[1440px] px-4 py-4 md:px-5 flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3 border-[3px] border-ink bg-cream px-4 py-2.5 shadow-neo-sm">
-          <div className="flex flex-wrap items-center gap-4">
-            <Link href="/options/unusual" className="font-display text-sm font-extrabold uppercase tracking-wider">
+          <div className="flex flex-col gap-2 w-full lg:w-auto">
+            <Link href="/options/unusual" className="font-display text-sm font-extrabold uppercase tracking-wider w-fit">
               OptionsAji <span className="opacity-55">v3.0</span>
             </Link>
-            <nav className="flex flex-wrap items-center gap-1" aria-label={t("v3.nav.options")}>
-              <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-ink/50 mr-1">
+            <nav
+              className="flex flex-wrap items-center gap-1"
+              aria-label={t("v3.nav.options")}
+            >
+              <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-ink/50 mr-1 w-full sm:w-auto">
                 {t("v3.nav.options")}
               </span>
-              {NAV_ITEMS.map((item) => {
+              {NAV_BOARDS.map((item) => {
                 const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
                 return (
                   <Link
@@ -61,7 +60,7 @@ export default function V3OptionsShell({ children }: V3OptionsShellProps) {
                     href={item.href}
                     aria-current={active ? "page" : undefined}
                     className={clsx(
-                      "border-2 border-ink px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wide transition-colors",
+                      "border-2 border-ink px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wide transition-colors",
                       active
                         ? "bg-lavender shadow-neo-sm"
                         : "bg-cream hover:bg-peach/40",
