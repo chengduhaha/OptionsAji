@@ -8,14 +8,25 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      { source: "/qa", destination: "/ai", permanent: false },
+      // v3: all legacy routes → home
+      { source: "/login", destination: "/", permanent: false },
+      { source: "/register", destination: "/", permanent: false },
+      { source: "/landing", destination: "/", permanent: false },
+      { source: "/mvp", destination: "/", permanent: false },
+      { source: "/ai", destination: "/", permanent: false },
+      { source: "/gex", destination: "/", permanent: false },
       { source: "/signals", destination: "/", permanent: false },
-      { source: "/gex", destination: "/stock/SPY/gex", permanent: false },
-      { source: "/insider", destination: "/options/unusual", permanent: false },
-      { source: "/market", destination: "/options/unusual", permanent: false },
-      { source: "/scanner", destination: "/options/unusual", permanent: false },
-      { source: "/feed", destination: "/cross-market/xpoz", permanent: false },
-      { source: "/scanner/divergence", destination: "/options/unusual", permanent: false },
+      { source: "/feed", destination: "/", permanent: false },
+      { source: "/scanner/:path*", destination: "/", permanent: false },
+      { source: "/stock/:path*", destination: "/", permanent: false },
+      { source: "/settings/:path*", destination: "/", permanent: false },
+      { source: "/admin/:path*", destination: "/", permanent: false },
+      { source: "/cross-market/:path*", destination: "/", permanent: false },
+      { source: "/market", destination: "/", permanent: false },
+      { source: "/portfolio", destination: "/", permanent: false },
+      { source: "/news", destination: "/", permanent: false },
+      { source: "/learn", destination: "/", permanent: false },
+      { source: "/options/:path*", destination: "/", permanent: false },
     ];
   },
 };

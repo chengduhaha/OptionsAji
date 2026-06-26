@@ -512,3 +512,94 @@
 .stagger-3 { animation-delay: 0.3s; }
 .stagger-4 { animation-delay: 0.4s; }
 .stagger-5 { animation-delay: 0.5s; }
+
+/* ===== OptionsAji v3 Neo-Brutalist (Pastel Soft) ===== */
+@theme {
+  --color-cream: #F5F2F0;
+  --color-ink: #151617;
+  --color-peach: #FFBE98;
+  --color-lavender: #A799F0;
+  --font-display: var(--font-display), 'Syne', system-ui, sans-serif;
+  --font-sans: var(--font-geist-sans), 'Geist Sans', system-ui, sans-serif;
+  --shadow-neo: 5px 5px 0 #151617;
+  --shadow-neo-sm: 3px 3px 0 #151617;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.shadow-neo {
+  box-shadow: var(--shadow-neo);
+}
+
+.shadow-neo-sm {
+  box-shadow: var(--shadow-neo-sm);
+}
+
+.neo-panel {
+  transition: transform 0.12s ease;
+}
+
+.neo-panel:hover {
+  transform: translate(-1px, -1px);
+}
+
+.neo-accent-peach header {
+  background: color-mix(in srgb, #FFBE98 35%, #F5F2F0);
+}
+
+.neo-accent-lavender header {
+  background: color-mix(in srgb, #A799F0 28%, #F5F2F0);
+}
+
+.neo-input {
+  background: #F5F2F0;
+  border: 3px solid #151617;
+  box-shadow: 3px 3px 0 #151617;
+  padding: 0.5rem 0.75rem;
+  outline: none;
+}
+
+.neo-input:focus {
+  box-shadow: 5px 5px 0 #151617;
+}
+
+.neo-button {
+  background: #151617;
+  color: #F5F2F0;
+  border: 3px solid #151617;
+  box-shadow: 3px 3px 0 #A799F0;
+  padding: 0.5rem 1rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.neo-button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 #A799F0;
+}
+
+.neo-button:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 #A799F0;
+}
+
+.neo-badge {
+  display: inline-block;
+  background: #FFBE98;
+  border: 3px solid #151617;
+  box-shadow: 3px 3px 0 #151617;
+  padding: 0.25rem 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.neo-stat {
+  display: inline-block;
+  background: #F5F2F0;
+  border: 2px solid #151617;
+  padding: 0.2rem 0.6rem;
+}

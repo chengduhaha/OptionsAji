@@ -1,40 +1,36 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { JetBrains_Mono, Syne } from "next/font/google";
 import Providers from "./providers";
 import "./globals.css";
 
-const inter = Inter({
+const syne = Syne({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-display",
+  weight: ["700", "800"],
 });
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  variable: "--font-jetbrains-mono",
+  variable: "--font-mono",
 });
 
 export const metadata: Metadata = {
-  title: "OptionsAji - AI 期权分析平台",
-  description: "AI 辅助的美股期权数据分析与教育平台，整合 GEX、期权链、宏观事件与研究笔记",
-  keywords: ["期权", "美股", "GEX", "AI分析", "期权教育", "Gamma Exposure"],
+  title: "OptionsAji — Gamma Exposure",
+  description: "美股期权 Gamma Exposure 分析 — Strike 分布、Net GEX 趋势、Gamma Flip 估算",
+  keywords: ["期权", "GEX", "Gamma Exposure", "SPY", "OptionsAji"],
   authors: [{ name: "OptionsAji" }],
   openGraph: {
-    title: "OptionsAji - AI 期权分析平台",
-    description: "AI 辅助的美股期权数据分析与教育平台",
+    title: "OptionsAji — Gamma Exposure",
+    description: "Strike Gamma 分布 · Net GEX 趋势 · Gamma Flip 估算",
     type: "website",
   },
 };
 
 export const viewport: Viewport = {
-  colorScheme: "light dark",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f7f9" },
-    { media: "(prefers-color-scheme: dark)", color: "#0e131b" },
-  ],
+  colorScheme: "light",
+  themeColor: "#F5F2F0",
 };
-
-// Applied before paint to avoid a theme flash. Default is light; `.dark` opts in.
-const themeInitScript = `(function(){try{if(localStorage.getItem('theme')==='dark'){document.documentElement.classList.add('dark');}}catch(e){}})();`;
 
 export default function RootLayout({
   children,
@@ -45,12 +41,9 @@ export default function RootLayout({
     <html
       lang="zh"
       suppressHydrationWarning
-      className={`${inter.variable} ${jetbrainsMono.variable} bg-background`}
+      className={`${GeistSans.variable} ${syne.variable} ${jetbrainsMono.variable}`}
     >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
-      <body className="bg-background text-foreground font-sans antialiased">
+      <body className="bg-cream text-ink font-sans antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>
