@@ -1,5 +1,5 @@
-import V3GexDashboard from "@/components/v3/V3GexDashboard";
+import { redirect } from "next/navigation";
 
 export default function HomePage() {
-  return <V3GexDashboard />;
+  redirect("/options/unusual");
 }

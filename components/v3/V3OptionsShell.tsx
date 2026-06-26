@@ -1,0 +1,98 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { clsx } from "clsx";
+
+import LanguageToggle from "@/components/LanguageToggle";
+import { useI18n } from "@/lib/i18n/context";
+
+type V3OptionsShellProps = {
+  children: React.ReactNode;
+};
+
+const NAV_ITEMS = [
+  { href: "/options/unusual", labelKey: "v3.nav.unusual" },
+  { href: "/options/gex", labelKey: "v3.nav.gex" },
+] as const;
+
+function useMarketSessionLabel(): string {
+  const { t } = useI18n();
+  const now = new Date();
+  const et = new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
+  const day = et.getDay();
+  const hour = et.getHours();
+  const minute = et.getMinutes();
+  const minutes = hour * 60 + minute;
+
+  if (day === 0 || day === 6) return t("mvp.session.closed");
+  if (minutes >= 4 * 60 && minutes < 9 * 60 + 30) return t("mvp.session.preMarket");
+  if (minutes >= 9 * 60 + 30 && minutes < 16 * 60) return t("mvp.session.marketOpen");
+  if (minutes >= 16 * 60 && minutes < 20 * 60) return t("mvp.session.afterHours");
+  return t("mvp.session.closed");
+}
+
+export default function V3OptionsShell({ children }: V3OptionsShellProps) {
+  const pathname = usePathname();
+  const { t } = useI18n();
+  const sessionLabel = useMarketSessionLabel();
+  const isOpen =
+    sessionLabel === t("mvp.session.marketOpen") ||
+    sessionLabel === t("mvp.session.preMarket") ||
+    sessionLabel === t("mvp.session.afterHours");
+
+  return (
+    <div className="min-h-screen bg-cream text-ink">
+      <div className="mx-auto max-w-[1440px] px-4 py-4 md:px-5 flex flex-col gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-[3px] border-ink bg-cream px-4 py-2.5 shadow-neo-sm">
+          <div className="flex flex-wrap items-center gap-4">
+            <Link href="/options/unusual" className="font-display text-sm font-extrabold uppercase tracking-wider">
+              OptionsAji <span className="opacity-55">v3.0</span>
+            </Link>
+            <nav className="flex flex-wrap items-center gap-1" aria-label={t("v3.nav.options")}>
+              <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-ink/50 mr-1">
+                {t("v3.nav.options")}
+              </span>
+              {NAV_ITEMS.map((item) => {
+                const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    className={clsx(
+                      "border-2 border-ink px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wide transition-colors",
+                      active
+                        ? "bg-lavender shadow-neo-sm"
+                        : "bg-cream hover:bg-peach/40",
+                    )}
+                  >
+                    {t(item.labelKey)}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <LanguageToggle variant="neo" />
+            <div
+              className={clsx(
+                "flex items-center gap-2 border-[3px] border-ink px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider shadow-neo-sm",
+                isOpen ? "bg-peach" : "bg-cream",
+              )}
+            >
+              <span
+                className={clsx(
+                  "h-2 w-2 rounded-full border-2 border-ink",
+                  isOpen ? "bg-green animate-pulse" : "bg-ink/30",
+                )}
+              />
+              {sessionLabel}
+            </div>
+          </div>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}

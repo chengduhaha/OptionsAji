@@ -86,7 +86,7 @@ function mergeHistory(profile: GexProfile | null, hist: GexHistApi | null): Hist
     .map((k) => byDay[k]!);
 }
 
-export default function V3GexDashboard() {
+export default function V3GexDashboard({ embedded = false }: { embedded?: boolean }) {
   const { t } = useI18n();
   const [symbol, setSymbol] = useState(DEFAULT_SYMBOL);
   const [input, setInput] = useState(DEFAULT_SYMBOL);
@@ -160,24 +160,59 @@ export default function V3GexDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-cream text-ink">
-      <header className="border-b-[3px] border-ink bg-peach px-4 py-5 md:px-8 shadow-neo-sm">
-        <div className="mx-auto max-w-6xl flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-widest text-ink/70">
-              {t("v3.version")}
-            </p>
-            <h1 className="font-display text-3xl md:text-4xl font-extrabold tracking-tight">
-              {t("v3.title")}
-            </h1>
+    <div className={embedded ? "" : "min-h-screen bg-cream text-ink"}>
+      {!embedded ? (
+        <header className="border-b-[3px] border-ink bg-peach px-4 py-5 md:px-8 shadow-neo-sm">
+          <div className="mx-auto max-w-6xl flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-widest text-ink/70">
+                {t("v3.version")}
+              </p>
+              <h1 className="font-display text-3xl md:text-4xl font-extrabold tracking-tight">
+                {t("v3.title")}
+              </h1>
+            </div>
+            <div className="flex w-full md:w-auto items-center gap-3">
+              <form onSubmit={onSubmit} className="flex flex-1 md:flex-initial gap-2">
+                <label htmlFor="symbol-input" className="sr-only">
+                  {t("v3.symbolLabel")}
+                </label>
+                <input
+                  id="symbol-input"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value.toUpperCase())}
+                  placeholder="SPY"
+                  className="neo-input flex-1 md:w-44 font-mono text-sm uppercase"
+                  maxLength={12}
+                />
+                <button type="submit" className="neo-button flex items-center gap-1.5 shrink-0">
+                  <Search className="w-4 h-4" />
+                  {t("v3.search")}
+                </button>
+              </form>
+              <LanguageToggle variant="neo" />
+            </div>
           </div>
-          <div className="flex w-full md:w-auto items-center gap-3">
-            <form onSubmit={onSubmit} className="flex flex-1 md:flex-initial gap-2">
-              <label htmlFor="symbol-input" className="sr-only">
+        </header>
+      ) : null}
+
+      <main className={embedded ? "space-y-6" : "mx-auto max-w-6xl px-4 py-6 md:px-8 md:py-8 space-y-6"}>
+        {embedded ? (
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between border-b-[3px] border-ink pb-4">
+            <div>
+              <p className="font-mono text-[11px] uppercase tracking-widest text-ink/70">
+                {t("v3.version")}
+              </p>
+              <h1 className="font-display text-3xl md:text-4xl font-extrabold tracking-tight">
+                {t("v3.title")}
+              </h1>
+            </div>
+            <form onSubmit={onSubmit} className="flex w-full md:w-auto gap-2">
+              <label htmlFor="symbol-input-embedded" className="sr-only">
                 {t("v3.symbolLabel")}
               </label>
               <input
-                id="symbol-input"
+                id="symbol-input-embedded"
                 value={input}
                 onChange={(e) => setInput(e.target.value.toUpperCase())}
                 placeholder="SPY"
@@ -189,12 +224,8 @@ export default function V3GexDashboard() {
                 {t("v3.search")}
               </button>
             </form>
-            <LanguageToggle variant="neo" />
           </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-6xl px-4 py-6 md:px-8 md:py-8 space-y-6">
+        ) : null}
         <div className="flex flex-wrap items-center gap-3 font-mono text-sm">
           <span className="neo-badge">{symbol}</span>
           {profile ? (

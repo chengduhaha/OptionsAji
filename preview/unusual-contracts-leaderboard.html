@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>异动合约榜 · OptionsAji v3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --cream: #F5F2F0;
+      --ink: #151617;
+      --peach: #FFBE98;
+      --lavender: #A799F0;
+      --green: #00D4AA;
+      --red: #FF6B6B;
+      --green-tint: #D4F5EC;
+      --red-tint: #FFE0E0;
+      --border: 3px solid var(--ink);
+      --shadow: 5px 5px 0 var(--ink);
+      --shadow-sm: 3px 3px 0 var(--ink);
+      --font-display: 'Syne', system-ui, sans-serif;
+      --font-body: system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', sans-serif;
+      --font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.45;
+      min-height: 100vh;
+      padding: 1.25rem;
+    }
+
+    .page {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      padding: 0.6rem 1rem;
+      background: var(--cream);
+      border: var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .brand span { color: var(--ink); opacity: 0.55; font-weight: 700; }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .lang-toggle {
+      display: flex;
+      border: var(--border);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .lang-toggle button {
+      background: var(--cream);
+      border: none;
+      border-right: var(--border);
+      padding: 0.35rem 0.7rem;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--ink);
+      transition: background 0.1s;
+    }
+
+    .lang-toggle button:last-child { border-right: none; }
+    .lang-toggle button.active { background: var(--lavender); }
+
+    .meta-chip {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 0.3rem 0.6rem;
+      border: 2px solid var(--ink);
+      background: var(--cream);
+    }
+
+    .session-badge {
+      background: var(--peach);
+      border: var(--border);
+      box-shadow: var(--shadow-sm);
+      padding: 0.35rem 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .session-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--green);
+      border: 2px solid var(--ink);
+      border-radius: 50%;
+      animation: pulse 2s ease infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* ── Header panel ── */
+    .header-panel {
+      background: var(--cream);
+      border: var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .header-panel .panel-head {
+      background: color-mix(in srgb, var(--lavender) 28%, var(--cream));
+      border-bottom: var(--border);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .title-block h1 {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+      text-transform: uppercase;
+    }
+
+    .title-block .subtitle {
+      font-size: 0.85rem;
+      opacity: 0.65;
+      margin-top: 0.25rem;
+      font-weight: 500;
+    }
+
+    .filter-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--peach);
+      border: var(--border);
+      box-shadow: var(--shadow-sm);
+      padding: 0.5rem 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .filter-badge .sep { opacity: 0.4; }
+
+    /* ── Stats row ── */
+    .stats-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border-bottom: var(--border);
+      background: color-mix(in srgb, var(--peach) 12%, var(--cream));
+    }
+
+    .neo-stat {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 0.3rem 0.65rem;
+      border: 2px solid var(--ink);
+      background: var(--cream);
+    }
+
+    .neo-stat strong {
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    /* ── Table ── */
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--ink);
+      color: var(--cream);
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.65rem 0.75rem;
+      text-align: left;
+      white-space: nowrap;
+      border-right: 1px solid rgba(245, 242, 240, 0.15);
+    }
+
+    thead th:last-child { border-right: none; }
+    thead th.num { text-align: right; }
+
+    tbody tr {
+      border-bottom: 2px solid var(--ink);
+      transition: background 0.1s ease, transform 0.1s ease;
+    }
+
+    tbody tr:hover {
+      background: color-mix(in srgb, var(--lavender) 18%, var(--cream));
+      transform: translateX(2px);
+    }
+
+    tbody tr.hot {
+      background: color-mix(in srgb, var(--peach) 35%, var(--cream));
+    }
+
+    tbody tr.hot:hover {
+      background: color-mix(in srgb, var(--peach) 50%, var(--cream));
+    }
+
+    td {
+      padding: 0.6rem 0.75rem;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    td.num {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .rank {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1rem;
+      width: 2.5rem;
+      text-align: center;
+    }
+
+    .rank-1 { color: var(--ink); }
+    .rank-2, .rank-3 { opacity: 0.85; }
+
+    .contract-name {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.78rem;
+      letter-spacing: -0.01em;
+    }
+
+    .underlying {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 0.85rem;
+      letter-spacing: 0.02em;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      border: 2px solid var(--ink);
+      box-shadow: 2px 2px 0 var(--ink);
+    }
+
+    .pill-call {
+      background: var(--green-tint);
+      color: #0A6B52;
+    }
+
+    .pill-put {
+      background: var(--red-tint);
+      color: #A03030;
+    }
+
+    .vol-oi-hot {
+      background: var(--peach);
+      border: 2px solid var(--ink);
+      box-shadow: 2px 2px 0 var(--ink);
+      padding: 0.1rem 0.4rem;
+      font-weight: 700;
+    }
+
+    .change-neg { color: #C03030; }
+    .change-pos { color: #0A6B52; }
+
+    .dte-tag {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      font-weight: 700;
+      background: var(--lavender);
+      border: 2px solid var(--ink);
+      padding: 0.1rem 0.35rem;
+      margin-left: 0.35rem;
+      vertical-align: middle;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 0.5rem;
+      padding: 0.75rem 1rem;
+      border: var(--border);
+      box-shadow: var(--shadow-sm);
+      font-size: 0.72rem;
+      opacity: 0.7;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    .sort-note {
+      padding: 0.5rem 1.5rem;
+      font-size: 0.72rem;
+      opacity: 0.6;
+      font-family: var(--font-mono);
+      border-bottom: var(--border);
+    }
+
+    @media (max-width: 900px) {
+      body { padding: 0.75rem; }
+      .header-panel .panel-head { padding: 1rem; }
+      .stats-row { padding: 0.6rem 1rem; }
+      td, th { padding: 0.5rem 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- Top bar -->
+    <div class="topbar">
+      <div class="brand">OptionsAji <span>v3.0</span></div>
+      <div class="topbar-right">
+        <div class="lang-toggle" role="group" aria-label="Language">
+          <button type="button" class="active" aria-pressed="true">EN</button>
+          <button type="button" aria-pressed="false">中文</button>
+        </div>
+        <span class="meta-chip" id="refresh-time">刷新 14:12:44 ET</span>
+        <div class="session-badge">
+          <span class="session-dot"></span>
+          Market Open
+        </div>
+      </div>
+    </div>
+
+    <!-- Main panel -->
+    <div class="header-panel">
+      <div class="panel-head">
+        <div class="title-block">
+          <h1>异动合约榜</h1>
+          <p class="subtitle">Unusual Contracts Leaderboard · Futu get_option_screen</p>
+        </div>
+        <div class="filter-badge">
+          <span>Vol/OI ≥ 3</span>
+          <span class="sep">·</span>
+          <span>Volume ≥ 500</span>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <span class="neo-stat">Universe <strong>1,919,926</strong> contracts</span>
+        <span class="neo-stat">Latency <strong>~240 ms</strong></span>
+        <span class="neo-stat">Last updated <strong>2026-06-26 14:12 UTC</strong></span>
+        <span class="neo-stat">Rows <strong>10</strong> / page</span>
+        <span class="neo-stat">Source <strong>Futu OpenD</strong></span>
+      </div>
+
+      <p class="sort-note">Sorted by Vol/OI ratio ↓ · US stock options · 0DTE heavy session</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Contract</th>
+              <th>Underlying</th>
+              <th>Type</th>
+              <th class="num">Strike</th>
+              <th>Expiry</th>
+              <th class="num">Volume</th>
+              <th class="num">OI</th>
+              <th class="num">Vol/OI</th>
+              <th class="num">Premium</th>
+              <th class="num">IV</th>
+              <th class="num">Delta</th>
+              <th class="num">Change%</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body">
+            <!-- rows injected by script for maintainability -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <footer class="footer">
+      本平台仅提供数据分析和教育内容，不构成投资建议。期权交易具有高风险，请根据自身情况谨慎决策。
+      <br />
+      Data sample from Futu OpenAPI get_option_screen · OptionsAji v3 Neo-Brutalist Preview
+    </footer>
+  </div>
+
+  <script>
+    // Futu production sample 2026-06-26, re-sorted by vol_oi_ratio desc
+    const ROWS = [
+      { rank: 1,  option_name: "SPY 260626 729.00C", underlying: "SPY",  type: "C", strike: 729, expiry: "2026-06-26", dte: 0, volume: 73320, oi: 2544,  vol_oi: 28.82, premium: 4.61, iv: 26.6, delta: 0.786, change: -30.2 },
+      { rank: 2,  option_name: "SPY 260626 730.00C", underlying: "SPY",  type: "C", strike: 730, expiry: "2026-06-26", dte: 0, volume: 94197, oi: 3288,  vol_oi: 28.65, premium: 3.78, iv: 26.4, delta: 0.727, change: -35.5 },
+      { rank: 3,  option_name: "SPY 260626 731.00C", underlying: "SPY",  type: "C", strike: 731, expiry: "2026-06-26", dte: 0, volume: 63114, oi: 2939,  vol_oi: 21.47, premium: 3.27, iv: 27.7, delta: 0.628, change: -36.0 },
+      { rank: 4,  option_name: "SPY 260626 728.00P", underlying: "SPY",  type: "P", strike: 728, expiry: "2026-06-26", dte: 0, volume: 77904, oi: 5039,  vol_oi: 15.46, premium: 0.68, iv: 31.5, delta: -0.201, change: -49.0 },
+      { rank: 5,  option_name: "SPY 260626 727.00P", underlying: "SPY",  type: "P", strike: 727, expiry: "2026-06-26", dte: 0, volume: 55727, oi: 5834,  vol_oi: 9.55,  premium: 0.57, iv: 32.3, delta: -0.164, change: -46.9 },
+      { rank: 6,  option_name: "SPY 260626 732.00C", underlying: "SPY",  type: "C", strike: 732, expiry: "2026-06-26", dte: 0, volume: 76744, oi: 8686,  vol_oi: 8.84,  premium: 2.39, iv: 25.5, delta: 0.586, change: -45.3 },
+      { rank: 7,  option_name: "SPY 260626 733.00C", underlying: "SPY",  type: "C", strike: 733, expiry: "2026-06-26", dte: 0, volume: 70885, oi: 13400, vol_oi: 5.29,  premium: 2.01, iv: 26.3, delta: 0.480, change: -44.5 },
+      { rank: 8,  option_name: "SPY 260626 725.00P", underlying: "SPY",  type: "P", strike: 725, expiry: "2026-06-26", dte: 0, volume: 66983, oi: 17442, vol_oi: 3.84,  premium: 0.38, iv: 33.8, delta: -0.107, change: -48.3 },
+      { rank: 9,  option_name: "NVDA 260626 195.00C", underlying: "NVDA", type: "C", strike: 195, expiry: "2026-06-26", dte: 0, volume: 56735, oi: 15225, vol_oi: 3.73,  premium: 0.61, iv: 57.1, delta: 0.334, change: -71.2 },
+      { rank: 10, option_name: "SPY 260626 735.00C", underlying: "SPY",  type: "C", strike: 735, expiry: "2026-06-26", dte: 0, volume: 69128, oi: 19306, vol_oi: 3.58,  premium: 0.95, iv: 24.0, delta: 0.339, change: -55.4 },
+    ];
+
+    function fmtNum(n) {
+      return n.toLocaleString("en-US");
+    }
+
+    function fmtVolOi(v) {
+      return v.toFixed(2);
+    }
+
+    function fmtPct(v, signed) {
+      const s = signed && v > 0 ? "+" : "";
+      return s + v.toFixed(1) + "%";
+    }
+
+    function fmtDelta(d) {
+      const sign = d >= 0 ? "" : "";
+      return sign + d.toFixed(3);
+    }
+
+    const tbody = document.getElementById("leaderboard-body");
+    tbody.innerHTML = ROWS.map((r) => {
+      const isHot = r.vol_oi > 10;
+      const isCall = r.type === "C";
+      const changeClass = r.change >= 0 ? "change-pos" : "change-neg";
+      const dteBadge = r.dte === 0 ? '<span class="dte-tag">0DTE</span>' : "";
+
+      return `
+        <tr class="${isHot ? "hot" : ""}">
+          <td class="rank rank-${r.rank}">${r.rank}</td>
+          <td class="contract-name">${r.option_name}</td>
+          <td class="underlying">${r.underlying}</td>
+          <td><span class="pill ${isCall ? "pill-call" : "pill-put"}">${r.type}</span></td>
+          <td class="num">${r.strike.toFixed(2)}</td>
+          <td>${r.expiry.slice(5)}${dteBadge}</td>
+          <td class="num">${fmtNum(r.volume)}</td>
+          <td class="num">${fmtNum(r.oi)}</td>
+          <td class="num">${isHot ? `<span class="vol-oi-hot">${fmtVolOi(r.vol_oi)}</span>` : fmtVolOi(r.vol_oi)}</td>
+          <td class="num">$${r.premium.toFixed(2)}</td>
+          <td class="num">${r.iv.toFixed(1)}%</td>
+          <td class="num">${fmtDelta(r.delta)}</td>
+          <td class="num ${changeClass}">${fmtPct(r.change, true)}</td>
+        </tr>
+      `;
+    }).join("");
+
+    // Visual-only lang toggle
+    document.querySelectorAll(".lang-toggle button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".lang-toggle button").forEach((b) => {
+          b.classList.remove("active");
+          b.setAttribute("aria-pressed", "false");
+        });
+        btn.classList.add("active");
+        btn.setAttribute("aria-pressed", "true");
+      });
+    });
+  </script>
+</body>
+</html>

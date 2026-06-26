@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
       { source: "/landing", destination: "/", permanent: false },
       { source: "/mvp", destination: "/", permanent: false },
       { source: "/ai", destination: "/", permanent: false },
-      { source: "/gex", destination: "/", permanent: false },
+      { source: "/gex", destination: "/options/gex", permanent: false },
       { source: "/signals", destination: "/", permanent: false },
       { source: "/feed", destination: "/", permanent: false },
       { source: "/scanner/:path*", destination: "/", permanent: false },
@@ -26,7 +26,6 @@ const nextConfig: NextConfig = {
       { source: "/portfolio", destination: "/", permanent: false },
       { source: "/news", destination: "/", permanent: false },
       { source: "/learn", destination: "/", permanent: false },
-      { source: "/options/:path*", destination: "/", permanent: false },
     ];
   },
 };
