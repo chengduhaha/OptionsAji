@@ -82,28 +82,27 @@ export default function V3GexDashboard() {
   const [profile, setProfile] = useState<GexProfile | null>(null);
   const [hist, setHist] = useState<GexHistApi | null>(null);
   const [loading, setLoading] = useState(true);
+  const [histLoading, setHistLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async (sym: string) => {
     setLoading(true);
+    setHistLoading(true);
     setError(null);
+    setProfile(null);
+    setHist(null);
     const upper = sym.trim().toUpperCase();
     if (!upper) {
       setLoading(false);
+      setHistLoading(false);
       return;
     }
     try {
-      const [gexRes, histRes] = await Promise.all([
-        apiFetch(`/api/stock/${encodeURIComponent(upper)}/gex`, { cache: "no-store" }),
-        apiFetch(`/api/stock/${encodeURIComponent(upper)}/gex/history`, { cache: "no-store" }),
-      ]);
+      const gexRes = await apiFetch(`/api/stock/${encodeURIComponent(upper)}/gex`, {
+        cache: "no-store",
+      });
       if (!gexRes.ok) throw new Error(`GEX ${gexRes.status}`);
       setProfile((await gexRes.json()) as GexProfile);
-      if (histRes.ok) {
-        setHist((await histRes.json()) as GexHistApi);
-      } else {
-        setHist(null);
-      }
     } catch {
       setProfile(null);
       setHist(null);
@@ -111,6 +110,24 @@ export default function V3GexDashboard() {
     } finally {
       setLoading(false);
     }
+
+    void (async () => {
+      try {
+        const histRes = await apiFetch(
+          `/api/stock/${encodeURIComponent(upper)}/gex/history`,
+          { cache: "no-store" },
+        );
+        if (histRes.ok) {
+          setHist((await histRes.json()) as GexHistApi);
+        } else {
+          setHist(null);
+        }
+      } catch {
+        setHist(null);
+      } finally {
+        setHistLoading(false);
+      }
+    })();
   }, []);
 
   useEffect(() => {
@@ -212,7 +229,13 @@ export default function V3GexDashboard() {
             subtitle="Net Gamma Exposure 与标的收盘价历史趋势"
             accent="lavender"
           >
-            <NetGexTrendChart data={merged} />
+            {histLoading ? (
+              <p className="text-sm text-ink/60 py-10 text-center font-mono">
+                历史趋势加载中（约需 30–60 秒）…
+              </p>
+            ) : (
+              <NetGexTrendChart data={merged} />
+            )}
           </NeoPanel>
 
           <NeoPanel
@@ -220,7 +243,13 @@ export default function V3GexDashboard() {
             subtitle="做市商 Gamma 翻转点位历史估算"
             accent="lavender"
           >
-            <GammaFlipChart data={merged} />
+            {histLoading ? (
+              <p className="text-sm text-ink/60 py-10 text-center font-mono">
+                Gamma Flip 历史加载中…
+              </p>
+            ) : (
+              <GammaFlipChart data={merged} />
+            )}
           </NeoPanel>
         </div>
 
