@@ -54,6 +54,16 @@ export type LeaderboardResponse = {
   updated_at?: string;
   cache_ttl_seconds?: number;
   error?: string;
+  locked?: boolean;
+  access?: {
+    tier: string;
+    is_member: boolean;
+    locked: boolean;
+    row_limit: number | null;
+    allowed_filters: string[];
+    allowed_top_n: number[];
+    max_pages: number | null;
+  };
 };
 
 export type ColumnKey =

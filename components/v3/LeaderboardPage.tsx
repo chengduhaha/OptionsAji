@@ -1,14 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { clsx } from "clsx";
 
+import { MembershipExpiryBanner, MembershipPaywall } from "@/components/v3/MembershipPaywall";
 import { NeoPanel } from "@/components/v3/NeoPanel";
+import { useAuth } from "@/lib/auth-context";
+import { authFetch } from "@/lib/apiBase";
 import { BOARD_CONFIGS } from "@/lib/leaderboard/boardConfig";
 import { formatContractStrike } from "@/lib/leaderboard/formatContract";
 import type { BoardId, ColumnKey, LeaderboardResponse, LeaderboardRow } from "@/lib/leaderboard/types";
 import { useLeaderboardFilters } from "@/lib/leaderboard/useLeaderboardFilters";
-import { apiFetch } from "@/lib/apiBase";
+import { defaultBoardAccess, type BoardAccessMeta } from "@/lib/membership";
 import { formatMessage } from "@/lib/i18n/dictionary";
 import { useI18n } from "@/lib/i18n/context";
 
@@ -185,7 +189,9 @@ type LeaderboardPageProps = {
 export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
   const config = BOARD_CONFIGS[boardId];
   const { t, locale } = useI18n();
+  const { user, isMember, ready: authReady } = useAuth();
   const [data, setData] = useState<LeaderboardResponse | null>(null);
+  const [access, setAccess] = useState<BoardAccessMeta>(() => defaultBoardAccess(false, boardId));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -193,22 +199,25 @@ export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
     setLoading(true);
     setError(null);
     try {
-      const res = await apiFetch(`/api/options/leaderboard/${boardId}`, { cache: "no-store" });
+      const res = await authFetch(`/api/options/leaderboard/${boardId}`, { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const payload = (await res.json()) as LeaderboardResponse;
       if (payload.error) throw new Error(payload.error);
       setData(payload);
+      setAccess(payload.access ?? defaultBoardAccess(isMember, boardId));
     } catch (err) {
       setData(null);
+      setAccess(defaultBoardAccess(isMember, boardId));
       setError(err instanceof Error ? err.message : t("v3.leaderboard.loadError"));
     } finally {
       setLoading(false);
     }
-  }, [boardId, t]);
+  }, [boardId, isMember, t]);
 
   useEffect(() => {
+    if (!authReady) return;
     void load();
-  }, [load]);
+  }, [load, authReady]);
 
   const items = data?.items ?? [];
   const filters = useLeaderboardFilters(items, { paginated: config.paginated });
@@ -224,8 +233,19 @@ export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
     return null;
   }
 
+  const locked = access.locked || data?.locked === true;
+  const allowFilter = (name: string) => access.allowed_filters.includes(name);
+  const showExpiryBanner =
+    user?.membership?.expiring_soon === true &&
+    typeof user.membership.days_remaining === "number";
+
   return (
     <>
+      {showExpiryBanner ? (
+        <div className="mb-4">
+          <MembershipExpiryBanner daysRemaining={user.membership!.days_remaining!} />
+        </div>
+      ) : null}
       <NeoPanel title={t(config.titleKey)} accent={config.accent}>
         <div className="flex flex-wrap items-center justify-between gap-3 border-b-[3px] border-ink pb-4">
           <p className="text-sm leading-relaxed text-ink max-w-3xl">
@@ -240,6 +260,7 @@ export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
         </div>
 
         <div className="flex flex-wrap gap-3 py-3 border-b-[3px] border-ink bg-peach/10 items-center">
+          {allowFilter("cp") ? (
           <div className="flex items-center gap-2">
             <span className="font-mono text-[10px] font-bold uppercase text-ink/50">{t("v3.leaderboard.filterType")}</span>
             <div className="flex border-2 border-ink shadow-neo-sm overflow-hidden">
@@ -248,6 +269,8 @@ export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
               <SegButton value="P" current={filters.cp} label="Put" onSelect={filters.setCp} />
             </div>
           </div>
+          ) : null}
+          {allowFilter("dte") ? (
           <div className="flex items-center gap-2">
             <span className="font-mono text-[10px] font-bold uppercase text-ink/50">DTE</span>
             <div className="flex border-2 border-ink shadow-neo-sm overflow-hidden">
@@ -257,6 +280,8 @@ export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
               <SegButton value="30" current={filters.dte} label={t("v3.leaderboard.dte30")} onSelect={filters.setDte} />
             </div>
           </div>
+          ) : null}
+          {allowFilter("moneyness") ? (
           <div className="flex items-center gap-2">
             <span className="font-mono text-[10px] font-bold uppercase text-ink/50">{t("v3.leaderboard.moneyness")}</span>
             <div className="flex border-2 border-ink shadow-neo-sm overflow-hidden">
@@ -266,14 +291,27 @@ export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
               <SegButton value="OTM" current={filters.moneyness} label="OTM" onSelect={filters.setMoneyness} />
             </div>
           </div>
-          {filters.showTopFilter ? (
+          ) : null}
+          {filters.showTopFilter && allowFilter("topN") ? (
             <div className="flex items-center gap-2">
               <span className="font-mono text-[10px] font-bold uppercase text-ink/50">TOP</span>
               <div className="flex border-2 border-ink shadow-neo-sm overflow-hidden">
-                <SegButton value={10} current={filters.topN} label="10" onSelect={filters.setTopN} />
-                <SegButton value={25} current={filters.topN} label="25" onSelect={filters.setTopN} />
+                {(access.allowed_top_n.includes(10) ? [10] : []).map((n) => (
+                  <SegButton key={n} value={n as 10 | 25} current={filters.topN} label="10" onSelect={filters.setTopN} />
+                ))}
+                {(access.allowed_top_n.includes(25) ? [25] : []).map((n) => (
+                  <SegButton key={n} value={n as 10 | 25} current={filters.topN} label="25" onSelect={filters.setTopN} />
+                ))}
               </div>
             </div>
+          ) : null}
+          {!access.is_member && !locked ? (
+            <Link
+              href="/pricing"
+              className="border-2 border-ink bg-lavender px-3 py-1 font-mono text-[10px] font-bold uppercase shadow-neo-sm"
+            >
+              {t("v3.membership.upgradeHint")}
+            </Link>
           ) : null}
           <span className="ml-auto font-mono text-[11px] text-ink/60">
             {formatMessage(t("v3.leaderboard.matchCount"), { count: String(filters.filteredCount) })}
@@ -286,6 +324,10 @@ export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
           </div>
         ) : null}
 
+        {locked ? (
+          <MembershipPaywall boardId={boardId} />
+        ) : (
+        <>
         <div className="overflow-x-auto -mx-4 px-0 md:-mx-0">
           <table className="w-full border-collapse text-[13px] min-w-[960px]">
             <thead>
@@ -420,7 +462,7 @@ export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
           </table>
         </div>
 
-        {config.paginated ? (
+        {config.paginated && allowFilter("page") ? (
           <div className="flex flex-wrap items-center justify-center gap-2 px-4 py-4 border-t-[3px] border-ink bg-cream">
             {Array.from({ length: filters.totalPages }, (_, i) => i + 1).map((p) => (
               <button
@@ -441,6 +483,8 @@ export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
             ))}
           </div>
         ) : null}
+        </>
+        )}
       </NeoPanel>
 
       <footer className="mt-2 border-[3px] border-ink px-4 py-3 text-center text-[11px] leading-relaxed text-ink/70 shadow-neo-sm">

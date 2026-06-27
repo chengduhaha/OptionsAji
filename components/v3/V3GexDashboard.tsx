@@ -5,11 +5,13 @@ import { clsx } from "clsx";
 import { Search } from "lucide-react";
 
 import LanguageToggle from "@/components/LanguageToggle";
+import { MembershipPaywall } from "@/components/v3/MembershipPaywall";
 import StrikeGammaChart from "@/components/v3/StrikeGammaChart";
 import NetGexTrendChart, { type HistRow } from "@/components/v3/NetGexTrendChart";
 import GammaFlipChart from "@/components/v3/GammaFlipChart";
 import { NeoPanel } from "@/components/v3/NeoPanel";
-import { apiFetch } from "@/lib/apiBase";
+import { useAuth } from "@/lib/auth-context";
+import { authFetch } from "@/lib/apiBase";
 import { formatMessage } from "@/lib/i18n/dictionary";
 import { useI18n } from "@/lib/i18n/context";
 
@@ -88,6 +90,7 @@ function mergeHistory(profile: GexProfile | null, hist: GexHistApi | null): Hist
 
 export default function V3GexDashboard({ embedded = false }: { embedded?: boolean }) {
   const { t } = useI18n();
+  const { isMember, ready: authReady } = useAuth();
   const [symbol, setSymbol] = useState(DEFAULT_SYMBOL);
   const [input, setInput] = useState(DEFAULT_SYMBOL);
   const [profile, setProfile] = useState<GexProfile | null>(null);
@@ -95,11 +98,13 @@ export default function V3GexDashboard({ embedded = false }: { embedded?: boolea
   const [loading, setLoading] = useState(true);
   const [histLoading, setHistLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [membershipBlocked, setMembershipBlocked] = useState(false);
 
   const fetchData = useCallback(async (sym: string) => {
     setLoading(true);
     setHistLoading(true);
     setError(null);
+    setMembershipBlocked(false);
     setProfile(null);
     setHist(null);
     const upper = sym.trim().toUpperCase();
@@ -108,10 +113,21 @@ export default function V3GexDashboard({ embedded = false }: { embedded?: boolea
       setHistLoading(false);
       return;
     }
+    if (!isMember && upper !== DEFAULT_SYMBOL) {
+      setMembershipBlocked(true);
+      setLoading(false);
+      setHistLoading(false);
+      return;
+    }
     try {
-      const gexRes = await apiFetch(`/api/stock/${encodeURIComponent(upper)}/gex`, {
+      const gexRes = await authFetch(`/api/stock/${encodeURIComponent(upper)}/gex`, {
         cache: "no-store",
       });
+      if (gexRes.status === 403) {
+        setMembershipBlocked(true);
+        setProfile(null);
+        return;
+      }
       if (!gexRes.ok) throw new Error(`GEX ${gexRes.status}`);
       setProfile((await gexRes.json()) as GexProfile);
     } catch {
@@ -123,7 +139,7 @@ export default function V3GexDashboard({ embedded = false }: { embedded?: boolea
 
     void (async () => {
       try {
-        const histRes = await apiFetch(
+        const histRes = await authFetch(
           `/api/stock/${encodeURIComponent(upper)}/gex/history`,
           { cache: "no-store" },
         );
@@ -138,11 +154,12 @@ export default function V3GexDashboard({ embedded = false }: { embedded?: boolea
         setHistLoading(false);
       }
     })();
-  }, [t]);
+  }, [isMember, t]);
 
   useEffect(() => {
+    if (!authReady) return;
     void fetchData(symbol);
-  }, [symbol, fetchData]);
+  }, [symbol, fetchData, authReady]);
 
   const merged = useMemo(() => mergeHistory(profile, hist), [profile, hist]);
 
@@ -156,7 +173,21 @@ export default function V3GexDashboard({ embedded = false }: { embedded?: boolea
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const next = input.trim().toUpperCase();
-    if (next) setSymbol(next);
+    if (!next) return;
+    if (!isMember && next !== DEFAULT_SYMBOL) {
+      setMembershipBlocked(true);
+      return;
+    }
+    setSymbol(next);
+  };
+
+  const symbolInputProps = {
+    value: input,
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value.toUpperCase()),
+    placeholder: DEFAULT_SYMBOL,
+    className: "neo-input flex-1 md:w-44 font-mono text-sm uppercase",
+    maxLength: 12,
+    disabled: !isMember,
   };
 
   return (
@@ -179,13 +210,9 @@ export default function V3GexDashboard({ embedded = false }: { embedded?: boolea
                 </label>
                 <input
                   id="symbol-input"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value.toUpperCase())}
-                  placeholder="SPY"
-                  className="neo-input flex-1 md:w-44 font-mono text-sm uppercase"
-                  maxLength={12}
+                  {...symbolInputProps}
                 />
-                <button type="submit" className="neo-button flex items-center gap-1.5 shrink-0">
+                <button type="submit" className="neo-button flex items-center gap-1.5 shrink-0" disabled={!isMember && input !== DEFAULT_SYMBOL}>
                   <Search className="w-4 h-4" />
                   {t("v3.search")}
                 </button>
@@ -213,18 +240,19 @@ export default function V3GexDashboard({ embedded = false }: { embedded?: boolea
               </label>
               <input
                 id="symbol-input-embedded"
-                value={input}
-                onChange={(e) => setInput(e.target.value.toUpperCase())}
-                placeholder="SPY"
-                className="neo-input flex-1 md:w-44 font-mono text-sm uppercase"
-                maxLength={12}
+                {...symbolInputProps}
               />
-              <button type="submit" className="neo-button flex items-center gap-1.5 shrink-0">
+              <button type="submit" className="neo-button flex items-center gap-1.5 shrink-0" disabled={!isMember && input !== DEFAULT_SYMBOL}>
                 <Search className="w-4 h-4" />
                 {t("v3.search")}
               </button>
             </form>
           </div>
+        ) : null}
+        {!isMember ? (
+          <p className="font-mono text-[11px] text-ink/60 border-2 border-ink bg-cream px-3 py-2 shadow-neo-sm inline-block">
+            {t("v3.membership.gexFreeHint")}
+          </p>
         ) : null}
         <div className="flex flex-wrap items-center gap-3 font-mono text-sm">
           <span className="neo-badge">{symbol}</span>
@@ -254,6 +282,9 @@ export default function V3GexDashboard({ embedded = false }: { embedded?: boolea
           </div>
         ) : null}
 
+        {membershipBlocked ? (
+          <MembershipPaywall />
+        ) : (
         <div className={clsx("space-y-6", loading && "opacity-60 pointer-events-none")}>
           <NeoPanel
             title={t("v3.strikeGammaTitle")}
@@ -300,6 +331,7 @@ export default function V3GexDashboard({ embedded = false }: { embedded?: boolea
             )}
           </NeoPanel>
         </div>
+        )}
 
         <footer className="pt-4 pb-8 text-[11px] text-ink/50 font-sans leading-relaxed border-t-[3px] border-ink/20">
           {t("v3.disclaimer")}

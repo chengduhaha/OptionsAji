@@ -143,6 +143,12 @@ export const api = {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       }),
+    redeem: (token: string, code: string) =>
+      fetchJSON<import("@/lib/contracts").RedeemCodeContract>("/api/auth/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ code }),
+      }),
   },
 
   market: {

@@ -414,6 +414,14 @@ export interface ScannerTemplateContract {
   updated_at: string;
 }
 
+export interface MembershipContract {
+  tier: "guest" | "free" | "member" | "admin";
+  is_member: boolean;
+  membership_expires_at: string | null;
+  days_remaining: number | null;
+  expiring_soon: boolean;
+}
+
 export interface AuthUserContract {
   id: string;
   email: string;
@@ -421,6 +429,7 @@ export interface AuthUserContract {
   role: string;
   created_at: string | null;
   email_verified: boolean;
+  membership?: MembershipContract;
   access_keys?: {
     total: number;
     active: number;
@@ -451,6 +460,12 @@ export interface AuthResendVerificationContract {
   verification_required: boolean;
   verification_expires_at: string;
   verification_code: string | null;
+}
+
+export interface RedeemCodeContract {
+  success: boolean;
+  user: AuthUserContract;
+  membership_expires_at: string;
 }
 
 /** LocalStorage key for integration API key (alerts, watchlist, push settings). */

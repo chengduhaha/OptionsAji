@@ -6,6 +6,8 @@ import { clsx } from "clsx";
 
 import LanguageToggle from "@/components/LanguageToggle";
 import { NAV_BOARDS } from "@/lib/leaderboard/boardConfig";
+import { useAuth } from "@/lib/auth-context";
+import { membershipLabel } from "@/lib/membership";
 import { useI18n } from "@/lib/i18n/context";
 
 type V3OptionsShellProps = {
@@ -30,7 +32,8 @@ function useMarketSessionLabel(): string {
 
 export default function V3OptionsShell({ children }: V3OptionsShellProps) {
   const pathname = usePathname();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const { user, ready, isMember, isAdmin, logout } = useAuth();
   const sessionLabel = useMarketSessionLabel();
   const isOpen =
     sessionLabel === t("mvp.session.marketOpen") ||
@@ -73,6 +76,45 @@ export default function V3OptionsShell({ children }: V3OptionsShellProps) {
             </nav>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            {ready && user ? (
+              <>
+                <Link
+                  href="/account"
+                  className="border-2 border-ink px-2.5 py-1 font-mono text-[10px] font-bold uppercase bg-cream shadow-neo-sm hover:bg-lavender/40"
+                >
+                  {membershipLabel(user.membership, locale)}
+                </Link>
+                {isAdmin ? (
+                  <Link
+                    href="/admin/codes"
+                    className="border-2 border-ink px-2.5 py-1 font-mono text-[10px] font-bold uppercase bg-peach shadow-neo-sm"
+                  >
+                    Admin
+                  </Link>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => void logout()}
+                  className="border-2 border-ink px-2.5 py-1 font-mono text-[10px] font-bold uppercase bg-cream hover:bg-peach/40"
+                >
+                  {t("v3.membership.logout")}
+                </button>
+              </>
+            ) : ready ? (
+              <>
+                <Link href="/login" className="border-2 border-ink px-2.5 py-1 font-mono text-[10px] font-bold uppercase bg-cream shadow-neo-sm">
+                  {t("v3.membership.login")}
+                </Link>
+                <Link href="/register" className="border-2 border-ink px-2.5 py-1 font-mono text-[10px] font-bold uppercase bg-lavender shadow-neo-sm">
+                  {t("v3.membership.register")}
+                </Link>
+              </>
+            ) : null}
+            {!isMember && ready ? (
+              <Link href="/pricing" className="border-2 border-ink px-2.5 py-1 font-mono text-[10px] font-bold uppercase bg-peach shadow-neo-sm">
+                {t("v3.membership.pricing")}
+              </Link>
+            ) : null}
             <LanguageToggle variant="neo" />
             <div
               className={clsx(

@@ -8,9 +8,6 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      // v3: all legacy routes → home
-      { source: "/login", destination: "/", permanent: false },
-      { source: "/register", destination: "/", permanent: false },
       { source: "/landing", destination: "/", permanent: false },
       { source: "/mvp", destination: "/", permanent: false },
       { source: "/ai", destination: "/", permanent: false },
@@ -20,7 +17,6 @@ const nextConfig: NextConfig = {
       { source: "/scanner/:path*", destination: "/", permanent: false },
       { source: "/stock/:path*", destination: "/", permanent: false },
       { source: "/settings/:path*", destination: "/", permanent: false },
-      { source: "/admin/:path*", destination: "/", permanent: false },
       { source: "/cross-market/:path*", destination: "/", permanent: false },
       { source: "/market", destination: "/", permanent: false },
       { source: "/portfolio", destination: "/", permanent: false },

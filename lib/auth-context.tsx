@@ -14,6 +14,7 @@ import type {
   AuthResendVerificationContract,
   AuthUserContract,
 } from "@/lib/contracts";
+import { isMember as checkMember } from "@/lib/membership";
 
 export type AuthUser = AuthUserContract;
 
@@ -37,7 +38,9 @@ type AuthContextValue = {
   resendVerification: (email: string, turnstileToken?: string | null) => Promise<AuthResendVerificationContract>;
   logout: () => Promise<void>;
   refreshMe: () => Promise<void>;
+  redeemCode: (code: string) => Promise<void>;
   isAdmin: boolean;
+  isMember: boolean;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -156,6 +159,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, [token, persistToken]);
 
+  const redeemCode = useCallback(
+    async (code: string) => {
+      const t = token;
+      if (!t) throw new Error("login_required");
+      const data = await api.auth.redeem(t, code.trim());
+      setUser(data.user);
+    },
+    [token],
+  );
+
   const value = useMemo<AuthContextValue>(
     () => ({
       token,
@@ -169,7 +182,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       resendVerification,
       logout,
       refreshMe,
+      redeemCode,
       isAdmin: user?.role === "admin",
+      isMember: checkMember(user?.membership),
     }),
     [
       token,
@@ -182,6 +197,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       resendVerification,
       logout,
       refreshMe,
+      redeemCode,
     ],
   );
 

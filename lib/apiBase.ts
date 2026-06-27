@@ -29,11 +29,29 @@ export function usesDirectBackend(): boolean {
   return apiBaseUrl().length > 0;
 }
 
+const JWT_STORAGE_KEY = "optionsaji_jwt";
+
 function withApiKeyHeaders(init?: RequestInit): Headers {
   const headers = new Headers(init?.headers ?? undefined);
   const apiKey = process.env.NEXT_PUBLIC_API_KEY?.trim();
   if (apiKey && !headers.has("X-API-Key")) {
     headers.set("X-API-Key", apiKey);
+  }
+  return headers;
+}
+
+/** Inject JWT from localStorage when available (browser only). */
+export function withAuthHeaders(init?: RequestInit): Headers {
+  const headers = withApiKeyHeaders(init);
+  if (typeof window !== "undefined") {
+    try {
+      const token = window.localStorage.getItem(JWT_STORAGE_KEY);
+      if (token && !headers.has("Authorization")) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
+    } catch {
+      /* ignore */
+    }
   }
   return headers;
 }
@@ -45,4 +63,13 @@ export function apiFetch(input: string, init?: RequestInit): Promise<Response> {
       ? input
       : resolveApiUrl(input);
   return fetch(url, { ...init, headers: withApiKeyHeaders(init) });
+}
+
+/** Same as apiFetch but forwards JWT for membership-gated endpoints. */
+export function authFetch(input: string, init?: RequestInit): Promise<Response> {
+  const url =
+    input.startsWith("http://") || input.startsWith("https://")
+      ? input
+      : resolveApiUrl(input);
+  return fetch(url, { ...init, headers: withAuthHeaders(init) });
 }
