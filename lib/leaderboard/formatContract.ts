@@ -83,13 +83,6 @@ function pickBestStrike(candidates: number[], row: LeaderboardRow): number | nul
   return sane[0];
 }
 
-function formatStrikeLabel(strike: number): string {
-  const text = strike.toFixed(2);
-  return text.replace(/\.?0+$/, "") === String(Math.round(strike))
-    ? strike.toFixed(2)
-    : text;
-}
-
 /** Resolve display strike — OCC recovery + spot sanity; prefer backend strike when sane. */
 export function resolveContractStrike(row: LeaderboardRow): number | null {
   const spot = row.underlying_price ?? null;
