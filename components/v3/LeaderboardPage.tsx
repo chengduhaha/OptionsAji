@@ -513,7 +513,7 @@ export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
           <div className="flex flex-wrap items-center justify-between gap-3 border-t-[3px] border-ink bg-lavender/20 px-4 py-4">
             <p className="text-sm text-ink/70 leading-relaxed">
               {formatMessage(t("v3.tier.freePreviewHint"), {
-                limit: String(access.row_limit ?? 5),
+                limit: String(access.row_limit ?? 10),
                 mask: String(access.symbol_mask_ranks ?? 3),
               })}
             </p>

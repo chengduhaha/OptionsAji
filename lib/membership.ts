@@ -1,6 +1,6 @@
 import type { MembershipContract } from "@/lib/contracts";
 
-export const FREE_ROW_LIMIT = 5;
+export const FREE_ROW_LIMIT = 10;
 export const FREE_SYMBOL_MASK_RANKS = 3;
 
 export function isMember(membership: MembershipContract | undefined): boolean {
