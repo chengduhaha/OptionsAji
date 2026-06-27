@@ -50,6 +50,20 @@ type GexHistApi = {
   priceCloses: Array<{ date: string; close: number }>;
 };
 
+function ChartAnswer({ answerKey }: { answerKey: string }) {
+  const { t } = useI18n();
+  return (
+    <div className="border-b-[3px] border-ink pb-4 mb-4">
+      <p className="text-sm leading-relaxed text-ink max-w-3xl">
+        <span className="font-mono text-[11px] text-ink/50 mr-2">
+          {t("v3.leaderboard.answerPrefix")}
+        </span>
+        {t(answerKey)}
+      </p>
+    </div>
+  );
+}
+
 function mergeHistory(profile: GexProfile | null, hist: GexHistApi | null): HistRow[] {
   const byDay: Record<string, HistRow> = {};
   for (const g of hist?.gexSeries ?? []) {
@@ -291,6 +305,7 @@ export default function V3GexDashboard({ embedded = false }: { embedded?: boolea
             subtitle={t("v3.strikeGammaSubtitle")}
             accent="peach"
           >
+            <ChartAnswer answerKey="v3.gex.strikeGamma.answer" />
             {profile?.strikes?.length ? (
               <StrikeGammaChart
                 ticker={symbol}
@@ -308,6 +323,7 @@ export default function V3GexDashboard({ embedded = false }: { embedded?: boolea
             subtitle={t("v3.netGexSubtitle")}
             accent="lavender"
           >
+            <ChartAnswer answerKey="v3.gex.netGex.answer" />
             {histLoading ? (
               <p className="text-sm text-ink/60 py-10 text-center font-mono">
                 {t("v3.histLoading")}
@@ -322,6 +338,7 @@ export default function V3GexDashboard({ embedded = false }: { embedded?: boolea
             subtitle={t("v3.gammaFlipSubtitle")}
             accent="lavender"
           >
+            <ChartAnswer answerKey="v3.gex.gammaFlip.answer" />
             {histLoading ? (
               <p className="text-sm text-ink/60 py-10 text-center font-mono">
                 {t("v3.flipHistLoading")}

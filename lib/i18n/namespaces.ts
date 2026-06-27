@@ -450,6 +450,20 @@ export const extraZh: DictionaryTree = {
     netGexSubtitle: "净 Gamma Exposure 与标的收盘价历史趋势",
     gammaFlipTitle: "Gamma Flip 估算",
     gammaFlipSubtitle: "做市商 Gamma 翻转点位历史估算",
+    gex: {
+      strikeGamma: {
+        answer:
+          "各行权价上做市商的 Gamma 敞口集中在哪？哪些价位是对冲压力最大的支撑/阻力墙？",
+      },
+      netGex: {
+        answer:
+          "净 GEX 与股价如何联动？正值时波动往往被压制，负值时股价更容易被顺势放大。",
+      },
+      gammaFlip: {
+        answer:
+          "股价落在哪一档，做市商 Gamma 会从正转负？这是判断波动收敛还是放大的关键分水岭。",
+      },
+    },
     histLoading: "历史趋势加载中（约需 30–60 秒）…",
     flipHistLoading: "Gamma Flip 历史加载中…",
     noData: "暂无数据",
@@ -1111,6 +1125,20 @@ export const extraEn: DictionaryTree = {
     netGexSubtitle: "Net gamma exposure and underlying close price over time",
     gammaFlipTitle: "Gamma Flip Estimate",
     gammaFlipSubtitle: "Historical dealer gamma flip level estimates",
+    gex: {
+      strikeGamma: {
+        answer:
+          "Where is dealer gamma exposure concentrated by strike? Which levels act as the biggest hedging walls for support or resistance?",
+      },
+      netGex: {
+        answer:
+          "How does net GEX move with the stock price? Positive gamma tends to dampen moves; negative gamma can amplify them.",
+      },
+      gammaFlip: {
+        answer:
+          "At what price does dealer gamma flip from positive to negative? That level separates calmer from more volatile regimes.",
+      },
+    },
     histLoading: "Loading history trend (about 30–60s)…",
     flipHistLoading: "Loading Gamma Flip history…",
     noData: "No data",
