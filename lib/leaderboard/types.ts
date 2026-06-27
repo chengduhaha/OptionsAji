@@ -45,6 +45,7 @@ export type LeaderboardRow = {
   bid_vol: number | null;
   ask_vol: number | null;
   underlying_price?: number | null;
+  symbol_masked?: boolean;
 };
 
 export type LeaderboardResponse = {
@@ -63,6 +64,7 @@ export type LeaderboardResponse = {
     allowed_filters: string[];
     allowed_top_n: number[];
     max_pages: number | null;
+    symbol_mask_ranks?: number;
   };
 };
 

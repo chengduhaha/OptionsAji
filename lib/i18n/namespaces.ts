@@ -582,7 +582,7 @@ export const extraZh: DictionaryTree = {
       lockedBadge: "会员专享",
       paywallTitle: "升级会员解锁完整数据",
       paywallHint: "免费用户可预览部分榜单与 SPY GEX。购买激活码即可解锁全部 9 个看板。",
-      paywallBoardHint: "此榜单为会员专享。免费用户可查看异动/成交量/流动性榜前 5 行。",
+      paywallBoardHint: "免费用户可预览前 5 行；排名 1–3 的标的已隐藏。升级会员解锁完整榜单。",
       viewPricing: "查看定价",
       redeemCta: "兑换激活码",
       upgradeHint: "升级解锁更多",
@@ -626,6 +626,11 @@ export const extraZh: DictionaryTree = {
       account: "账户",
       pricing: "定价",
       logout: "退出",
+    },
+    tier: {
+      unlockFull: "解锁完整榜单与标的",
+      symbolMasked: "标的已隐藏",
+      freePreviewHint: "免费预览 {limit} 行 · 排名 1–{mask} 标的隐藏",
     },
     chart: {
       noNetGex: "暂无 Net GEX 趋势数据",
@@ -1239,7 +1244,7 @@ export const extraEn: DictionaryTree = {
       lockedBadge: "Members only",
       paywallTitle: "Upgrade to unlock full data",
       paywallHint: "Free users preview 5 rows on select boards and SPY GEX. Redeem a code to unlock all 9 boards.",
-      paywallBoardHint: "This board is members-only. Free users can preview unusual/volume/liquidity (5 rows).",
+      paywallBoardHint: "Free users see 5 rows; ranks 1–3 hide the underlying symbol. Upgrade for the full board.",
       viewPricing: "View pricing",
       redeemCta: "Redeem code",
       upgradeHint: "Upgrade for more",
@@ -1283,6 +1288,11 @@ export const extraEn: DictionaryTree = {
       account: "Account",
       pricing: "Pricing",
       logout: "Log out",
+    },
+    tier: {
+      unlockFull: "Unlock full board & symbols",
+      symbolMasked: "Symbol hidden",
+      freePreviewHint: "Free preview: {limit} rows · ranks 1–{mask} symbol hidden",
     },
     chart: {
       noNetGex: "No Net GEX trend data",

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { clsx } from "clsx";
 
-import { MembershipExpiryBanner, MembershipPaywall } from "@/components/v3/MembershipPaywall";
+import { MembershipExpiryBanner } from "@/components/v3/MembershipPaywall";
 import { NeoPanel } from "@/components/v3/NeoPanel";
 import { useAuth } from "@/lib/auth-context";
 import { authFetch } from "@/lib/apiBase";
@@ -55,6 +55,71 @@ function fmtNum3(v: number | null): string {
 function fmtNum4(v: number | null): string {
   if (v == null || !Number.isFinite(v)) return "—";
   return v.toFixed(4);
+}
+
+function LockIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M4 7V5a4 4 0 1 1 8 0v2h1a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h1zm2 0h4V5a2 2 0 1 0-4 0v2z" />
+    </svg>
+  );
+}
+
+function ContractCell({ row, t }: { row: LeaderboardRow; t: (key: string) => string }) {
+  const isCall = row.option_type === "C";
+  const expiryShort = row.expiry ? row.expiry.slice(5) : "—";
+  const mTag = (row.moneyness ?? "OTM").toUpperCase();
+  const masked = row.symbol_masked === true;
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {masked ? (
+        <span
+          className="inline-flex items-center gap-1 font-display text-sm font-extrabold tracking-wide text-ink/50"
+          title={t("v3.tier.symbolMasked")}
+        >
+          <LockIcon className="h-3.5 w-3.5 shrink-0" />
+          <span className="font-mono tracking-widest">•••</span>
+        </span>
+      ) : (
+        <span className="font-display text-sm font-extrabold tracking-wide">{row.underlying}</span>
+      )}
+      <span
+        className={clsx(
+          "inline-flex h-[18px] w-[18px] items-center justify-center border-2 border-ink font-mono text-[10px] font-bold shadow-[2px_2px_0_#151617]",
+          isCall ? "bg-green-tint text-[#0A6B52]" : "bg-red-tint text-[#A03030]",
+        )}
+      >
+        {row.option_type}
+      </span>
+      <span className="font-mono text-[12px] font-semibold tabular-nums">
+        {formatContractStrike(row)}
+      </span>
+      <span className="font-mono text-[11px] text-ink/70">{expiryShort}</span>
+      {row.dte === 0 ? (
+        <span className="border-2 border-ink bg-lavender px-1.5 py-0 font-mono text-[9px] font-bold">
+          0DTE
+        </span>
+      ) : row.dte != null ? (
+        <span className="font-mono text-[10px] text-ink/50">{row.dte}d</span>
+      ) : null}
+      <span
+        className={clsx(
+          "border px-1.5 py-0 font-mono text-[9px] font-bold",
+          mTag === "ITM" && "border-ink bg-green-tint text-[#0A6B52]",
+          mTag === "ATM" && "border-ink bg-peach text-ink",
+          mTag === "OTM" && "border-ink bg-cream text-ink/60",
+        )}
+      >
+        {mTag}
+      </span>
+    </div>
+  );
 }
 
 function formatRefreshTime(iso: string | undefined, locale: string): string {
@@ -235,7 +300,6 @@ export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
     return null;
   }
 
-  const locked = access.locked || data?.locked === true;
   const allowFilter = (name: string) => access.allowed_filters.includes(name);
   const showExpiryBanner =
     user?.membership?.expiring_soon === true &&
@@ -307,12 +371,12 @@ export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
               </div>
             </div>
           ) : null}
-          {!access.is_member && !locked ? (
+          {!access.is_member ? (
             <Link
               href="/pricing"
               className="border-2 border-ink bg-lavender px-3 py-1 font-mono text-[10px] font-bold uppercase shadow-neo-sm"
             >
-              {t("v3.membership.upgradeHint")}
+              {t("v3.tier.unlockFull")}
             </Link>
           ) : null}
           <span className="ml-auto font-mono text-[11px] text-ink/60">
@@ -326,10 +390,6 @@ export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
           </div>
         ) : null}
 
-        {locked ? (
-          <MembershipPaywall boardId={boardId} />
-        ) : (
-        <>
         <div className="overflow-x-auto -mx-4 px-0 md:-mx-0">
           <table className="w-full border-collapse text-[13px] min-w-[960px]">
             <thead>
@@ -368,47 +428,11 @@ export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
                   </td>
                 </tr>
               ) : (
-                filters.visibleRows.map((row) => {
-                  const isCall = row.option_type === "C";
-                  const expiryShort = row.expiry ? row.expiry.slice(5) : "—";
-                  const mTag = (row.moneyness ?? "OTM").toUpperCase();
-
-                  return (
+                filters.visibleRows.map((row) => (
                     <tr key={`${row.code}-${row.rank}`} className="border-b-2 border-ink hover:bg-lavender/15">
                       <td className="px-3 py-2 text-center font-display text-base font-extrabold">{row.rank}</td>
                       <td className="px-3 py-2 whitespace-nowrap">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-display text-sm font-extrabold tracking-wide">{row.underlying}</span>
-                          <span
-                            className={clsx(
-                              "inline-flex h-[18px] w-[18px] items-center justify-center border-2 border-ink font-mono text-[10px] font-bold shadow-[2px_2px_0_#151617]",
-                              isCall ? "bg-green-tint text-[#0A6B52]" : "bg-red-tint text-[#A03030]",
-                            )}
-                          >
-                            {row.option_type}
-                          </span>
-                          <span className="font-mono text-[12px] font-semibold tabular-nums">
-                            {formatContractStrike(row)}
-                          </span>
-                          <span className="font-mono text-[11px] text-ink/70">{expiryShort}</span>
-                          {row.dte === 0 ? (
-                            <span className="border-2 border-ink bg-lavender px-1.5 py-0 font-mono text-[9px] font-bold">
-                              0DTE
-                            </span>
-                          ) : row.dte != null ? (
-                            <span className="font-mono text-[10px] text-ink/50">{row.dte}d</span>
-                          ) : null}
-                          <span
-                            className={clsx(
-                              "border px-1.5 py-0 font-mono text-[9px] font-bold",
-                              mTag === "ITM" && "border-ink bg-green-tint text-[#0A6B52]",
-                              mTag === "ATM" && "border-ink bg-peach text-ink",
-                              mTag === "OTM" && "border-ink bg-cream text-ink/60",
-                            )}
-                          >
-                            {mTag}
-                          </span>
-                        </div>
+                        <ContractCell row={row} t={t} />
                       </td>
                       {config.columns.map((col) => {
                         const raw = cellValue(row, col);
@@ -457,8 +481,7 @@ export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
                         );
                       })}
                     </tr>
-                  );
-                })
+                  ))
               )}
             </tbody>
           </table>
@@ -485,8 +508,23 @@ export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
             ))}
           </div>
         ) : null}
-        </>
-        )}
+
+        {!access.is_member ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t-[3px] border-ink bg-lavender/20 px-4 py-4">
+            <p className="text-sm text-ink/70 leading-relaxed">
+              {formatMessage(t("v3.tier.freePreviewHint"), {
+                limit: String(access.row_limit ?? 5),
+                mask: String(access.symbol_mask_ranks ?? 3),
+              })}
+            </p>
+            <Link
+              href="/pricing"
+              className="border-[3px] border-ink bg-peach px-5 py-2.5 font-mono text-xs font-bold uppercase tracking-wide shadow-neo hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all whitespace-nowrap"
+            >
+              {t("v3.tier.unlockFull")}
+            </Link>
+          </div>
+        ) : null}
       </NeoPanel>
 
       <footer className="mt-2 border-[3px] border-ink px-4 py-3 text-center text-[11px] leading-relaxed text-ink/70 shadow-neo-sm">

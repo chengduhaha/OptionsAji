@@ -1,12 +1,7 @@
 import type { MembershipContract } from "@/lib/contracts";
 
-export const LOCKED_BOARDS = new Set([
-  "open-interest",
-  "turnover",
-  "high-iv",
-  "high-gamma",
-  "seller",
-]);
+export const FREE_ROW_LIMIT = 5;
+export const FREE_SYMBOL_MASK_RANKS = 3;
 
 export function isMember(membership: MembershipContract | undefined): boolean {
   return membership?.is_member === true || membership?.tier === "admin";
@@ -31,6 +26,7 @@ export type BoardAccessMeta = {
   allowed_filters: string[];
   allowed_top_n: number[];
   max_pages: number | null;
+  symbol_mask_ranks?: number;
 };
 
 export function defaultBoardAccess(isMemberUser: boolean, boardId: string): BoardAccessMeta {
@@ -43,26 +39,17 @@ export function defaultBoardAccess(isMemberUser: boolean, boardId: string): Boar
       allowed_filters: ["cp", "dte", "moneyness", "topN", "page"],
       allowed_top_n: [10, 25],
       max_pages: boardId === "unusual" ? 10 : null,
-    };
-  }
-  if (LOCKED_BOARDS.has(boardId)) {
-    return {
-      tier: "guest",
-      is_member: false,
-      locked: true,
-      row_limit: 0,
-      allowed_filters: [],
-      allowed_top_n: [],
-      max_pages: 0,
+      symbol_mask_ranks: 0,
     };
   }
   return {
     tier: "guest",
     is_member: false,
     locked: false,
-    row_limit: 5,
+    row_limit: FREE_ROW_LIMIT,
     allowed_filters: boardId === "unusual" ? ["cp", "topN"] : [],
     allowed_top_n: boardId === "unusual" ? [10] : [],
     max_pages: 1,
+    symbol_mask_ranks: FREE_SYMBOL_MASK_RANKS,
   };
 }
