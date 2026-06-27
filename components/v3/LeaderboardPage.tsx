@@ -5,6 +5,7 @@ import { clsx } from "clsx";
 
 import { NeoPanel } from "@/components/v3/NeoPanel";
 import { BOARD_CONFIGS } from "@/lib/leaderboard/boardConfig";
+import { formatContractStrike } from "@/lib/leaderboard/formatContract";
 import type { BoardId, ColumnKey, LeaderboardResponse, LeaderboardRow } from "@/lib/leaderboard/types";
 import { useLeaderboardFilters } from "@/lib/leaderboard/useLeaderboardFilters";
 import { apiFetch } from "@/lib/apiBase";
@@ -343,7 +344,7 @@ export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
                             {row.option_type}
                           </span>
                           <span className="font-mono text-[12px] font-semibold tabular-nums">
-                            {row.strike != null ? row.strike.toFixed(2) : "—"}
+                            {formatContractStrike(row)}
                           </span>
                           <span className="font-mono text-[11px] text-ink/70">{expiryShort}</span>
                           {row.dte === 0 ? (
