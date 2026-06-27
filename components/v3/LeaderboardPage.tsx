@@ -202,7 +202,9 @@ export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
       const res = await authFetch(`/api/options/leaderboard/${boardId}`, { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const payload = (await res.json()) as LeaderboardResponse;
-      if (payload.error) throw new Error(payload.error);
+      if (payload.error && (!payload.items || payload.items.length === 0)) {
+        throw new Error(payload.error);
+      }
       setData(payload);
       setAccess(payload.access ?? defaultBoardAccess(isMember, boardId));
     } catch (err) {

@@ -4,13 +4,16 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import TurnstileWidget from "@/components/auth/TurnstileWidget";
+import V3AuthShell from "@/components/v3/V3AuthShell";
 import { useAuth } from "@/lib/auth-context";
+import { useI18n } from "@/lib/i18n/context";
 
 function LoginInner() {
   const { ready, user, login } = useAuth();
+  const { t } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextPath = searchParams.get("next") || "/";
+  const nextPath = searchParams.get("next") || "/options/unusual";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,7 +31,7 @@ function LoginInner() {
     e.preventDefault();
     setError(null);
     if (turnstileSiteKey && !turnstileToken) {
-      setError("请先完成人机验证。");
+      setError(t("v3.auth.turnstileRequired"));
       return;
     }
     setBusy(true);
@@ -36,7 +39,7 @@ function LoginInner() {
       await login(email.trim(), password, turnstileToken);
       router.replace(nextPath);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "登录失败");
+      setError(err instanceof Error ? err.message : t("v3.auth.loginFailed"));
       setTurnstileToken(null);
       setTurnstileResetKey((value) => value + 1);
     } finally {
@@ -45,89 +48,77 @@ function LoginInner() {
   }
 
   const handleTurnstileError = useCallback(() => {
-    setError("人机验证加载失败，请刷新后重试。");
-  }, []);
+    setError(t("v3.auth.turnstileFailed"));
+  }, [t]);
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-background px-4">
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-96"
-        style={{ background: "var(--gradient-hero)" }}
-      />
-      <div className="w-full max-w-md">
-        <div className="mb-7 flex flex-col items-center text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-[16px] font-bold text-primary-foreground shadow-lg shadow-primary/20">
-            OA
-          </div>
-          <h1 className="heading-1 mt-4 text-foreground">登录 OptionsAji</h1>
-          <p className="mt-1.5 text-[13px] text-muted-foreground">使用邮箱与密码访问控制台</p>
+    <V3AuthShell title={t("v3.auth.titleLogin")} subtitle={t("v3.auth.subtitleLogin")}>
+      <form onSubmit={onSubmit} className="space-y-4">
+        <div>
+          <label className="mb-1.5 block font-mono text-[10px] font-bold uppercase tracking-widest text-ink/60">
+            {t("v3.auth.email")}
+          </label>
+          <input
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="neo-input w-full font-mono text-sm"
+          />
         </div>
-        <div className="rounded-2xl border border-border bg-card p-7 shadow-[0_20px_50px_-25px_rgba(15,23,42,0.3)]">
-          <form onSubmit={onSubmit} className="space-y-4">
-            <div>
-              <label className="mb-1.5 block text-[12px] font-medium text-muted-foreground">邮箱</label>
-              <input
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-[14px] text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-ring/40"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-[12px] font-medium text-muted-foreground">密码</label>
-              <input
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-[14px] text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-ring/40"
-              />
-            </div>
-            {turnstileSiteKey ? (
-              <TurnstileWidget
-                siteKey={turnstileSiteKey}
-                action="login"
-                resetKey={turnstileResetKey}
-                onToken={setTurnstileToken}
-                onError={handleTurnstileError}
-              />
-            ) : null}
-            {error ? <p className="text-[12px] text-red">{error}</p> : null}
-            <button
-              type="submit"
-              disabled={busy || !ready || (Boolean(turnstileSiteKey) && !turnstileToken)}
-              className="lift w-full rounded-lg bg-primary py-2.5 text-[14px] font-semibold text-primary-foreground disabled:opacity-50"
-            >
-              {busy ? "登录中…" : "登录"}
-            </button>
-          </form>
+        <div>
+          <label className="mb-1.5 block font-mono text-[10px] font-bold uppercase tracking-widest text-ink/60">
+            {t("v3.auth.password")}
+          </label>
+          <input
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="neo-input w-full font-mono text-sm"
+          />
         </div>
-        <p className="mt-5 text-center text-[13px] text-muted-foreground">
-          没有账号？{" "}
-          <Link href="/register" className="font-medium text-primary hover:underline">注册</Link>
-          {" · "}
-          <Link href="/landing" className="hover:text-foreground">产品介绍</Link>
-        </p>
-        <p className="mt-3 text-center text-[11px] leading-5 text-muted">
-          登录即表示你理解 OptionsAji 仅提供数据分析与教育内容，并同意{" "}
-          <Link href="/terms" className="text-primary hover:underline">服务条款</Link>
-          {" / "}
-          <Link href="/privacy" className="text-primary hover:underline">隐私政策</Link>。
-        </p>
-      </div>
-    </div>
+        {turnstileSiteKey ? (
+          <TurnstileWidget
+            siteKey={turnstileSiteKey}
+            action="login"
+            resetKey={turnstileResetKey}
+            onToken={setTurnstileToken}
+            onError={handleTurnstileError}
+          />
+        ) : null}
+        {error ? <p className="font-mono text-[12px] text-red-600">{error}</p> : null}
+        <button
+          type="submit"
+          disabled={busy || !ready || (Boolean(turnstileSiteKey) && !turnstileToken)}
+          className="w-full border-[3px] border-ink bg-peach px-4 py-2.5 font-mono text-sm font-bold uppercase shadow-neo transition hover:-translate-x-px hover:-translate-y-px disabled:opacity-50"
+        >
+          {busy ? t("v3.auth.busyLogin") : t("v3.auth.submitLogin")}
+        </button>
+      </form>
+      <p className="mt-5 text-center font-mono text-[12px] text-ink/70">
+        {t("v3.auth.noAccount")}{" "}
+        <Link href="/register" className="font-bold underline hover:text-ink">
+          {t("v3.auth.registerLink")}
+        </Link>
+        {" · "}
+        <Link href="/landing" className="underline hover:text-ink">
+          {t("v3.auth.landingLink")}
+        </Link>
+      </p>
+    </V3AuthShell>
   );
 }
 
 export default function LoginPage() {
+  const { t } = useI18n();
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-background text-muted text-[13px]">
-          加载…
+        <div className="flex min-h-screen items-center justify-center bg-cream font-mono text-[13px] text-ink/60">
+          {t("v3.auth.loading")}
         </div>
       }
     >
