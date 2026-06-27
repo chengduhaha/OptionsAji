@@ -79,20 +79,7 @@ describe("formatContractStrike", () => {
     expect(formatted).toBe("711.00");
   });
 
-  it("recovers trailing-zero OCC strike for high-priced underlyings (MU)", () => {
-    const mu = row({
-      code: "US.MU260702C115000",
-      option_name: "MU 260702 115.00C",
-      strike: 115,
-      price: 1010.05,
-      premium: 1010.05,
-      underlying_price: 1132.33,
-    });
-    expect(resolveContractStrike(mu)).toBe(1150);
-    expect(formatContractStrike(mu)).toBe("1150.00");
-  });
-
-  it("rejects implausible low strikes vs spot (MU C5000)", () => {
+  it("rejects implausible low strikes vs spot (MU)", () => {
     const mu = row({
       code: "US.MU260702C5000",
       option_name: "MU 260702 5.00C",
@@ -103,5 +90,17 @@ describe("formatContractStrike", () => {
     });
     expect(resolveContractStrike(mu)).toBeNull();
     expect(formatContractStrike(mu)).toBe("—");
+  });
+
+  it("rejects deep ITM legacy MU strikes far below spot", () => {
+    const mu = row({
+      code: "US.MU260702C115000",
+      option_name: "MU 260702 115.00C",
+      strike: 115,
+      price: 1010.05,
+      premium: 1010.05,
+      underlying_price: 1132.33,
+    });
+    expect(resolveContractStrike(mu)).toBeNull();
   });
 });

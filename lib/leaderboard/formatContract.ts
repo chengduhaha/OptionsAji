@@ -1,29 +1,16 @@
 import type { LeaderboardRow } from "@/lib/leaderboard/types";
 
 const OPTION_NAME_STRIKE_RE = /\s(\d+(?:\.\d+)?)[CP]$/i;
-// Futu US OCC: US.{SYMBOL}{YYMMDD}{C|P}{STRIKE_MILLIS} — millis = round(strike*1000), zeros stripped
+// Futu US OCC: US.{SYMBOL}{YYMMDD}{C|P}{STRIKE_MILLIS} — millis = round(strike*1000), leading zeros stripped
 const OPTION_CODE_STRIKE_RE = /[CP](\d+)$/i;
 
 type ContractType = "call" | "put" | null;
 
-function strikeMillisCandidatesFromCode(code: string): number[] {
+function strikeFromOptionCode(code: string): number | null {
   const match = OPTION_CODE_STRIKE_RE.exec(code.trim().toUpperCase());
-  if (!match?.[1]) return [];
-  const digits = match[1];
-  const seen = new Set<number>();
-
-  seen.add(Number(digits.padStart(8, "0")) / 1000);
-  const maxTrailing = Math.max(0, 8 - digits.length);
-  for (let extra = 1; extra <= maxTrailing; extra += 1) {
-    const extended = `${digits}${"0".repeat(extra)}`;
-    if (extended.length <= 8) {
-      seen.add(Number(extended.padStart(8, "0")) / 1000);
-    } else {
-      seen.add(Number(extended) / 1000);
-    }
-  }
-
-  return [...seen].filter((v) => Number.isFinite(v) && v > 0).sort((a, b) => a - b);
+  if (!match?.[1]) return null;
+  const value = Number(match[1].padStart(8, "0")) / 1000;
+  return Number.isFinite(value) && value > 0 ? value : null;
 }
 
 function parseStrikeFromOptionName(optionName: string): number | null {
@@ -83,7 +70,7 @@ function pickBestStrike(candidates: number[], row: LeaderboardRow): number | nul
   return sane[0];
 }
 
-/** Resolve display strike — OCC recovery + spot sanity; prefer backend strike when sane. */
+/** Resolve display strike — OCC parse + spot sanity; prefer backend strike when sane. */
 export function resolveContractStrike(row: LeaderboardRow): number | null {
   const spot = row.underlying_price ?? null;
   const contractType = contractTypeFromRow(row);
@@ -99,7 +86,8 @@ export function resolveContractStrike(row: LeaderboardRow): number | null {
   }
 
   const candidates: number[] = [];
-  candidates.push(...strikeMillisCandidatesFromCode(row.code ?? ""));
+  const fromCode = strikeFromOptionCode(row.code ?? "");
+  if (fromCode != null) candidates.push(fromCode);
   const fromName = parseStrikeFromOptionName(row.option_name ?? "");
   if (fromName != null) candidates.push(fromName);
   if (row.strike != null && row.strike > 0) candidates.push(row.strike);
