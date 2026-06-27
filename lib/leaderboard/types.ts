@@ -44,6 +44,7 @@ export type LeaderboardRow = {
   spread: number | null;
   bid_vol: number | null;
   ask_vol: number | null;
+  underlying_price?: number | null;
 };
 
 export type LeaderboardResponse = {

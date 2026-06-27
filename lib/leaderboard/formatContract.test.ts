@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatContractStrike } from "@/lib/leaderboard/formatContract";
+import { formatContractStrike, resolveContractStrike } from "@/lib/leaderboard/formatContract";
 import type { LeaderboardRow } from "@/lib/leaderboard/types";
 
 function row(partial: Partial<LeaderboardRow>): LeaderboardRow {
@@ -48,6 +48,7 @@ describe("formatContractStrike", () => {
         option_name: "QQQ 260717 711.00C",
         strike: 17.68,
         price: 17.68,
+        underlying_price: 706.52,
       }),
     );
     expect(formatted).toBe("711.00");
@@ -60,6 +61,7 @@ describe("formatContractStrike", () => {
         option_name: "HIVE 260731 0.50C",
         strike: 0.5,
         price: 3.6,
+        underlying_price: 4.8,
       }),
     );
     expect(formatted).toBe("0.50");
@@ -71,8 +73,35 @@ describe("formatContractStrike", () => {
         code: "US.QQQ260717C711000",
         option_name: "",
         strike: null,
+        underlying_price: 706.52,
       }),
     );
     expect(formatted).toBe("711.00");
+  });
+
+  it("recovers trailing-zero OCC strike for high-priced underlyings (MU)", () => {
+    const mu = row({
+      code: "US.MU260702C115000",
+      option_name: "MU 260702 115.00C",
+      strike: 115,
+      price: 1010.05,
+      premium: 1010.05,
+      underlying_price: 1132.33,
+    });
+    expect(resolveContractStrike(mu)).toBe(1150);
+    expect(formatContractStrike(mu)).toBe("1150.00");
+  });
+
+  it("rejects implausible low strikes vs spot (MU C5000)", () => {
+    const mu = row({
+      code: "US.MU260702C5000",
+      option_name: "MU 260702 5.00C",
+      strike: 5,
+      price: 1209.98,
+      premium: 1119,
+      underlying_price: 1132.33,
+    });
+    expect(resolveContractStrike(mu)).toBeNull();
+    expect(formatContractStrike(mu)).toBe("—");
   });
 });
