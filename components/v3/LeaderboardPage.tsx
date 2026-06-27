@@ -91,7 +91,7 @@ function ContractCell({ row, t }: { row: LeaderboardRow; t: (key: string) => str
       )}
       <span
         className={clsx(
-          "inline-flex h-[18px] w-[18px] items-center justify-center border-2 border-ink font-mono text-[10px] font-bold shadow-[2px_2px_0_#151617]",
+          "inline-flex h-[18px] w-[18px] items-center justify-center border-2 border-ink font-mono text-[10px] font-bold shadow-neo-sm",
           isCall ? "bg-green-tint text-[#0A6B52]" : "bg-red-tint text-[#A03030]",
         )}
       >

@@ -646,6 +646,17 @@ export const extraZh: DictionaryTree = {
       symbolMasked: "标的已隐藏",
       freePreviewHint: "免费预览 {limit} 行 · 排名 1–{mask} 标的隐藏",
     },
+    lang: {
+      label: "语言",
+      zh: "中文",
+      en: "EN",
+    },
+    theme: {
+      light: "浅色模式",
+      dark: "深色模式",
+      switchToLight: "切换到浅色",
+      switchToDark: "切换到深色",
+    },
     chart: {
       noNetGex: "暂无 Net GEX 趋势数据",
       noFlip: "暂无 Gamma Flip 估算数据",
@@ -1321,6 +1332,17 @@ export const extraEn: DictionaryTree = {
       unlockFull: "Unlock full board & symbols",
       symbolMasked: "Symbol hidden",
       freePreviewHint: "Free preview: {limit} rows · ranks 1–{mask} symbol hidden",
+    },
+    lang: {
+      label: "Language",
+      zh: "中文",
+      en: "EN",
+    },
+    theme: {
+      light: "Light mode",
+      dark: "Dark mode",
+      switchToLight: "Switch to light",
+      switchToDark: "Switch to dark",
     },
     chart: {
       noNetGex: "No Net GEX trend data",

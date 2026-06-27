@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { NeoPanel } from "@/components/v3/NeoPanel";
+import LanguageToggle from "@/components/LanguageToggle";
+import V3ThemeToggle from "@/components/v3/V3ThemeToggle";
 import { useAuth } from "@/lib/auth-context";
 import { membershipLabel } from "@/lib/membership";
 import { useI18n } from "@/lib/i18n/context";
@@ -59,9 +61,13 @@ export default function AccountPage() {
             <h1 className="font-display text-3xl font-extrabold uppercase">{t("v3.membership.accountTitle")}</h1>
             <p className="text-sm text-ink/70 mt-1">{t("v3.membership.accountSubtitle")}</p>
           </div>
-          <Link href="/options/unusual" className="font-mono text-xs underline">
-            ← Options
-          </Link>
+          <div className="flex items-center gap-2">
+            <V3ThemeToggle />
+            <LanguageToggle variant="neo" />
+            <Link href="/options/unusual" className="font-mono text-xs underline">
+              ← Options
+            </Link>
+          </div>
         </div>
 
         <NeoPanel title={user?.email ?? "—"} accent="peach">

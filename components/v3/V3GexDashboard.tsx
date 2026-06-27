@@ -5,6 +5,7 @@ import { clsx } from "clsx";
 import { Search } from "lucide-react";
 
 import LanguageToggle from "@/components/LanguageToggle";
+import V3ThemeToggle from "@/components/v3/V3ThemeToggle";
 import { MembershipPaywall } from "@/components/v3/MembershipPaywall";
 import StrikeGammaChart from "@/components/v3/StrikeGammaChart";
 import NetGexTrendChart, { type HistRow } from "@/components/v3/NetGexTrendChart";
@@ -231,7 +232,10 @@ export default function V3GexDashboard({ embedded = false }: { embedded?: boolea
                   {t("v3.search")}
                 </button>
               </form>
-              <LanguageToggle variant="neo" />
+              <div className="flex items-center gap-1.5 shrink-0">
+                <V3ThemeToggle />
+                <LanguageToggle variant="neo" />
+              </div>
             </div>
           </div>
         </header>

@@ -28,9 +28,14 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  colorScheme: "light",
-  themeColor: "#F5F2F0",
+  colorScheme: "light dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#1a1a1c" },
+    { color: "#F5F2F0" },
+  ],
 };
+
+const themeInitScript = `(function(){try{var t=localStorage.getItem("theme");if(t==="dark")document.documentElement.classList.add("dark");else if(t==="light")document.documentElement.classList.remove("dark");}catch(e){}})();`;
 
 export default function RootLayout({
   children,
@@ -43,6 +48,9 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${GeistSans.variable} ${syne.variable} ${jetbrainsMono.variable}`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="bg-cream text-ink font-sans antialiased">
         <Providers>{children}</Providers>
       </body>

@@ -17,7 +17,7 @@ export function NeoPanel({
   return (
     <section
       className={clsx(
-        "neo-panel bg-cream border-[3px] border-ink shadow-neo rounded-none",
+        "neo-panel bg-surface border-[3px] border-ink shadow-neo rounded-none",
         accent === "peach" && "neo-accent-peach",
         accent === "lavender" && "neo-accent-lavender",
         className,

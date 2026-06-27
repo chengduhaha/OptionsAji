@@ -14,17 +14,20 @@ import {
 import type { HistRow } from "./NetGexTrendChart";
 import { formatMessage } from "@/lib/i18n/dictionary";
 import { useI18n } from "@/lib/i18n/context";
-
-const NEO_TOOLTIP = {
-  backgroundColor: "#F5F2F0",
-  border: "3px solid #151617",
-  boxShadow: "4px 4px 0 #151617",
-  fontSize: 11,
-  fontFamily: "var(--font-mono)",
-};
+import { useNeoChartTheme } from "@/lib/v3/use-neo-chart-theme";
 
 export default function GammaFlipChart({ data }: { data: HistRow[] }) {
   const { t } = useI18n();
+  const theme = useNeoChartTheme();
+
+  const tooltipStyle = {
+    backgroundColor: theme.cream,
+    border: `3px solid ${theme.ink}`,
+    boxShadow: `4px 4px 0 ${theme.ink}`,
+    fontSize: 11,
+    fontFamily: "var(--font-mono)",
+    color: theme.ink,
+  };
 
   if (!data.length) {
     return (
@@ -46,30 +49,38 @@ export default function GammaFlipChart({ data }: { data: HistRow[] }) {
       ) : null}
       <ResponsiveContainer width="100%" height={260}>
         <LineChart data={data} margin={{ top: 8, right: 12, left: -8, bottom: 0 }}>
-          <CartesianGrid stroke="#151617" strokeOpacity={0.1} strokeDasharray="4 4" />
+          <CartesianGrid
+            stroke={theme.ink}
+            strokeOpacity={theme.gridOpacity}
+            strokeDasharray="4 4"
+          />
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 10, fill: "#151617", fontFamily: "var(--font-mono)" }}
+            tick={{ fontSize: 10, fill: theme.ink, fontFamily: "var(--font-mono)" }}
             minTickGap={28}
-            axisLine={{ stroke: "#151617", strokeWidth: 2 }}
-            tickLine={{ stroke: "#151617" }}
+            axisLine={{ stroke: theme.ink, strokeWidth: 2 }}
+            tickLine={{ stroke: theme.ink }}
           />
           <YAxis
-            tick={{ fontSize: 10, fill: "#151617", fontFamily: "var(--font-mono)" }}
+            tick={{ fontSize: 10, fill: theme.ink, fontFamily: "var(--font-mono)" }}
             width={48}
             domain={["auto", "auto"]}
-            axisLine={{ stroke: "#151617", strokeWidth: 2 }}
-            tickLine={{ stroke: "#151617" }}
+            axisLine={{ stroke: theme.ink, strokeWidth: 2 }}
+            tickLine={{ stroke: theme.ink }}
           />
-          <Tooltip contentStyle={NEO_TOOLTIP} />
-          <Legend wrapperStyle={{ fontSize: 11, fontFamily: "var(--font-sans)" }} />
+          <Tooltip contentStyle={tooltipStyle} />
+          <Legend wrapperStyle={{ fontSize: 11, fontFamily: "var(--font-sans)", color: theme.ink }} />
           <Line
             type="monotone"
             dataKey="flip"
             name={t("v3.chart.gammaFlipLine")}
-            stroke="#A799F0"
+            stroke={theme.lavender}
             strokeWidth={3}
-            dot={sparse ? { r: 3, stroke: "#151617", strokeWidth: 2, fill: "#A799F0" } : false}
+            dot={
+              sparse
+                ? { r: 3, stroke: theme.ink, strokeWidth: 2, fill: theme.lavender }
+                : false
+            }
             connectNulls
           />
         </LineChart>

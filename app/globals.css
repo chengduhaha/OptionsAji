@@ -84,6 +84,13 @@
 
 /* ===== Dark theme (opt-in via `.dark` on <html>) — refined, de-neoned ===== */
 .dark {
+  /* v3 Neo-Brutalist dark palette */
+  --color-cream: #1a1a1c;
+  --color-ink: #f5f2f0;
+  --color-surface: #222326;
+  --shadow-neo: 4px 4px 0 rgba(245, 242, 240, 0.22);
+  --shadow-neo-sm: 3px 3px 0 rgba(245, 242, 240, 0.18);
+
   --color-background: #0e131b;
   --color-foreground: #e6ebf2;
 
@@ -517,6 +524,7 @@
 @theme {
   --color-cream: #F5F2F0;
   --color-ink: #151617;
+  --color-surface: #F5F2F0;
   --color-peach: #FFBE98;
   --color-lavender: #A799F0;
   --font-display: var(--font-display), 'Syne', system-ui, sans-serif;
@@ -546,30 +554,31 @@
 }
 
 .neo-accent-peach header {
-  background: color-mix(in srgb, #FFBE98 35%, #F5F2F0);
+  background: color-mix(in srgb, var(--color-peach) 35%, var(--color-cream));
 }
 
 .neo-accent-lavender header {
-  background: color-mix(in srgb, #A799F0 28%, #F5F2F0);
+  background: color-mix(in srgb, var(--color-lavender) 28%, var(--color-cream));
 }
 
 .neo-input {
-  background: #F5F2F0;
-  border: 3px solid #151617;
-  box-shadow: 3px 3px 0 #151617;
+  background: var(--color-cream);
+  color: var(--color-ink);
+  border: 3px solid var(--color-ink);
+  box-shadow: var(--shadow-neo-sm);
   padding: 0.5rem 0.75rem;
   outline: none;
 }
 
 .neo-input:focus {
-  box-shadow: 5px 5px 0 #151617;
+  box-shadow: var(--shadow-neo);
 }
 
 .neo-button {
-  background: #151617;
-  color: #F5F2F0;
-  border: 3px solid #151617;
-  box-shadow: 3px 3px 0 #A799F0;
+  background: var(--color-ink);
+  color: var(--color-cream);
+  border: 3px solid var(--color-ink);
+  box-shadow: 3px 3px 0 var(--color-lavender);
   padding: 0.5rem 1rem;
   font-weight: 700;
   font-size: 0.875rem;
@@ -579,19 +588,20 @@
 
 .neo-button:hover {
   transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0 #A799F0;
+  box-shadow: 4px 4px 0 var(--color-lavender);
 }
 
 .neo-button:active {
   transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0 #A799F0;
+  box-shadow: 1px 1px 0 var(--color-lavender);
 }
 
 .neo-badge {
   display: inline-block;
-  background: #FFBE98;
-  border: 3px solid #151617;
-  box-shadow: 3px 3px 0 #151617;
+  background: var(--color-peach);
+  color: var(--color-ink);
+  border: 3px solid var(--color-ink);
+  box-shadow: var(--shadow-neo-sm);
   padding: 0.25rem 0.75rem;
   font-weight: 800;
   letter-spacing: 0.05em;
@@ -599,7 +609,13 @@
 
 .neo-stat {
   display: inline-block;
-  background: #F5F2F0;
-  border: 2px solid #151617;
+  background: var(--color-cream);
+  color: var(--color-ink);
+  border: 2px solid var(--color-ink);
   padding: 0.2rem 0.6rem;
+}
+
+/* v3 elevated panels — slightly lifted surface in dark mode */
+.dark .neo-panel {
+  background: var(--color-surface);
 }

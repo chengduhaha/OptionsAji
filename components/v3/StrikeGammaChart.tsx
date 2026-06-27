@@ -2,6 +2,8 @@
 
 import { formatMessage } from "@/lib/i18n/dictionary";
 import { useI18n } from "@/lib/i18n/context";
+import { useNeoChartTheme } from "@/lib/v3/use-neo-chart-theme";
+
 type StrikeData = {
   strike: number;
   callGex: number;
@@ -21,6 +23,7 @@ export default function StrikeGammaChart({
   gammaFlip?: number;
 }) {
   const { t } = useI18n();
+  const theme = useNeoChartTheme();
 
   if (!strikes.length) {
     return (
@@ -61,7 +64,7 @@ export default function StrikeGammaChart({
   };
 
   const refLines: Array<{ val: number; color: string; label: string }> = [
-    { val: price, color: "#151617", label: `${ticker} $${price.toFixed(2)}` },
+    { val: price, color: theme.ink, label: `${ticker} $${price.toFixed(2)}` },
   ];
   if (
     typeof gammaFlip === "number" &&
@@ -71,7 +74,7 @@ export default function StrikeGammaChart({
   ) {
     refLines.push({
       val: gammaFlip,
-      color: "#A799F0",
+      color: theme.lavender,
       label: formatMessage(t("v3.chart.gammaFlipRef"), { value: gammaFlip.toFixed(2) }),
     });
   }
@@ -105,16 +108,16 @@ export default function StrikeGammaChart({
                 y1={y}
                 x2={PL + chartW}
                 y2={y}
-                stroke="#151617"
+                stroke={theme.ink}
                 strokeWidth="1"
-                strokeOpacity={0.12}
+                strokeOpacity={theme.gridOpacity}
               />
               <text
                 x={PL - 8}
                 y={y + 4}
                 textAnchor="end"
                 fontSize="9"
-                fill="#151617"
+                fill={theme.ink}
                 fontFamily="var(--font-mono)"
                 opacity={0.65}
               >
@@ -136,8 +139,8 @@ export default function StrikeGammaChart({
                   y={midY - callH}
                   width={barW}
                   height={callH}
-                  fill="#FFBE98"
-                  stroke="#151617"
+                  fill={theme.peach}
+                  stroke={theme.ink}
                   strokeWidth="0.5"
                 />
               )}
@@ -147,8 +150,8 @@ export default function StrikeGammaChart({
                   y={midY}
                   width={barW}
                   height={putH}
-                  fill="#A799F0"
-                  stroke="#151617"
+                  fill={theme.lavender}
+                  stroke={theme.ink}
                   strokeWidth="0.5"
                 />
               )}
@@ -188,7 +191,7 @@ export default function StrikeGammaChart({
           y1={midY}
           x2={PL + chartW}
           y2={midY}
-          stroke="#151617"
+          stroke={theme.ink}
           strokeWidth="1.5"
         />
 
@@ -203,7 +206,7 @@ export default function StrikeGammaChart({
                 y={PT + chartH + 22}
                 textAnchor="middle"
                 fontSize="9"
-                fill="#151617"
+                fill={theme.ink}
                 fontFamily="var(--font-mono)"
                 opacity={0.7}
               >

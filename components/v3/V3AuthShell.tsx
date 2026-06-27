@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import LanguageToggle from "@/components/LanguageToggle";
+import V3ThemeToggle from "@/components/v3/V3ThemeToggle";
 import { useI18n } from "@/lib/i18n/context";
 
 type V3AuthShellProps = {
@@ -22,7 +23,10 @@ export default function V3AuthShell({ title, subtitle, children }: V3AuthShellPr
           <Link href="/options/unusual" className="font-display text-sm font-extrabold uppercase tracking-wider">
             OptionsAji <span className="opacity-55">v3</span>
           </Link>
-          <LanguageToggle variant="neo" />
+          <div className="flex items-center gap-1.5">
+            <V3ThemeToggle />
+            <LanguageToggle variant="neo" />
+          </div>
         </header>
 
         <div className="flex flex-1 flex-col justify-center">

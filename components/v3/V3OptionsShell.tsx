@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 
 import LanguageToggle from "@/components/LanguageToggle";
+import V3ThemeToggle from "@/components/v3/V3ThemeToggle";
 import { NAV_BOARDS } from "@/lib/leaderboard/boardConfig";
 import { useAuth } from "@/lib/auth-context";
 import { membershipLabel } from "@/lib/membership";
@@ -115,7 +116,10 @@ export default function V3OptionsShell({ children }: V3OptionsShellProps) {
                 {t("v3.membership.pricing")}
               </Link>
             ) : null}
-            <LanguageToggle variant="neo" />
+            <div className="flex items-center gap-1.5">
+              <V3ThemeToggle />
+              <LanguageToggle variant="neo" />
+            </div>
             <div
               className={clsx(
                 "flex items-center gap-2 border-[3px] border-ink px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider shadow-neo-sm",

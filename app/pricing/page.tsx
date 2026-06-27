@@ -4,6 +4,7 @@ import Link from "next/link";
 import { clsx } from "clsx";
 
 import LanguageToggle from "@/components/LanguageToggle";
+import V3ThemeToggle from "@/components/v3/V3ThemeToggle";
 import { useI18n } from "@/lib/i18n/context";
 import { formatMessage } from "@/lib/i18n/dictionary";
 
@@ -63,7 +64,10 @@ export default function PricingPage() {
             </h1>
             <p className="mt-1 max-w-xl text-sm text-ink/70">{t("v3.membership.pricingSubtitle")}</p>
           </div>
-          <LanguageToggle variant="neo" />
+          <div className="flex items-center gap-1.5">
+            <V3ThemeToggle />
+            <LanguageToggle variant="neo" />
+          </div>
         </header>
 
         <div className="grid gap-5 md:grid-cols-3 md:items-end">
