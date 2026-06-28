@@ -512,7 +512,7 @@ export const extraZh: DictionaryTree = {
         },
         s3: {
           heading: "联系我们",
-          body: "商务与合作请通过「联系我们」页面联系。邮箱：chengduhahaha@gmail.com",
+          body: "商务与合作请通过「联系我们」页面联系。邮箱：support@options-aji.com",
         },
       },
       terms: {
@@ -563,7 +563,7 @@ export const extraZh: DictionaryTree = {
         },
         s2: {
           heading: "2. 申请方式",
-          body: "[PLACEHOLDER] 请发送邮件至 chengduhahaha@gmail.com，注明注册邮箱、订单信息与退款原因。",
+          body: "[PLACEHOLDER] 请发送邮件至 support@options-aji.com，注明注册邮箱、订单信息与退款原因。",
         },
         s3: {
           heading: "3. 处理时效",
@@ -1378,7 +1378,7 @@ export const extraEn: DictionaryTree = {
         },
         s3: {
           heading: "Contact",
-          body: "For business inquiries, see the Contact page. Email: chengduhahaha@gmail.com",
+          body: "For business inquiries, see the Contact page. Email: support@options-aji.com",
         },
       },
       terms: {
@@ -1429,7 +1429,7 @@ export const extraEn: DictionaryTree = {
         },
         s2: {
           heading: "2. How to request",
-          body: "[PLACEHOLDER] Email chengduhahaha@gmail.com with your registered email, order info, and reason.",
+          body: "[PLACEHOLDER] Email support@options-aji.com with your registered email, order info, and reason.",
         },
         s3: {
           heading: "3. Processing time",

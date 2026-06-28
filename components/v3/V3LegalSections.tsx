@@ -17,8 +17,8 @@ export default function V3LegalSections({ pageKey }: V3LegalSectionsProps) {
         <ul className="space-y-2 font-mono text-[13px]">
           <li>
             <span className="font-bold">{t("v3.legal.contact.emailLabel")}: </span>
-            <a href="mailto:chengduhahaha@gmail.com" className="underline underline-offset-2">
-              chengduhahaha@gmail.com
+            <a href="mailto:support@options-aji.com" className="underline underline-offset-2">
+              support@options-aji.com
             </a>
           </li>
           <li>
