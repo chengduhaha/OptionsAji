@@ -37,10 +37,10 @@ function matchesMoneyness(row: LeaderboardRow, filter: MoneynessFilter): boolean
 
 export function useLeaderboardFilters(
   items: LeaderboardRow[],
-  options: { paginated?: boolean },
+  options: { paginated?: boolean; defaultDte?: DteFilter },
 ) {
   const [cp, setCp] = useState<CpFilter>("all");
-  const [dte, setDte] = useState<DteFilter>("all");
+  const [dte, setDte] = useState<DteFilter>(options.defaultDte ?? "all");
   const [moneyness, setMoneyness] = useState<MoneynessFilter>("all");
   const [topN, setTopN] = useState<10 | 25>(10);
   const [page, setPage] = useState(1);

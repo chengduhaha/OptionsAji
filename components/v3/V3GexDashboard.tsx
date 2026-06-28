@@ -11,8 +11,11 @@ import StrikeGammaChart from "@/components/v3/StrikeGammaChart";
 import NetGexTrendChart, { type HistRow } from "@/components/v3/NetGexTrendChart";
 import GammaFlipChart from "@/components/v3/GammaFlipChart";
 import { NeoPanel } from "@/components/v3/NeoPanel";
+import V3SiteFooter from "@/components/v3/V3SiteFooter";
 import { useAuth } from "@/lib/auth-context";
 import { authFetch } from "@/lib/apiBase";
+import { formatContractStrike } from "@/lib/leaderboard/formatContract";
+import type { LeaderboardRow } from "@/lib/leaderboard/types";
 import { formatMessage } from "@/lib/i18n/dictionary";
 import { useI18n } from "@/lib/i18n/context";
 
@@ -103,6 +106,22 @@ function mergeHistory(profile: GexProfile | null, hist: GexHistApi | null): Hist
     .map((k) => byDay[k]!);
 }
 
+function isNearAtm(row: LeaderboardRow): boolean {
+  const moneyness = (row.moneyness ?? "").toUpperCase();
+  if (moneyness === "ATM") return true;
+  const delta = row.delta;
+  if (delta == null || !Number.isFinite(delta)) return false;
+  return Math.abs(delta) >= 0.35 && Math.abs(delta) <= 0.65;
+}
+
+function pickNearAtmHighGamma(items: LeaderboardRow[]): LeaderboardRow[] {
+  return items
+    .filter((row) => isNearAtm(row) && row.gamma != null && Number.isFinite(row.gamma))
+    .sort((a, b) => (b.gamma ?? 0) - (a.gamma ?? 0))
+    .slice(0, 10)
+    .map((row, index) => ({ ...row, rank: index + 1 }));
+}
+
 export default function V3GexDashboard({ embedded = false }: { embedded?: boolean }) {
   const { t } = useI18n();
   const { isMember, ready: authReady } = useAuth();
@@ -114,6 +133,8 @@ export default function V3GexDashboard({ embedded = false }: { embedded?: boolea
   const [histLoading, setHistLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [membershipBlocked, setMembershipBlocked] = useState(false);
+  const [atmGammaRows, setAtmGammaRows] = useState<LeaderboardRow[]>([]);
+  const [atmGammaLoading, setAtmGammaLoading] = useState(true);
 
   const fetchData = useCallback(async (sym: string) => {
     setLoading(true);
@@ -175,6 +196,26 @@ export default function V3GexDashboard({ embedded = false }: { embedded?: boolea
     if (!authReady) return;
     void fetchData(symbol);
   }, [symbol, fetchData, authReady]);
+
+  useEffect(() => {
+    if (!authReady) return;
+    setAtmGammaLoading(true);
+    void (async () => {
+      try {
+        const res = await authFetch("/api/options/leaderboard/high-gamma", { cache: "no-store" });
+        if (!res.ok) {
+          setAtmGammaRows([]);
+          return;
+        }
+        const payload = (await res.json()) as { items?: LeaderboardRow[] };
+        setAtmGammaRows(pickNearAtmHighGamma(payload.items ?? []));
+      } catch {
+        setAtmGammaRows([]);
+      } finally {
+        setAtmGammaLoading(false);
+      }
+    })();
+  }, [authReady]);
 
   const merged = useMemo(() => mergeHistory(profile, hist), [profile, hist]);
 
@@ -351,12 +392,61 @@ export default function V3GexDashboard({ embedded = false }: { embedded?: boolea
               <GammaFlipChart data={merged} />
             )}
           </NeoPanel>
+
+          <NeoPanel
+            title={t("v3.gex.atmGamma.title")}
+            accent="peach"
+          >
+            <ChartAnswer answerKey="v3.gex.atmGamma.answer" />
+            {atmGammaLoading ? (
+              <p className="text-sm text-ink/60 py-8 text-center font-mono">{t("v3.loading")}</p>
+            ) : atmGammaRows.length ? (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-[13px] min-w-[640px]">
+                  <thead>
+                    <tr className="bg-ink text-cream">
+                      <th className="px-3 py-2 font-mono text-[10px] font-bold uppercase w-10">#</th>
+                      <th className="px-3 py-2 font-mono text-[10px] font-bold uppercase text-left">
+                        {t("v3.leaderboard.col.contract")}
+                      </th>
+                      <th className="px-3 py-2 font-mono text-[10px] font-bold uppercase text-right">Γ</th>
+                      <th className="px-3 py-2 font-mono text-[10px] font-bold uppercase text-right">Δ</th>
+                      <th className="px-3 py-2 font-mono text-[10px] font-bold uppercase text-right">
+                        {t("v3.leaderboard.col.volume")}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {atmGammaRows.map((row) => (
+                      <tr key={row.code} className="border-b-2 border-ink hover:bg-lavender/15">
+                        <td className="px-3 py-2 text-center font-display font-extrabold">{row.rank}</td>
+                        <td className="px-3 py-2 font-mono text-xs">
+                          {row.symbol_masked ? "•••" : row.underlying}{" "}
+                          {row.option_type} {formatContractStrike(row)}{" "}
+                          {row.expiry?.slice(5) ?? ""}
+                        </td>
+                        <td className="px-3 py-2 text-right font-mono font-semibold tabular-nums">
+                          {row.gamma?.toFixed(4) ?? "—"}
+                        </td>
+                        <td className="px-3 py-2 text-right font-mono font-semibold tabular-nums">
+                          {row.delta?.toFixed(2) ?? "—"}
+                        </td>
+                        <td className="px-3 py-2 text-right font-mono font-semibold tabular-nums">
+                          {row.volume.toLocaleString("en-US")}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-sm text-ink/60 py-8 text-center">{t("v3.noData")}</p>
+            )}
+          </NeoPanel>
         </div>
         )}
 
-        <footer className="pt-4 pb-8 text-[11px] text-ink/50 font-sans leading-relaxed border-t-[3px] border-ink/20">
-          {t("v3.disclaimer")}
-        </footer>
+        {!embedded ? <V3SiteFooter /> : null}
       </main>
     </div>
   );

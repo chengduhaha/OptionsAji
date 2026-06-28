@@ -39,8 +39,8 @@ export const BOARD_CONFIGS: Record<string, BoardUiConfig> = {
     boardId: "high-iv",
     titleKey: "v3.boards.highIv.title",
     answerKey: "v3.boards.highIv.answer",
-    heroColumn: "iv",
-    columns: ["iv", "hv", "iv_hv", "volume", "dte"],
+    heroColumn: "iv_rank",
+    columns: ["iv_rank", "iv", "iv_hv", "hv", "volume", "dte"],
     accent: "lavender",
   },
   "high-gamma": {
@@ -79,5 +79,6 @@ export const NAV_BOARDS = [
   { href: "/options/high-gamma", labelKey: "v3.nav.highGamma" },
   { href: "/options/seller", labelKey: "v3.nav.seller" },
   { href: "/options/liquidity", labelKey: "v3.nav.liquidity" },
+  { href: "/options/sentiment", labelKey: "v3.nav.sentiment" },
   { href: "/options/gex", labelKey: "v3.nav.gex" },
 ] as const;

@@ -463,6 +463,140 @@ export const extraZh: DictionaryTree = {
         answer:
           "股价落在哪一档，做市商 Gamma 会从正转负？这是判断波动收敛还是放大的关键分水岭。",
       },
+      atmGamma: {
+        title: "近 ATM 高 Gamma 合约",
+        answer:
+          "Delta 接近 0.5 的高 Gamma 合约是上方 GEX 柱状图最敏感的对冲节点——价格小幅变动就会触发大量做市商调仓。",
+      },
+    },
+    sentiment: {
+      callSide: "Call 侧",
+      putSide: "Put 侧",
+      totalVolume: "总成交量",
+      pcRatio: "Put/Call 比",
+      topCalls: "Call Top 5",
+      topPuts: "Put Top 5",
+      loading: "加载情绪数据…",
+      loadError: "无法加载情绪数据，请稍后重试。",
+    },
+    footer: {
+      brand: "OptionsAji / 期权阿吉",
+      tagline: "数据分析与期权教育平台。不构成投资建议，不执行交易，不托管资金。",
+      address: "United States（地址待更新）",
+      legalNav: "法务与政策",
+      copyright: "© 2026 OptionsAji / 期权阿吉",
+      disclaimerLink: "完整免责声明",
+      links: {
+        about: "关于我们",
+        terms: "服务条款",
+        privacy: "隐私政策",
+        refund: "退款政策",
+        disclaimer: "免责声明",
+        contact: "联系我们",
+        pricing: "定价",
+      },
+    },
+    legal: {
+      placeholderBanner: "[PLACEHOLDER — 待法务审核 Legal review pending]",
+      about: {
+        title: "关于我们",
+        subtitle: "About OptionsAji",
+        sectionCount: "3",
+        s1: {
+          heading: "我们是谁",
+          body: "OptionsAji（期权阿吉）是面向华语美股期权交易者的数据分析与教育平台。我们整理期权链、Gamma 敞口、成交量榜单等信息，帮助用户建立独立研究框架。\n\n本平台不提供投资建议、不代客交易、不托管任何资金。",
+        },
+        s2: {
+          heading: "产品定位",
+          body: "OptionsAji v3 聚焦全市场期权榜单与 GEX 可视化，配合 AI 辅助解读（MVP 模块）。数据延迟约 15 分钟，仅供教育与研究参考。",
+        },
+        s3: {
+          heading: "联系我们",
+          body: "商务与合作请通过「联系我们」页面联系。邮箱：chengduhahaha@gmail.com",
+        },
+      },
+      terms: {
+        title: "服务条款",
+        subtitle: "Terms of Service",
+        sectionCount: "4",
+        s1: {
+          heading: "1. 接受条款",
+          body: "[PLACEHOLDER] 使用 OptionsAji 即表示您同意本服务条款。本文件为占位版本，正式条款经法务审核后替换。",
+        },
+        s2: {
+          heading: "2. 服务范围",
+          body: "[PLACEHOLDER] 本平台提供数据分析、市场信息整理与教育内容。不构成投资建议、交易建议或收益承诺。",
+        },
+        s3: {
+          heading: "3. 账户与付费",
+          body: "[PLACEHOLDER] 会员订阅通过激活码或第三方支付（Creem/Stripe）完成。具体退款规则见「退款政策」。",
+        },
+        s4: {
+          heading: "4. 责任限制",
+          body: "[PLACEHOLDER] 因市场波动、数据延迟或第三方数据源错误导致的损失，OptionsAji 不承担赔偿责任。",
+        },
+      },
+      privacy: {
+        title: "隐私政策",
+        subtitle: "Privacy Policy",
+        sectionCount: "3",
+        s1: {
+          heading: "1. 收集的信息",
+          body: "[PLACEHOLDER] 我们可能收集注册邮箱、登录日志、使用偏好及支付相关元数据（由 Creem/Stripe 处理，我们不存储完整卡号）。",
+        },
+        s2: {
+          heading: "2. 信息使用",
+          body: "[PLACEHOLDER] 用于账户管理、产品改进、安全审计及必要的客户支持。",
+        },
+        s3: {
+          heading: "3. 数据共享",
+          body: "[PLACEHOLDER] 除法律要求或支付处理必要外，我们不会向第三方出售您的个人信息。",
+        },
+      },
+      refund: {
+        title: "退款政策",
+        subtitle: "Refund Policy",
+        sectionCount: "3",
+        s1: {
+          heading: "1. 数字订阅退款",
+          body: "[PLACEHOLDER — Stripe/Creem 合规占位] 激活码一经兑换并生效，原则上不予退款。未兑换的激活码可在购买后 7 日内申请退款。",
+        },
+        s2: {
+          heading: "2. 申请方式",
+          body: "[PLACEHOLDER] 请发送邮件至 chengduhahaha@gmail.com，注明注册邮箱、订单信息与退款原因。",
+        },
+        s3: {
+          heading: "3. 处理时效",
+          body: "[PLACEHOLDER] 我们将在 5–10 个工作日内回复。退款将原路返回至支付方式。",
+        },
+      },
+      disclaimer: {
+        title: "免责声明",
+        subtitle: "Disclaimer",
+        sectionCount: "3",
+        s1: {
+          heading: "非投资建议",
+          body: "OptionsAji 提供的所有数据、图表、榜单、AI 生成内容仅供数据分析与教育用途，不构成任何形式的投资建议、交易建议、荐股或收益承诺。",
+        },
+        s2: {
+          heading: "风险披露",
+          body: "期权交易具有高风险，可能导致全部本金损失。您应独立做出投资决策并自行承担全部风险。OptionsAji 不是注册投资顾问，不执行交易，不接触用户资金。",
+        },
+        s3: {
+          heading: "数据准确性",
+          body: "数据来自第三方（如 Futu OpenD），可能存在延迟、遗漏或错误。请勿将本平台数据作为唯一决策依据。",
+        },
+      },
+      contact: {
+        title: "联系我们",
+        subtitle: "Contact",
+        sectionCount: "0",
+        intro: "如有产品问题、商务合作或退款申请，请通过以下方式联系我们：",
+        emailLabel: "邮箱",
+        wechatLabel: "微信",
+        discordLabel: "Discord",
+        responseTime: "我们通常会在 1–3 个工作日内回复。",
+      },
     },
     histLoading: "历史趋势加载中（约需 30–60 秒）…",
     flipHistLoading: "Gamma Flip 历史加载中…",
@@ -474,10 +608,11 @@ export const extraZh: DictionaryTree = {
       volume: "成交量榜",
       openInterest: "持仓榜",
       turnover: "权利金榜",
-      highIv: "高 IV 榜",
+      highIv: "高 IV Rank",
       highGamma: "高 GAMMA 榜",
       seller: "卖方收益榜",
       liquidity: "流动性榜",
+      sentiment: "情绪",
       gex: "Gamma 敞口",
     },
     leaderboard: {
@@ -501,6 +636,7 @@ export const extraZh: DictionaryTree = {
         turnover: "成交额",
         oi_mcap: "OI 市值",
         iv: "IV",
+        iv_rank: "IV Rank",
         hv: "HV",
         iv_hv: "IV/HV",
         change_ratio: "涨跌",
@@ -525,7 +661,7 @@ export const extraZh: DictionaryTree = {
       },
       volume: {
         title: "成交量榜",
-        answer: "今天哪些合约被买卖得最频繁？资金活跃度第一入口。",
+        answer: "今天哪些合约被买卖得最频繁？默认展示 0DTE 当日到期合约；切换到「全部」可看全市场。",
       },
       openInterest: {
         title: "持仓榜",
@@ -536,8 +672,12 @@ export const extraZh: DictionaryTree = {
         answer: "真金白银的成交额去向，比张数更能反映大资金。",
       },
       highIv: {
-        title: "高 IV 榜",
-        answer: "隐含波动率最高 = 市场对它的预期最剧烈，卖方溢价最厚。",
+        title: "高 IV Rank 榜",
+        answer: "IV Rank 最高 = 隐含波动率处于近一年高位，卖方溢价最厚、财报前策略首选参考。IV/HV 列显示相对历史波动率的偏离。",
+      },
+      sentiment: {
+        title: "Call / Put 情绪快览",
+        answer: "全市场 Call 与 Put 成交量对比：哪一侧更活跃？两侧 Top 合约一目了然。",
       },
       highGamma: {
         title: "高 GAMMA 榜",
@@ -1149,6 +1289,140 @@ export const extraEn: DictionaryTree = {
         answer:
           "At what price does dealer gamma flip from positive to negative? That level separates calmer from more volatile regimes.",
       },
+      atmGamma: {
+        title: "Near-ATM High Gamma Contracts",
+        answer:
+          "High-gamma contracts with delta near 0.5 are the most sensitive hedging nodes in the GEX chart above—small price moves trigger large dealer rebalancing.",
+      },
+    },
+    sentiment: {
+      callSide: "Call side",
+      putSide: "Put side",
+      totalVolume: "Total volume",
+      pcRatio: "Put/Call ratio",
+      topCalls: "Top 5 Calls",
+      topPuts: "Top 5 Puts",
+      loading: "Loading sentiment…",
+      loadError: "Failed to load sentiment data.",
+    },
+    footer: {
+      brand: "OptionsAji / 期权阿吉",
+      tagline: "Options data & education platform. Not advice, no trading, no custody.",
+      address: "United States (address TBD)",
+      legalNav: "Legal & policies",
+      copyright: "© 2026 OptionsAji",
+      disclaimerLink: "Full disclaimer",
+      links: {
+        about: "About",
+        terms: "Terms",
+        privacy: "Privacy",
+        refund: "Refund",
+        disclaimer: "Disclaimer",
+        contact: "Contact",
+        pricing: "Pricing",
+      },
+    },
+    legal: {
+      placeholderBanner: "[PLACEHOLDER — Legal review pending]",
+      about: {
+        title: "About Us",
+        subtitle: "关于我们",
+        sectionCount: "3",
+        s1: {
+          heading: "Who we are",
+          body: "OptionsAji is a data analysis and education platform for US options traders in the Chinese-speaking community. We organize chains, gamma exposure, and volume leaderboards to support independent research.\n\nWe do not provide investment advice, execute trades, or hold client funds.",
+        },
+        s2: {
+          heading: "Product",
+          body: "OptionsAji v3 focuses on market-wide option leaderboards and GEX visualization, with AI-assisted reads in the MVP module. Data may be delayed ~15 minutes—for education and research only.",
+        },
+        s3: {
+          heading: "Contact",
+          body: "For business inquiries, see the Contact page. Email: chengduhahaha@gmail.com",
+        },
+      },
+      terms: {
+        title: "Terms of Service",
+        subtitle: "服务条款",
+        sectionCount: "4",
+        s1: {
+          heading: "1. Acceptance",
+          body: "[PLACEHOLDER] By using OptionsAji you agree to these Terms. This is a stub pending legal review.",
+        },
+        s2: {
+          heading: "2. Scope of service",
+          body: "[PLACEHOLDER] We provide data analysis, market information, and educational content—not investment advice or return promises.",
+        },
+        s3: {
+          heading: "3. Accounts & billing",
+          body: "[PLACEHOLDER] Membership is via activation codes or third-party payment (Creem/Stripe). See Refund Policy for refunds.",
+        },
+        s4: {
+          heading: "4. Limitation of liability",
+          body: "[PLACEHOLDER] OptionsAji is not liable for losses from market moves, data delays, or third-party data errors.",
+        },
+      },
+      privacy: {
+        title: "Privacy Policy",
+        subtitle: "隐私政策",
+        sectionCount: "3",
+        s1: {
+          heading: "1. Information we collect",
+          body: "[PLACEHOLDER] We may collect email, login logs, usage preferences, and payment metadata (processed by Creem/Stripe—we do not store full card numbers).",
+        },
+        s2: {
+          heading: "2. How we use it",
+          body: "[PLACEHOLDER] For account management, product improvement, security, and support.",
+        },
+        s3: {
+          heading: "3. Sharing",
+          body: "[PLACEHOLDER] We do not sell personal data except as required by law or for payment processing.",
+        },
+      },
+      refund: {
+        title: "Refund Policy",
+        subtitle: "退款政策",
+        sectionCount: "3",
+        s1: {
+          heading: "1. Digital subscriptions",
+          body: "[PLACEHOLDER — Stripe/Creem compliance stub] Redeemed activation codes are generally non-refundable. Unused codes may be refunded within 7 days of purchase.",
+        },
+        s2: {
+          heading: "2. How to request",
+          body: "[PLACEHOLDER] Email chengduhahaha@gmail.com with your registered email, order info, and reason.",
+        },
+        s3: {
+          heading: "3. Processing time",
+          body: "[PLACEHOLDER] We respond within 5–10 business days. Refunds return to the original payment method.",
+        },
+      },
+      disclaimer: {
+        title: "Disclaimer",
+        subtitle: "免责声明",
+        sectionCount: "3",
+        s1: {
+          heading: "Not investment advice",
+          body: "All data, charts, leaderboards, and AI-generated content on OptionsAji are for analysis and education only—not investment advice, recommendations, or return promises.",
+        },
+        s2: {
+          heading: "Risk disclosure",
+          body: "Options trading is high risk and can result in total loss of capital. You must make your own decisions and bear all risk. OptionsAji is not a registered investment adviser and does not execute trades or hold funds.",
+        },
+        s3: {
+          heading: "Data accuracy",
+          body: "Data comes from third parties (e.g. Futu OpenD) and may be delayed, incomplete, or incorrect. Do not rely on this platform as your sole decision input.",
+        },
+      },
+      contact: {
+        title: "Contact",
+        subtitle: "联系我们",
+        sectionCount: "0",
+        intro: "For product questions, business inquiries, or refund requests:",
+        emailLabel: "Email",
+        wechatLabel: "WeChat",
+        discordLabel: "Discord",
+        responseTime: "We typically respond within 1–3 business days.",
+      },
     },
     histLoading: "Loading history trend (about 30–60s)…",
     flipHistLoading: "Loading Gamma Flip history…",
@@ -1161,10 +1435,11 @@ export const extraEn: DictionaryTree = {
       volume: "Volume",
       openInterest: "Open Interest",
       turnover: "Premium $",
-      highIv: "High IV",
+      highIv: "High IV Rank",
       highGamma: "High Gamma",
       seller: "Seller Yield",
       liquidity: "Liquidity",
+      sentiment: "Sentiment",
       gex: "Gamma Exposure",
     },
     leaderboard: {
@@ -1188,6 +1463,7 @@ export const extraEn: DictionaryTree = {
         turnover: "Turnover",
         oi_mcap: "OI Mkt Cap",
         iv: "IV",
+        iv_rank: "IV Rank",
         hv: "HV",
         iv_hv: "IV/HV",
         change_ratio: "Chg%",
@@ -1212,7 +1488,7 @@ export const extraEn: DictionaryTree = {
       },
       volume: {
         title: "Volume Leaders",
-        answer: "Which contracts traded the most today? Your first stop for activity.",
+        answer: "Which contracts traded the most today? Defaults to 0DTE expiring today—switch to All for the full market.",
       },
       openInterest: {
         title: "Open Interest Leaders",
@@ -1223,8 +1499,12 @@ export const extraEn: DictionaryTree = {
         answer: "Where real premium dollars flowed—often better than contract count alone.",
       },
       highIv: {
-        title: "High IV",
-        answer: "Highest implied vol = richest option premium for sellers.",
+        title: "High IV Rank",
+        answer: "Highest IV Rank = implied vol near its 1-year high—richest premium for sellers and earnings plays. IV/HV shows deviation from historical vol.",
+      },
+      sentiment: {
+        title: "Call / Put Sentiment",
+        answer: "Market-wide call vs put volume: which side is more active? Top contracts on each side at a glance.",
       },
       highGamma: {
         title: "High Gamma",

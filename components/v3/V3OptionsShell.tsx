@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 
 import LanguageToggle from "@/components/LanguageToggle";
+import V3SiteFooter from "@/components/v3/V3SiteFooter";
 import V3ThemeToggle from "@/components/v3/V3ThemeToggle";
 import { NAV_BOARDS } from "@/lib/leaderboard/boardConfig";
 import { useAuth } from "@/lib/auth-context";
@@ -137,6 +138,7 @@ export default function V3OptionsShell({ children }: V3OptionsShellProps) {
           </div>
         </div>
         {children}
+        <V3SiteFooter />
       </div>
     </div>
   );

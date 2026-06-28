@@ -4,6 +4,7 @@ import Link from "next/link";
 import { clsx } from "clsx";
 
 import LanguageToggle from "@/components/LanguageToggle";
+import V3SiteFooter from "@/components/v3/V3SiteFooter";
 import V3ThemeToggle from "@/components/v3/V3ThemeToggle";
 import { useI18n } from "@/lib/i18n/context";
 import { formatMessage } from "@/lib/i18n/dictionary";
@@ -142,6 +143,8 @@ export default function PricingPage() {
             </Link>
           </div>
         </section>
+
+        <V3SiteFooter />
       </div>
     </div>
   );

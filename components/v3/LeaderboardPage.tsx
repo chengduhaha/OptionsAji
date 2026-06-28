@@ -10,7 +10,7 @@ import { useAuth } from "@/lib/auth-context";
 import { authFetch } from "@/lib/apiBase";
 import { BOARD_CONFIGS } from "@/lib/leaderboard/boardConfig";
 import { formatContractStrike } from "@/lib/leaderboard/formatContract";
-import type { BoardId, ColumnKey, LeaderboardResponse, LeaderboardRow } from "@/lib/leaderboard/types";
+import type { BoardId, ColumnKey, DteFilter, LeaderboardResponse, LeaderboardRow } from "@/lib/leaderboard/types";
 import { useLeaderboardFilters } from "@/lib/leaderboard/useLeaderboardFilters";
 import { defaultBoardAccess, type BoardAccessMeta } from "@/lib/membership";
 import { formatMessage } from "@/lib/i18n/dictionary";
@@ -151,6 +151,8 @@ function cellValue(row: LeaderboardRow, key: ColumnKey): number | null {
       return row.oi_mcap;
     case "iv":
       return row.iv;
+    case "iv_rank":
+      return row.iv_rank;
     case "hv":
       return row.hv;
     case "iv_hv":
@@ -201,6 +203,7 @@ function formatCell(key: ColumnKey, value: number | null): string {
     case "spread":
       return fmtMoney2(value);
     case "iv":
+    case "iv_rank":
     case "hv":
     case "sell_ann":
     case "sell_prob":
@@ -249,9 +252,10 @@ function SegButton<T extends string | number>({ value, current, label, onSelect 
 
 type LeaderboardPageProps = {
   boardId: BoardId;
+  defaultDteFilter?: DteFilter;
 };
 
-export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
+export default function LeaderboardPage({ boardId, defaultDteFilter = "all" }: LeaderboardPageProps) {
   const config = BOARD_CONFIGS[boardId];
   const { t, locale } = useI18n();
   const { user, isMember, ready: authReady } = useAuth();
@@ -287,7 +291,7 @@ export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
   }, [load, authReady]);
 
   const items = data?.items ?? [];
-  const filters = useLeaderboardFilters(items, { paginated: config.paginated });
+  const filters = useLeaderboardFilters(items, { paginated: config.paginated, defaultDte: defaultDteFilter });
   const heroMax = useMemo(() => {
     const vals = filters.visibleRows
       .map((row) => cellValue(row, config.heroColumn))
@@ -526,10 +530,6 @@ export default function LeaderboardPage({ boardId }: LeaderboardPageProps) {
           </div>
         ) : null}
       </NeoPanel>
-
-      <footer className="mt-2 border-[3px] border-ink px-4 py-3 text-center text-[11px] leading-relaxed text-ink/70 shadow-neo-sm">
-        {t("v3.disclaimer")}
-      </footer>
     </>
   );
 }

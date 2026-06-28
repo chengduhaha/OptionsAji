@@ -29,6 +29,7 @@ export type LeaderboardRow = {
   premium: number | null;
   price: number | null;
   iv: number | null;
+  iv_rank: number | null;
   hv: number | null;
   iv_hv: number | null;
   delta: number | null;
@@ -75,6 +76,7 @@ export type ColumnKey =
   | "turnover"
   | "oi_mcap"
   | "iv"
+  | "iv_rank"
   | "hv"
   | "iv_hv"
   | "change_ratio"
