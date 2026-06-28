@@ -5,8 +5,13 @@ import { useState } from "react";
 import { Lock, RefreshCw, Sparkles, TrendingUp } from "lucide-react";
 
 import { V4MembershipExpiryBanner } from "@/components/v4/V4MembershipPaywall";
+import { LeaderboardPagination } from "@/components/v4/LeaderboardPagination";
 import { useAuth } from "@/lib/auth-context";
 import { BOARD_CONFIGS } from "@/lib/leaderboard/boardConfig";
+import {
+  LEADERBOARD_MAX_PAGES,
+  LEADERBOARD_MAX_ROWS,
+} from "@/lib/leaderboard/constants";
 import {
   cellValue,
   formatCell,
@@ -126,9 +131,13 @@ export default function V4LeaderboardPage({
   });
 
   const items = data?.items ?? [];
+  const maxRows = access.row_limit ?? LEADERBOARD_MAX_ROWS;
+  const maxPages = access.max_pages ?? LEADERBOARD_MAX_PAGES;
   const filters = useLeaderboardFilters(items, {
     paginated: config?.paginated ?? false,
     defaultDte: defaultDteFilter,
+    maxRows,
+    maxPages,
   });
 
   const [typeFilter, setTypeFilter] = useState<"all" | "C" | "P">("all");
@@ -352,23 +361,13 @@ export default function V4LeaderboardPage({
         </div>
 
         {config.paginated && allowFilter("page") ? (
-          <div className="flex flex-wrap items-center justify-center gap-2 border-x border-border bg-card px-4 py-4">
-            {Array.from({ length: filters.totalPages }, (_, i) => i + 1).map((p) => (
-              <button
-                key={p}
-                type="button"
-                disabled={loading}
-                onClick={() => filters.setPage(p)}
-                aria-current={p === filters.page ? "page" : undefined}
-                className={cn(
-                  "min-w-[2.25rem] rounded-md border border-border px-2.5 py-1.5 text-xs font-medium transition-colors",
-                  p === filters.page ? "bg-primary text-primary-foreground" : "hover:bg-secondary disabled:opacity-50",
-                )}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
+          <LeaderboardPagination
+            page={filters.page}
+            totalPages={filters.totalPages}
+            totalRows={filters.paginatedRowCap}
+            loading={loading}
+            onPageChange={filters.setPage}
+          />
         ) : null}
 
         {!access.is_member ? (

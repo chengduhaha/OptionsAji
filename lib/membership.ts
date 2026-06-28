@@ -1,4 +1,8 @@
 import type { MembershipContract } from "@/lib/contracts";
+import {
+  LEADERBOARD_MAX_PAGES,
+  LEADERBOARD_MAX_ROWS,
+} from "@/lib/leaderboard/constants";
 
 export const FREE_ROW_LIMIT = 10;
 export const FREE_SYMBOL_MASK_RANKS = 3;
@@ -35,10 +39,10 @@ export function defaultBoardAccess(isMemberUser: boolean, boardId: string): Boar
       tier: "member",
       is_member: true,
       locked: false,
-      row_limit: boardId === "unusual" ? 100 : null,
+      row_limit: LEADERBOARD_MAX_ROWS,
       allowed_filters: ["cp", "dte", "moneyness", "topN", "page"],
       allowed_top_n: [10, 25],
-      max_pages: boardId === "unusual" ? 10 : null,
+      max_pages: LEADERBOARD_MAX_PAGES,
       symbol_mask_ranks: 0,
     };
   }

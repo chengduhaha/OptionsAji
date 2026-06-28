@@ -1,5 +1,7 @@
 import type { BoardUiConfig } from "@/lib/leaderboard/types";
 
+const PAGINATED_BOARD = { paginated: true as const };
+
 export const BOARD_CONFIGS: Record<string, BoardUiConfig> = {
   unusual: {
     boardId: "unusual",
@@ -9,7 +11,7 @@ export const BOARD_CONFIGS: Record<string, BoardUiConfig> = {
     columns: ["vol_oi_ratio", "volume", "oi", "turnover", "iv", "change_ratio"],
     accent: "lavender",
     showUnusualBadge: true,
-    paginated: true,
+    ...PAGINATED_BOARD,
   },
   volume: {
     boardId: "volume",
@@ -18,6 +20,7 @@ export const BOARD_CONFIGS: Record<string, BoardUiConfig> = {
     heroColumn: "volume",
     columns: ["volume", "turnover", "oi", "vol_oi_ratio", "iv", "change_ratio"],
     accent: "peach",
+    ...PAGINATED_BOARD,
   },
   "open-interest": {
     boardId: "open-interest",
@@ -26,6 +29,7 @@ export const BOARD_CONFIGS: Record<string, BoardUiConfig> = {
     heroColumn: "oi",
     columns: ["oi", "volume", "oi_mcap", "iv", "dte"],
     accent: "lavender",
+    ...PAGINATED_BOARD,
   },
   turnover: {
     boardId: "turnover",
@@ -34,6 +38,7 @@ export const BOARD_CONFIGS: Record<string, BoardUiConfig> = {
     heroColumn: "turnover",
     columns: ["turnover", "volume", "price", "oi", "iv"],
     accent: "peach",
+    ...PAGINATED_BOARD,
   },
   "high-iv": {
     boardId: "high-iv",
@@ -42,6 +47,7 @@ export const BOARD_CONFIGS: Record<string, BoardUiConfig> = {
     heroColumn: "iv_rank",
     columns: ["iv_rank", "iv", "iv_hv", "hv", "volume", "dte"],
     accent: "lavender",
+    ...PAGINATED_BOARD,
   },
   "high-gamma": {
     boardId: "high-gamma",
@@ -50,6 +56,7 @@ export const BOARD_CONFIGS: Record<string, BoardUiConfig> = {
     heroColumn: "gamma",
     columns: ["gamma", "delta", "vega", "theta", "oi", "dte"],
     accent: "peach",
+    ...PAGINATED_BOARD,
   },
   seller: {
     boardId: "seller",
@@ -58,6 +65,7 @@ export const BOARD_CONFIGS: Record<string, BoardUiConfig> = {
     heroColumn: "sell_ann",
     columns: ["sell_ann", "sell_prob", "itm_prob", "iv", "spread", "dte"],
     accent: "lavender",
+    ...PAGINATED_BOARD,
   },
   liquidity: {
     boardId: "liquidity",
@@ -67,6 +75,7 @@ export const BOARD_CONFIGS: Record<string, BoardUiConfig> = {
     columns: ["spread", "bid_vol", "ask_vol", "volume", "oi"],
     accent: "peach",
     invertHeroBar: true,
+    ...PAGINATED_BOARD,
   },
 };
 

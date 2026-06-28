@@ -2,15 +2,17 @@
 
 import { useMemo, useState } from "react";
 
+import {
+  LEADERBOARD_MAX_PAGES,
+  LEADERBOARD_MAX_ROWS,
+  LEADERBOARD_PAGE_SIZE,
+} from "@/lib/leaderboard/constants";
 import type {
   CpFilter,
   DteFilter,
   LeaderboardRow,
   MoneynessFilter,
 } from "@/lib/leaderboard/types";
-
-const PAGE_SIZE = 10;
-const MAX_PAGES = 10;
 
 export type LeaderboardFilterState = {
   cp: CpFilter;
@@ -37,8 +39,17 @@ function matchesMoneyness(row: LeaderboardRow, filter: MoneynessFilter): boolean
 
 export function useLeaderboardFilters(
   items: LeaderboardRow[],
-  options: { paginated?: boolean; defaultDte?: DteFilter },
+  options: {
+    paginated?: boolean;
+    defaultDte?: DteFilter;
+    maxRows?: number;
+    maxPages?: number;
+  },
 ) {
+  const maxRows = options.maxRows ?? LEADERBOARD_MAX_ROWS;
+  const maxPages = options.maxPages ?? LEADERBOARD_MAX_PAGES;
+  const pageSize = LEADERBOARD_PAGE_SIZE;
+
   const [cp, setCp] = useState<CpFilter>("all");
   const [dte, setDte] = useState<DteFilter>(options.defaultDte ?? "all");
   const [moneyness, setMoneyness] = useState<MoneynessFilter>("all");
@@ -54,6 +65,8 @@ export function useLeaderboardFilters(
     }).length;
   }, [items, cp, dte, moneyness]);
 
+  const paginatedRowCap = Math.min(filteredCount, maxRows);
+
   const visibleRows = useMemo(() => {
     const filtered = items.filter((row) => {
       if (cp !== "all" && row.option_type !== cp) return false;
@@ -62,23 +75,21 @@ export function useLeaderboardFilters(
       return true;
     });
 
-    const capped = options.paginated
-      ? filtered.slice(0, MAX_PAGES * PAGE_SIZE)
-      : filtered.slice(0, topN);
+    const capped = options.paginated ? filtered.slice(0, maxRows) : filtered.slice(0, topN);
 
     if (options.paginated) {
-      const start = (page - 1) * PAGE_SIZE;
-      return capped.slice(start, start + PAGE_SIZE).map((row, idx) => ({
+      const start = (page - 1) * pageSize;
+      return capped.slice(start, start + pageSize).map((row, idx) => ({
         ...row,
         rank: start + idx + 1,
       }));
     }
 
     return capped.map((row, idx) => ({ ...row, rank: idx + 1 }));
-  }, [items, cp, dte, moneyness, topN, page, options.paginated]);
+  }, [items, cp, dte, moneyness, topN, page, options.paginated, maxRows, pageSize]);
 
   const totalPages = options.paginated
-    ? Math.min(MAX_PAGES, Math.max(1, Math.ceil(Math.min(filteredCount, MAX_PAGES * PAGE_SIZE) / PAGE_SIZE)))
+    ? Math.min(maxPages, Math.max(1, Math.ceil(paginatedRowCap / pageSize)))
     : 1;
 
   const resetPage = () => setPage(1);
@@ -107,9 +118,10 @@ export function useLeaderboardFilters(
     page,
     setPage,
     filteredCount,
+    paginatedRowCap,
     visibleRows,
     totalPages,
-    pageSize: PAGE_SIZE,
+    pageSize,
     showTopFilter: !options.paginated,
   };
 }
