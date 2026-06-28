@@ -116,7 +116,7 @@ export default function RegisterPage() {
       {phase === "register" ? (
         <form onSubmit={onRegisterSubmit} className="space-y-4">
           <div>
-            <label className="mb-1.5 block font-mono text-[10px] font-bold uppercase tracking-widest text-ink/60">
+            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
               {t("v3.auth.email")}
             </label>
             <input
@@ -129,7 +129,7 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block font-mono text-[10px] font-bold uppercase tracking-widest text-ink/60">
+            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
               {t("v3.auth.displayName")}
             </label>
             <input
@@ -141,7 +141,7 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block font-mono text-[10px] font-bold uppercase tracking-widest text-ink/60">
+            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
               {t("v3.auth.password")}
             </label>
             <input
@@ -175,7 +175,7 @@ export default function RegisterPage() {
       ) : (
         <form onSubmit={onVerifySubmit} className="space-y-4">
           <div>
-            <label className="mb-1.5 block font-mono text-[10px] font-bold uppercase tracking-widest text-ink/60">
+            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
               {t("v3.auth.code")}
             </label>
             <input
@@ -187,18 +187,18 @@ export default function RegisterPage() {
             />
           </div>
           {verificationExpiresAt ? (
-            <p className="font-mono text-[11px] text-ink/60">
+            <p className="font-mono text-[11px] text-muted-foreground">
               {formatMessage(t("v3.auth.expiresAt"), {
                 time: new Date(verificationExpiresAt).toLocaleString(),
               })}
             </p>
           ) : null}
           {debugCode ? (
-            <p className="font-mono text-[11px] text-ink">
+            <p className="font-mono text-[11px] text-foreground">
               {formatMessage(t("v3.auth.debugCode"), { code: debugCode })}
             </p>
           ) : null}
-          {info ? <p className="font-mono text-[12px] text-ink">{info}</p> : null}
+          {info ? <p className="font-mono text-[12px] text-foreground">{info}</p> : null}
           {error ? <p className="font-mono text-[12px] text-red-600">{error}</p> : null}
           <button
             type="submit"
@@ -233,9 +233,9 @@ export default function RegisterPage() {
           </button>
         </form>
       )}
-      <p className="mt-4 text-center font-mono text-[12px] text-ink/70">
+      <p className="mt-4 text-center font-mono text-[12px] text-muted-foreground">
         {t("v3.auth.hasAccount")}{" "}
-        <Link href="/login" className="font-bold underline hover:text-ink">
+        <Link href="/login" className="font-bold underline hover:text-foreground">
           {t("v3.auth.loginLink")}
         </Link>
       </p>

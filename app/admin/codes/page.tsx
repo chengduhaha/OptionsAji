@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { NeoPanel } from "@/components/v3/NeoPanel";
+import V4Panel from "@/components/v4/V4Panel";
+import V4StandaloneShell from "@/components/v4/V4StandaloneShell";
 import { useAuth } from "@/lib/auth-context";
 import { authFetch } from "@/lib/apiBase";
 import { useI18n } from "@/lib/i18n/context";
@@ -34,12 +35,16 @@ export default function AdminCodesPage() {
 
   if (ready && user && !isAdmin) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center px-4">
-        <NeoPanel title="403" accent="peach">
-          <p className="text-sm">Admin access required.</p>
-          <Link href="/" className="neo-button inline-block mt-4">Home</Link>
-        </NeoPanel>
-      </div>
+      <V4StandaloneShell title="403" subtitle="Admin access required.">
+        <V4Panel>
+          <Link
+            href="/options/unusual"
+            className="inline-flex rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:brightness-95"
+          >
+            Home
+          </Link>
+        </V4Panel>
+      </V4StandaloneShell>
     );
   }
 
@@ -71,25 +76,23 @@ export default function AdminCodesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream text-ink">
-      <div className="mx-auto max-w-3xl px-4 py-8 space-y-6">
-        <h1 className="font-display text-3xl font-extrabold uppercase">{t("v3.membership.adminTitle")}</h1>
-
-        <NeoPanel title={t("v3.membership.adminGenerate")} accent="lavender">
+    <V4StandaloneShell title={t("v3.membership.adminTitle")}>
+      <div className="space-y-6">
+        <V4Panel title={t("v3.membership.adminGenerate")}>
           <form onSubmit={onGenerate} className="space-y-4">
-            <label className="block font-mono text-xs uppercase">
+            <label className="block text-xs font-medium text-muted-foreground">
               {t("v3.membership.adminTier")}
               <select
                 value={tier}
                 onChange={(e) => setTier(e.target.value as "7D" | "30D" | "365D")}
-                className="neo-input mt-1 w-full"
+                className="mt-1.5 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <option value="7D">7D — $9.9</option>
                 <option value="30D">30D — $29</option>
                 <option value="365D">365D — $199</option>
               </select>
             </label>
-            <label className="block font-mono text-xs uppercase">
+            <label className="block text-xs font-medium text-muted-foreground">
               {t("v3.membership.adminCount")}
               <input
                 type="number"
@@ -97,32 +100,36 @@ export default function AdminCodesPage() {
                 max={500}
                 value={count}
                 onChange={(e) => setCount(Number(e.target.value))}
-                className="neo-input mt-1 w-full"
+                className="mt-1.5 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
             </label>
-            <label className="block font-mono text-xs uppercase">
+            <label className="block text-xs font-medium text-muted-foreground">
               {t("v3.membership.adminNote")}
               <input
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                className="neo-input mt-1 w-full"
+                className="mt-1.5 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
             </label>
-            <button type="submit" disabled={busy} className="neo-button">
+            <button
+              type="submit"
+              disabled={busy}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:brightness-95 disabled:opacity-50"
+            >
               {t("v3.membership.adminGenerate")}
             </button>
           </form>
-          {error ? <p className="mt-3 text-sm text-[#C03030] font-mono">{error}</p> : null}
-        </NeoPanel>
+          {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}
+        </V4Panel>
 
         {codes.length > 0 ? (
-          <NeoPanel title={t("v3.membership.adminCodes")} accent="peach">
-            <pre className="font-mono text-xs whitespace-pre-wrap break-all bg-cream border-2 border-ink p-4 max-h-96 overflow-auto">
+          <V4Panel title={t("v3.membership.adminCodes")}>
+            <pre className="max-h-96 overflow-auto whitespace-pre-wrap break-all rounded-lg border border-border bg-secondary/30 p-4 font-mono text-xs">
               {codes.join("\n")}
             </pre>
-          </NeoPanel>
+          </V4Panel>
         ) : null}
       </div>
-    </div>
+    </V4StandaloneShell>
   );
 }

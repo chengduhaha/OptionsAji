@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Lock, RefreshCw, Sparkles, TrendingUp } from "lucide-react";
 
-import { MembershipExpiryBanner } from "@/components/v3/MembershipPaywall";
+import { V4MembershipExpiryBanner } from "@/components/v4/V4MembershipPaywall";
 import { useAuth } from "@/lib/auth-context";
 import { BOARD_CONFIGS } from "@/lib/leaderboard/boardConfig";
 import {
@@ -149,7 +149,7 @@ export default function V4LeaderboardPage({
     <>
       {showExpiryBanner ? (
         <div className="mb-4">
-          <MembershipExpiryBanner daysRemaining={user.membership!.days_remaining!} />
+          <V4MembershipExpiryBanner daysRemaining={user.membership!.days_remaining!} />
         </div>
       ) : null}
 

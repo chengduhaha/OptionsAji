@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Lock } from "lucide-react";
 
-import { MembershipExpiryBanner } from "@/components/v3/MembershipPaywall";
+import { V4MembershipExpiryBanner } from "@/components/v4/V4MembershipPaywall";
 import V4Panel from "@/components/v4/V4Panel";
 import { useAuth } from "@/lib/auth-context";
 import { authFetch } from "@/lib/apiBase";
@@ -141,7 +141,7 @@ export default function V4SentimentPage() {
     <>
       {showExpiryBanner ? (
         <div className="mb-4">
-          <MembershipExpiryBanner daysRemaining={user.membership!.days_remaining!} />
+          <V4MembershipExpiryBanner daysRemaining={user.membership!.days_remaining!} />
         </div>
       ) : null}
 

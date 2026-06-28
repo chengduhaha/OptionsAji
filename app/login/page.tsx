@@ -98,13 +98,13 @@ function LoginInner() {
           {busy ? t("v3.auth.busyLogin") : t("v3.auth.submitLogin")}
         </button>
       </form>
-      <p className="mt-5 text-center font-mono text-[12px] text-ink/70">
+      <p className="mt-5 text-center font-mono text-[12px] text-muted-foreground">
         {t("v3.auth.noAccount")}{" "}
-        <Link href="/register" className="font-bold underline hover:text-ink">
+        <Link href="/register" className="font-bold underline hover:text-foreground">
           {t("v3.auth.registerLink")}
         </Link>
         {" · "}
-        <Link href="/landing" className="underline hover:text-ink">
+        <Link href="/landing" className="underline hover:text-foreground">
           {t("v3.auth.landingLink")}
         </Link>
       </p>
