@@ -985,7 +985,7 @@ export const extraZh: DictionaryTree = {
       badge: "美股期权 · 中文深度分析",
       title: "阿吉博客",
       subtitle: "深耕美股市场 · 独家深度分析报告 · 期权精品课程",
-      tagline: "数据优势 · 独家分析 · 专业课程 · 助您读懂期权、少走弯路",
+      tagline: "原创数据分析 · 独家解读 · 专业课程 · 助您读懂期权、少走弯路",
       ctaPrimary: "阅读最新文章",
       ctaSecondary: "查看资料库示例",
     },
@@ -1061,32 +1061,38 @@ export const extraZh: DictionaryTree = {
     },
     advantages: {
       title: "为什么选择阿吉？",
-      subtitle: "兼具三大核心优势：数据整合、独家深度分析、专业期权课程，一站式满足非专业交易者的全部需求",
+      subtitle: "用原创数据分析、独家深度解读和系统课程，帮助非专业交易者建立可复盘的期权研究框架",
       pillar1: {
-        title: "数据优势",
-        body: "长年订阅 Market Chameleon、SpotGamma、Unusual Whales 等顶级平台，整合多维度专业期权数据",
+        title: "原创数据分析",
+        body: "围绕异动、成交、波动率、情绪和 Gamma 结构建立原创分析框架，把分散信号整理成可读结论",
       },
       pillar2: {
         title: "独家深度分析报告",
-        body: "阿吉独家深度数据分析能力，将专业数据融合市场洞察，生成中文深度分析报告，让你看得懂、用得上",
+        body: "将专业期权数据与市场观察结合，生成中文深度分析报告，让你看得懂、能复盘、用得上",
       },
       pillar3: {
         title: "期权精品课程",
         body: "专为非专业交易者设计的体系化期权课程，从入门到进阶，循序渐进，帮你建立完整的期权知识体系",
       },
-      platformsTitle: "主流期权数据平台订阅费用一览",
-      platforms: {
-        mc: "财报波动率 · IV分析",
-        sg: "GEX结构 · 做市商分析",
-        mq: "量化评分 · AI助手",
-        uw: "异动流向 · 暗池数据",
-        orats: "策略回测 · 波动率曲面",
-        vol: "3D波动率 · 做市商持仓",
+      platformsTitle: "原创数据分析流程",
+      workflow: {
+        scan: {
+          title: "扫描关键期权信号",
+          body: "从异动成交、成交量、波动率、情绪和 Gamma 结构中筛选值得关注的变化。",
+        },
+        interpret: {
+          title: "转化为中文分析",
+          body: "用普通投资者能理解的语言解释信号含义、风险位置和后续观察点。",
+        },
+        archive: {
+          title: "沉淀为资料库",
+          body: "把报告、复盘和课程持续整理成可回看的学习资料，方便长期复盘。",
+        },
       },
-      platformsNote: "以上平台全部为英文界面，订阅费用合计超过 $500+/月",
-      compareSelf: "自己订阅数据平台",
+      platformsNote: "页面展示的是阿吉的原创分析流程，不代表转售或复制任何第三方数据产品。",
+      compareSelf: "自行整理数据线索",
       compareAji: "OptionsAji 会员",
-      closing: "阿吉常年订阅多家高级期权数据平台，将专业数据提炼为中文分析与课程资料，沉淀成可长期回看的会员内容库。",
+      closing: "阿吉将期权数据线索提炼为原创中文分析、课程资料和可长期回看的会员内容库。",
     },
     contact: {
       title: "联系方式",
@@ -2169,7 +2175,7 @@ export const extraEn: DictionaryTree = {
       badge: "US Options · Chinese Deep Analysis",
       title: "Aji Blog",
       subtitle: "Deep US market research · Historical content library · Structured courses",
-      tagline: "Data edge · Proprietary analysis · Professional courses · Learn options the right way",
+      tagline: "Original data analysis · Proprietary research · Professional courses · Learn options the right way",
       ctaPrimary: "Read latest posts",
       ctaSecondary: "View library samples",
     },
@@ -2245,33 +2251,39 @@ export const extraEn: DictionaryTree = {
     },
     advantages: {
       title: "Why Aji?",
-      subtitle: "Three pillars: data integration, proprietary analysis, and structured courses — all in one place",
+      subtitle: "Original data analysis, proprietary research, and structured courses for a repeatable options research process",
       pillar1: {
-        title: "Data edge",
-        body: "Long-term subscriptions to Market Chameleon, SpotGamma, Unusual Whales, and more",
+        title: "Original data analysis",
+        body: "Aji builds an original framework around unusual activity, volume, volatility, sentiment, and gamma structure.",
       },
       pillar2: {
         title: "Proprietary reports",
-        body: "Chinese deep-dive reports that translate professional data into actionable insights",
+        body: "Chinese deep-dive reports translate options signals and market observations into reusable research notes.",
       },
       pillar3: {
         title: "Structured courses",
         body: "Step-by-step options curriculum from basics to advanced strategies",
       },
-      platformsTitle: "Major options data platform pricing",
-      platforms: {
-        mc: "Earnings vol · IV analysis",
-        sg: "GEX · dealer positioning",
-        mq: "Quant scores · AI assistant",
-        uw: "Unusual flow · dark pool",
-        orats: "Backtesting · vol surface",
-        vol: "3D vol · dealer holdings",
+      platformsTitle: "Original data analysis workflow",
+      workflow: {
+        scan: {
+          title: "Scan key options signals",
+          body: "Screen unusual activity, volume, volatility, sentiment, and gamma structure for meaningful changes.",
+        },
+        interpret: {
+          title: "Turn signals into analysis",
+          body: "Explain what changed, where risk may sit, and what to watch next in plain language.",
+        },
+        archive: {
+          title: "Build a reusable library",
+          body: "Reports, reviews, and course material are organized for long-term study and follow-up.",
+        },
       },
-      platformsNote: "All English interfaces — combined subscriptions exceed $500+/month",
-      compareSelf: "Subscribe yourself",
+      platformsNote: "This describes Aji's original analysis workflow, not resale or copying of any third-party data product.",
+      compareSelf: "Organize signals yourself",
       compareAji: "OptionsAji membership",
       closing:
-        "Aji subscribes to multiple premium platforms and turns the data into reusable Chinese research and course material for the member library.",
+        "Aji turns options-market signals into original Chinese research, course material, and a reusable member library.",
     },
     contact: {
       title: "Contact",

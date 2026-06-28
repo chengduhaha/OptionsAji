@@ -85,3 +85,18 @@ test("blog brand is editorial while homepage owns Aji positioning content", () =
   assert.match(blogBlocks, /title:\s*"阿吉博客"/);
   assert.match(home, /BlogAdvantagesSection/);
 });
+
+test("public positioning avoids named third-party data vendors and competitor price lists", () => {
+  const advantages = readFileSync(new URL("../components/blog/BlogAdvantagesSection.tsx", import.meta.url), "utf8");
+  const publicBlocks = [
+    topLevelBlocks(namespaces, "home").join("\n"),
+    topLevelBlocks(namespaces, "membershipOffer").join("\n"),
+    topLevelBlocks(namespaces, "blog").join("\n"),
+    advantages,
+  ].join("\n");
+
+  assert.doesNotMatch(publicBlocks, /Market Chameleon|SpotGamma|Unusual Whales|MenthorQ|ORATS|Volland/i);
+  assert.doesNotMatch(publicBlocks, /platform pricing|订阅费用|竞品|竞争对手/);
+  assert.doesNotMatch(advantages, /\$\d+|\$500/);
+  assert.match(publicBlocks, /原创数据分析|原创分析|original data analysis/i);
+});
