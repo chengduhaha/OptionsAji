@@ -53,7 +53,7 @@ function NavDropdown({
       </button>
 
       {open ? (
-        <div className="absolute left-0 top-full z-40 mt-1.5 w-72 rounded-lg border border-border bg-popover p-1.5 shadow-lg">
+        <div className="absolute left-0 top-full z-50 mt-1.5 w-72 rounded-lg border border-border bg-card p-1.5 shadow-lg">
           {links.map((l) => {
             const active = l.href === pathname;
             return (
@@ -98,7 +98,7 @@ export default function V4SiteHeader() {
   useEffect(() => setOpen(false), [pathname]);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-background/95 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/95">
+    <header className="sticky top-0 z-40 border-b border-border bg-background shadow-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <Link href="/options/unusual" className="flex items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary font-heading text-sm font-bold text-primary-foreground">
