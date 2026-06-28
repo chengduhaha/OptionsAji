@@ -1,6 +1,114 @@
 import type { DictionaryTree } from "./types";
 
 export const extraZh: DictionaryTree = {
+  home: {
+    nav: {
+      home: "首页",
+      library: "会员资料库",
+    },
+    hero: {
+      badge: "期权数据 · 阿吉内容库 · 系统课程",
+      title: "美股期权数据分析与教育平台",
+      subtitle:
+        "OptionsAji 提供实时期权榜单、GEX 结构、历史报告资料库和系统课程。新访客可以先免费体验数据，再决定是否解锁完整内容。",
+      primaryCta: "免费体验数据",
+      secondaryCta: "查看会员方案",
+      riskNote: "仅供研究与教育用途，不构成投资建议；期权交易风险较高，请独立判断。",
+    },
+    preview: {
+      label: "数据功能预览",
+      title: "异动、GEX、成交与情绪榜单",
+      paywall: "免费用户可预览部分数据；会员解锁完整榜单、任意标的 GEX 与内容资料库。",
+    },
+    value: {
+      eyebrow: "会员价值",
+      title: "数据、资料库与课程都在这里",
+      subtitle: "会员可使用完整数据工具，查阅历史报告和课程资料，并获取持续更新的市场观察。",
+    },
+    data: {
+      title: "实时期权数据工具",
+      body: "用榜单快速发现异常成交、成交量、权利金、卖方收益、流动性与 Gamma 结构，适合作为盘前和盘中的研究仪表盘。",
+      unusual: "异动合约榜",
+      gex: "GEX 分析",
+      volume: "成交量榜",
+      sentiment: "情绪快览",
+    },
+    library: {
+      title: "阿吉历史内容库",
+      body: "会员资料库主打已积累的报告、课程和研究文档，而不是承诺固定频率输出。你可以按主题回看、下载和学习。",
+      reports: "历史市场报告与期权观察",
+      research: "个股研究、异动复盘与投资干货",
+      courses: "期权基础到进阶课程资料",
+      cta: "查看资料库示例",
+    },
+    cta: {
+      title: "从免费预览开始，按需升级",
+      body: "从免费预览开始，升级后解锁完整榜单、GEX、历史资料库、课程内容与不定期市场分析。",
+      primary: "查看会员方案",
+      secondary: "阅读文章/报告",
+    },
+  },
+  membershipOffer: {
+    recommended: "推荐",
+    pricingIntro: {
+      title: "会员权益",
+      body: "标准会员解锁完整数据和历史资料库；高级会员在此基础上增加社群与答疑等人工服务。",
+    },
+    value: {
+      contentLibrary: {
+        title: "完整历史内容库",
+        body: "解锁阿吉生财有道历史分析报告、个股研究、异动复盘、课程资料和投资干货。",
+      },
+      dataDashboards: {
+        title: "全部期权数据榜单",
+        body: "完整查看异动、成交量、持仓、权利金、卖方收益、流动性、情绪与 GEX 看板。",
+      },
+      courseArchive: {
+        title: "系统期权课程资料",
+        body: "从基础 Greeks、波动率、VIX 到进阶策略，把零散知识整理成可回看的课程库。",
+      },
+      ongoingUpdates: {
+        title: "不定期市场解读",
+        body: "持续更新市场分析、期权机会观察与复盘，但不承诺固定更新频率。",
+      },
+      community: {
+        title: "会员社群与答疑",
+        body: "高级会员可加入社群交流，并在可服务范围内获得更直接的问题反馈。",
+      },
+    },
+    tiers: {
+      free: {
+        eyebrow: "免费",
+        name: "免费预览",
+        description: "适合第一次了解平台的新访客。",
+        cta: "体验数据榜单",
+        f1: "预览部分数据榜单",
+        f2: "阅读公开文章",
+        f3: "查看会员资料库示例",
+      },
+      standard: {
+        eyebrow: "标准会员",
+        name: "标准会员",
+        description: "解锁完整数据工具与历史内容库，适合作为主要订阅档。",
+        cta: "注册并获取激活码",
+        f1: "完整期权榜单与任意标的 GEX",
+        f2: "全部历史报告、研究文档和课程资料库",
+        f3: "会员文章、PDF 与资料下载",
+        f4: "不定期市场分析与期权机会解读",
+        f5: "激活码兑换，时长可叠加",
+      },
+      premium: {
+        eyebrow: "高级会员",
+        name: "高级会员",
+        description: "在标准会员基础上增加社群、答疑和更高触达的人工服务。",
+        cta: "联系开通",
+        f1: "包含标准会员全部权益",
+        f2: "会员社群交流",
+        f3: "问题答疑与策略框架讨论",
+        f4: "适合希望获得更多陪伴式学习的用户",
+      },
+    },
+  },
   mvp: {
     close: "关闭",
     loadFailed: "加载失败",
@@ -737,8 +845,8 @@ export const extraZh: DictionaryTree = {
     },
     membership: {
       lockedBadge: "会员专享",
-      paywallTitle: "升级会员解锁完整数据",
-      paywallHint: "免费用户可预览部分榜单与 SPY GEX。购买激活码即可解锁全部 9 个看板。",
+      paywallTitle: "升级会员解锁完整数据与资料库",
+      paywallHint: "免费用户可预览部分榜单与公开内容。购买激活码即可解锁完整数据工具和历史资料库。",
       paywallBoardHint: "免费用户可预览前 10 行；排名 1–3 的标的已隐藏。升级会员解锁完整榜单。",
       viewPricing: "查看定价",
       redeemCta: "兑换激活码",
@@ -757,21 +865,21 @@ export const extraZh: DictionaryTree = {
       redeemSuccess: "兑换成功，会员已生效。",
       loginRequired: "请先登录后再兑换激活码。",
       pricingTitle: "会员定价",
-      pricingSubtitle: "付款后联系获取激活码，一码一用，时长可叠加。",
-      tier7: "体验档",
-      tier30: "标准档",
-      tier365: "最划算",
+      pricingSubtitle: "会员可使用期权数据、GEX、历史资料库、课程资料与不定期市场解读。",
+      tier7: "免费预览",
+      tier30: "标准会员",
+      tier365: "高级会员",
       tierFeatured: "主推",
       tierDays7: "7 天",
       tierDays30: "30 天",
       tierDays365: "365 天",
       tierPerDay: "约 {price}/天",
       tierWas: "原价",
-      tierUnlock: "解锁全部 9 个看板 + 任意标的 GEX",
+      tierUnlock: "解锁完整数据工具 + 历史内容库",
       contactTitle: "购买与联系",
       contactWechat: "微信",
       contactDiscord: "Discord",
-      contactSteps: "添加联系方式后进行支付，支持微信/支付宝/wise",
+      contactSteps: "添加联系方式后进行支付并获取激活码。标准会员解锁数据与资料库，高级会员可联系开通社群与答疑。",
       adminTitle: "激活码管理",
       adminGenerate: "批量生成",
       adminTier: "时长档位",
@@ -785,7 +893,7 @@ export const extraZh: DictionaryTree = {
       logout: "退出",
     },
     tier: {
-      unlockFull: "解锁完整榜单与标的",
+      unlockFull: "解锁数据与资料库",
       symbolMasked: "标的已隐藏",
       freePreviewHint: "免费预览 {limit} 行 · 排名 1–{mask} 标的隐藏",
     },
@@ -864,22 +972,22 @@ export const extraZh: DictionaryTree = {
     },
   },
   blog: {
-    brand: "阿吉生财有道",
+    brand: "阿吉博客",
     nav: {
       home: "首页",
       posts: "文章",
-      documents: "示例文档",
+      documents: "会员资料库",
       about: "关于阿吉",
       membership: "专属会员",
       contact: "联系方式",
     },
     hero: {
       badge: "美股期权 · 中文深度分析",
-      title: "阿吉生财有道",
+      title: "阿吉博客",
       subtitle: "深耕美股市场 · 独家深度分析报告 · 期权精品课程",
       tagline: "数据优势 · 独家分析 · 专业课程 · 助您读懂期权、少走弯路",
-      ctaPrimary: "开通专属会员",
-      ctaSecondary: "查看示例文档",
+      ctaPrimary: "阅读最新文章",
+      ctaSecondary: "查看资料库示例",
     },
     listTitle: "最新文章",
     listSubtitle: "美股期权独家深度分析、会员资料与教育内容",
@@ -902,54 +1010,54 @@ export const extraZh: DictionaryTree = {
     disclaimer:
       "本平台内容仅供知识分享与教育交流，不构成任何投资建议。期权交易具有高风险，请独立决策、自负盈亏。",
     documents: {
-      title: "示例文档",
-      subtitle: "以下展示了专属会员可享受的各类文档和资料示例，让您在订阅前充分了解会员权益",
-      empty: "暂无示例文档",
-      emptyHint: "管理员可在文档管理中上传 PDF 示例",
+      title: "会员资料库",
+      subtitle: "预览会员可查阅的历史报告、课程资料和研究文档。完整版资料库面向会员开放。",
+      empty: "暂无公开示例",
+      emptyHint: "管理员可在文档管理中上传公开 PDF 示例",
       ctaTitle: "想获取完整版报告与资料？",
-      ctaBody: "以上仅为示例文档，完整版报告与资料仅供专属会员查阅",
+      ctaBody: "公开示例只展示资料库的一部分；会员可查阅历史内容库与后续不定期更新。",
       ctaButton: "了解会员方案",
       categories: {
-        "daily-report": "每日更新",
-        unusual: "每日推送",
-        course: "每周更新",
-        analysis: "每周精选",
-        premkt: "每日盘前",
+        "daily-report": "市场报告",
+        unusual: "异动观察",
+        course: "课程资料",
+        analysis: "个股研究",
+        premkt: "盘前资料",
         insights: "不定期分享",
         general: "综合",
       },
     },
     membership: {
-      title: "专属会员",
-      subtitle: "不管你是刚入门的小白，还是有基础想精进的朋友，都能找到适配的专属服务",
+      title: "会员方案",
+      subtitle: "会员可使用数据工具、历史内容库、课程资料与不定期市场解读。",
       basic: {
-        name: "基础档会员",
-        desc: "专为期权小白和想巩固基础的朋友",
-        price: "¥298/月",
-        cta: "了解详情",
-        f1: "每日《美股市场及期权深度分析报告》",
-        f2: "不定期《美股市场期权异动报告》",
-        f3: "每周《基础会员期权课程》",
-        f4: "不定期盘前推送《美股市场盘前前瞻 Q&A》",
-        f5: "不定期《美股投资干货》分享",
+        name: "标准会员",
+        desc: "解锁完整数据工具与历史资料库",
+        price: "¥199/月起",
+        cta: "查看会员方案",
+        f1: "完整期权榜单与任意标的 GEX",
+        f2: "历史报告、课程资料与研究文档",
+        f3: "会员文章与 PDF 资料下载",
+        f4: "不定期市场分析与期权机会解读",
+        f5: "激活码兑换，时长可叠加",
       },
       premium: {
         badge: "推荐",
-        name: "高级档会员",
-        desc: "专为有基础、想精进的美股期权投资者",
+        name: "高级会员",
+        desc: "标准权益之上增加社群与答疑",
         price: "¥598/月",
-        cta: "立即开通",
-        f1: "每日《美股市场及期权深度分析报告》",
-        f2: "每日《美股市场期权异动报告》",
-        f3: "每周《高级会员专属期权课程》",
-        f4: "每周 1 次公司全景分析",
-        f5: "每日盘前推送《美股市场盘前前瞻 Q&A》",
-        f6: "不定期《美股投资干货》分享",
-        f7: "每日盘中操作思路与策略实时分享",
-        f8: "期权&投资问题，群主答疑",
+        cta: "联系开通",
+        f1: "包含标准会员全部权益",
+        f2: "会员社群交流",
+        f3: "问题答疑与策略框架讨论",
+        f4: "适合希望获得更多陪伴式学习的用户",
+        f5: "不定期投资干货分享",
+        f6: "不承诺固定频率，重视内容质量与可兑现服务",
+        f7: "围绕数据与课程形成长期学习体系",
+        f8: "期权与投资问题交流",
       },
-      sampleHint: "想先看看会员资料长什么样？我们提供了各类文档的示例版本供您提前了解",
-      sampleCta: "查看示例文档",
+      sampleHint: "想先看看会员资料长什么样？可以先浏览公开示例。",
+      sampleCta: "查看资料库示例",
     },
     advantages: {
       title: "为什么选择阿吉？",
@@ -977,8 +1085,8 @@ export const extraZh: DictionaryTree = {
       },
       platformsNote: "以上平台全部为英文界面，订阅费用合计超过 $500+/月",
       compareSelf: "自己订阅数据平台",
-      compareAji: "高级档会员（含报告+课程）",
-      closing: "阿吉常年订阅多家高级期权数据平台，将专业数据提炼为中文深度分析报告直接交付给你，省钱、省时，同时真正把期权学透用活。",
+      compareAji: "OptionsAji 会员",
+      closing: "阿吉常年订阅多家高级期权数据平台，将专业数据提炼为中文分析与课程资料，沉淀成可长期回看的会员内容库。",
     },
     contact: {
       title: "联系方式",
@@ -989,7 +1097,7 @@ export const extraZh: DictionaryTree = {
     },
     about: {
       title: "关于阿吉",
-      subtitle: "深耕美股市场 · 独家深度分析 · 期权精品课程",
+      subtitle: "深耕美股市场 · 历史内容库 · 期权精品课程",
       teaser:
         "做美股期权，最怕的是自己瞎琢磨、学零散知识踩坑。阿吉专注于美股期权市场研究，致力于通过独特的数据分析视角，帮助投资者更好地理解期权市场的运作机制。",
       readMore: "了解更多",
@@ -997,34 +1105,16 @@ export const extraZh: DictionaryTree = {
 
 做美股期权，最怕的是自己瞎琢磨、学零散知识踩坑。阿吉专注于美股期权市场研究，致力于通过独特的数据分析视角，帮助投资者更好地理解期权市场的运作机制。
 
-阿吉不仅整合多家顶级期权数据平台的专业数据，更具备独家深度数据分析能力——将海量期权数据转化为阿吉独家的深度分析报告，把复杂的专业信息翻译成普通投资者能看懂、用得上的中文洞察。
+阿吉的内容重点是把复杂的期权数据、市场结构和交易概念翻译成普通投资者能看懂、能复盘、能长期学习的中文材料。
 
-与此同时，阿吉专为非专业交易者打造了体系化的期权课程，从基础入门到进阶策略，循序渐进，让每一位有心学习的朋友都能系统掌握期权交易的核心逻辑，少走弯路、把期权学透用活。
-
-## 三大核心优势
-
-- **数据优势** — 长年订阅 Market Chameleon、SpotGamma、Unusual Whales 等顶级平台
-- **独家深度分析** — 中文深度报告，让你看得懂、用得上
-- **期权精品课程** — 从入门到进阶的体系化课程
-
-## 为什么选择阿吉？
-
-自己订阅多家英文数据平台合计超过 $500+/月；高级档会员（含报告+课程）¥598/月，帮你省钱又省时间，还能真学会。`,
+这个页面只保留阿吉个人介绍和公开平台入口；平台功能、数据能力和会员权益请回到首页与定价页查看。`,
       bodyEn: `## Who is Aji?
 
-Aji focuses on US options research and translates professional datasets into actionable Chinese insights for retail learners.
+Aji focuses on US options research and translates professional datasets, market structure, and options concepts into Chinese material that retail learners can understand and revisit.
 
-## Three pillars
-
-- **Data access** — Market Chameleon, SpotGamma, Unusual Whales, and more
-- **Proprietary analysis** — Daily deep-dive reports in Chinese
-- **Structured courses** — From basics to advanced strategies
-
-## Why Aji?
-
-Subscribing to multiple English platforms can exceed $500+/month. Premium membership bundles reports and courses at a fraction of the cost.`,
-      membershipTitle: "专属会员",
-      membershipBody: "基础档与高级档会员可获得每日深度报告、异动扫描、期权课程与盘前前瞻等内容。",
+This page keeps the bio and public social links focused. Product positioning, data capabilities, and member benefits live on the homepage and pricing page.`,
+      membershipTitle: "会员方案",
+      membershipBody: "会员可解锁完整数据榜单、历史内容库、课程资料与不定期市场解读。",
       membershipCta: "查看会员方案",
       platformTitle: "OptionsAji 数据平台",
       platformBody: "期权榜单、GEX 分析、异动检测等工具与博客内容互补，帮助系统化研究。",
@@ -1093,6 +1183,114 @@ Subscribing to multiple English platforms can exceed $500+/month. Premium member
 };
 
 export const extraEn: DictionaryTree = {
+  home: {
+    nav: {
+      home: "Home",
+      library: "Member library",
+    },
+    hero: {
+      badge: "Options data · Aji library · Structured courses",
+      title: "US options data analysis and education platform",
+      subtitle:
+        "OptionsAji provides live options boards, GEX structure, historical report archives, and structured course material. New visitors can preview the data first, then unlock the full platform.",
+      primaryCta: "Try data for free",
+      secondaryCta: "View membership",
+      riskNote: "For research and education only. Not investment advice. Options involve substantial risk.",
+    },
+    preview: {
+      label: "Data preview",
+      title: "Unusual flow, GEX, volume, and sentiment boards",
+      paywall: "Free users can preview part of the data. Members unlock full boards, any-symbol GEX, and the content library.",
+    },
+    value: {
+      eyebrow: "Member value",
+      title: "Data, archive, and courses in one place",
+      subtitle: "Members get the full data tools, historical reports, course material, and ongoing market observations.",
+    },
+    data: {
+      title: "Live options data tools",
+      body: "Use leaderboards to scan unusual activity, volume, premium turnover, seller yield, liquidity, sentiment, and gamma structure before or during the session.",
+      unusual: "Unusual options",
+      gex: "GEX analysis",
+      volume: "Volume board",
+      sentiment: "Sentiment snapshot",
+    },
+    library: {
+      title: "Aji historical content library",
+      body: "The member library is built around accumulated reports, courses, and research documents rather than a fixed publishing cadence.",
+      reports: "Historical market reports and options observations",
+      research: "Stock research, flow reviews, and investing notes",
+      courses: "Options course material from basics to advanced topics",
+      cta: "View library samples",
+    },
+    cta: {
+      title: "Start free, upgrade when ready",
+      body: "Start with the free preview, then upgrade for full boards, GEX, the historical library, course material, and ongoing market reads.",
+      primary: "View membership",
+      secondary: "Read posts and reports",
+    },
+  },
+  membershipOffer: {
+    recommended: "Recommended",
+    pricingIntro: {
+      title: "Member benefits",
+      body: "Standard unlocks the full data and archive; Premium adds community and higher-touch support.",
+    },
+    value: {
+      contentLibrary: {
+        title: "Full historical content library",
+        body: "Unlock historical Aji Finance reports, stock research, unusual-flow reviews, course notes, and investing material.",
+      },
+      dataDashboards: {
+        title: "All options data dashboards",
+        body: "Full access to unusual, volume, open interest, premium turnover, seller yield, liquidity, sentiment, and GEX boards.",
+      },
+      courseArchive: {
+        title: "Structured options course archive",
+        body: "From Greeks, volatility, and VIX basics to more advanced strategy material in a reusable course library.",
+      },
+      ongoingUpdates: {
+        title: "Ongoing market reads",
+        body: "Market analysis and options observations are updated over time without promising a fixed publishing cadence.",
+      },
+      community: {
+        title: "Member community and Q&A",
+        body: "Premium members can join community discussion and receive more direct feedback where service capacity allows.",
+      },
+    },
+    tiers: {
+      free: {
+        eyebrow: "Free",
+        name: "Free preview",
+        description: "Best for first-time visitors evaluating the platform.",
+        cta: "Try data boards",
+        f1: "Preview selected data boards",
+        f2: "Read public posts",
+        f3: "View sample member documents",
+      },
+      standard: {
+        eyebrow: "Standard",
+        name: "Standard member",
+        description: "The primary membership: full data tools plus the historical content library.",
+        cta: "Sign up and redeem",
+        f1: "Full options boards and any-symbol GEX",
+        f2: "All historical reports, research documents, and course material",
+        f3: "Member posts, PDFs, and downloads",
+        f4: "Ongoing market analysis and options opportunity reads",
+        f5: "Activation-code access with stackable duration",
+      },
+      premium: {
+        eyebrow: "Premium",
+        name: "Premium member",
+        description: "Adds community, Q&A, and higher-touch support on top of Standard.",
+        cta: "Contact us",
+        f1: "Everything in Standard",
+        f2: "Member community access",
+        f3: "Q&A and strategy-framework discussion",
+        f4: "For members who want more guided learning",
+      },
+    },
+  },
   mvp: {
     close: "Close",
     loadFailed: "Load failed",
@@ -1831,8 +2029,8 @@ export const extraEn: DictionaryTree = {
     },
     membership: {
       lockedBadge: "Members only",
-      paywallTitle: "Upgrade to unlock full data",
-      paywallHint: "Free users preview 10 rows on select boards and SPY GEX. Redeem a code to unlock all 9 boards.",
+      paywallTitle: "Upgrade to unlock full data and the library",
+      paywallHint: "Free users can preview selected boards and public content. Redeem a code to unlock the full data tools and historical library.",
       paywallBoardHint: "Free users see 10 rows; ranks 1–3 hide the underlying symbol. Upgrade for the full board.",
       viewPricing: "View pricing",
       redeemCta: "Redeem code",
@@ -1851,21 +2049,21 @@ export const extraEn: DictionaryTree = {
       redeemSuccess: "Code redeemed successfully.",
       loginRequired: "Please log in to redeem a code.",
       pricingTitle: "Membership pricing",
-      pricingSubtitle: "Pay then contact us for your one-time activation code. Duration stacks on renewals.",
-      tier7: "Trial",
-      tier30: "Standard",
-      tier365: "Best value",
+      pricingSubtitle: "Membership includes options data, GEX, the historical library, course material, and ongoing market reads.",
+      tier7: "Free preview",
+      tier30: "Standard member",
+      tier365: "Premium member",
       tierFeatured: "Featured",
       tierDays7: "7 days",
       tierDays30: "30 days",
       tierDays365: "365 days",
       tierPerDay: "~{price}/day",
       tierWas: "Was",
-      tierUnlock: "Unlock all 9 boards + any-symbol GEX",
+      tierUnlock: "Unlock full data tools + historical content library",
       contactTitle: "Purchase & contact",
       contactWechat: "WeChat",
       contactDiscord: "Discord",
-      contactSteps: "Add our contact details before payment. We accept WeChat, Alipay, and Wise.",
+      contactSteps: "Contact us to pay and receive an activation code. Standard unlocks data and the library; Premium adds community and Q&A.",
       adminTitle: "Activation codes",
       adminGenerate: "Generate batch",
       adminTier: "Duration tier",
@@ -1879,7 +2077,7 @@ export const extraEn: DictionaryTree = {
       logout: "Log out",
     },
     tier: {
-      unlockFull: "Unlock full board & symbols",
+      unlockFull: "Unlock data and library",
       symbolMasked: "Symbol hidden",
       freePreviewHint: "Free preview: {limit} rows · ranks 1–{mask} symbol hidden",
     },
@@ -1958,22 +2156,22 @@ export const extraEn: DictionaryTree = {
     },
   },
   blog: {
-    brand: "Aji Finance Blog",
+    brand: "Aji Blog",
     nav: {
       home: "Home",
       posts: "Posts",
-      documents: "Sample Docs",
+      documents: "Member Library",
       about: "About Aji",
       membership: "Membership",
       contact: "Contact",
     },
     hero: {
       badge: "US Options · Chinese Deep Analysis",
-      title: "Aji Finance",
-      subtitle: "Deep US market research · Proprietary options reports · Structured courses",
+      title: "Aji Blog",
+      subtitle: "Deep US market research · Historical content library · Structured courses",
       tagline: "Data edge · Proprietary analysis · Professional courses · Learn options the right way",
-      ctaPrimary: "Join membership",
-      ctaSecondary: "View sample documents",
+      ctaPrimary: "Read latest posts",
+      ctaSecondary: "View library samples",
     },
     listTitle: "Latest posts",
     listSubtitle: "US options research, membership materials, and education",
@@ -1996,54 +2194,54 @@ export const extraEn: DictionaryTree = {
     disclaimer:
       "Educational content only—not investment advice. Options involve substantial risk; trade at your own discretion.",
     documents: {
-      title: "Sample documents",
-      subtitle: "Preview the types of reports and materials included with membership before you subscribe",
-      empty: "No sample documents yet",
-      emptyHint: "Admins can upload PDF samples in Document Admin",
+      title: "Member library",
+      subtitle: "Preview the reports, course material, and research documents available in the member archive",
+      empty: "No public samples yet",
+      emptyHint: "Admins can upload public PDF samples in Document Admin",
       ctaTitle: "Want full reports and materials?",
-      ctaBody: "Samples above are previews only — full reports are for members",
+      ctaBody: "Public samples show only part of the library. Members get the historical archive and ongoing updates.",
       ctaButton: "View pricing",
       categories: {
-        "daily-report": "Daily update",
-        unusual: "Daily unusual activity",
-        course: "Weekly course",
-        analysis: "Weekly stock analysis",
-        premkt: "Pre-market brief",
+        "daily-report": "Market reports",
+        unusual: "Unusual activity",
+        course: "Course material",
+        analysis: "Stock research",
+        premkt: "Pre-market material",
         insights: "Occasional insights",
         general: "General",
       },
     },
     membership: {
-      title: "Membership",
-      subtitle: "Whether you're new to options or leveling up, there's a tier for you",
+      title: "Membership plans",
+      subtitle: "Members can use data tools, the historical content library, course material, and ongoing market reads.",
       basic: {
-        name: "Basic tier",
-        desc: "For beginners building a solid foundation",
-        price: "¥298/mo",
-        cta: "Learn more",
-        f1: "Daily US market & options deep-dive report",
-        f2: "Occasional unusual activity report",
-        f3: "Weekly basic options course",
-        f4: "Occasional pre-market Q&A brief",
-        f5: "Occasional investing insights",
+        name: "Standard member",
+        desc: "Full data tools plus the historical content library",
+        price: "From $29/mo",
+        cta: "View membership",
+        f1: "Full options boards and any-symbol GEX",
+        f2: "Historical reports, course material, and research documents",
+        f3: "Member posts and PDF downloads",
+        f4: "Ongoing market analysis and options opportunity reads",
+        f5: "Activation-code access with stackable duration",
       },
       premium: {
         badge: "Recommended",
-        name: "Premium tier",
-        desc: "For experienced options traders leveling up",
-        price: "¥598/mo",
-        cta: "Subscribe now",
-        f1: "Daily US market & options deep-dive report",
-        f2: "Daily unusual activity report",
-        f3: "Weekly premium options course",
-        f4: "Weekly full stock panorama analysis",
-        f5: "Daily pre-market Q&A brief",
-        f6: "Occasional investing insights",
-        f7: "Daily intraday strategy sharing",
-        f8: "Direct Q&A with Aji",
+        name: "Premium member",
+        desc: "Adds community and Q&A on top of Standard",
+        price: "$89/mo",
+        cta: "Contact us",
+        f1: "Everything in Standard",
+        f2: "Member community discussion",
+        f3: "Q&A and strategy-framework discussion",
+        f4: "For members who want more guided learning",
+        f5: "Occasional investing insights",
+        f6: "No fixed cadence promise; quality and deliverability come first",
+        f7: "Long-term learning system around data and courses",
+        f8: "Options and investing discussion",
       },
-      sampleHint: "Want to see what member materials look like first?",
-      sampleCta: "View sample documents",
+      sampleHint: "Want to preview member materials first?",
+      sampleCta: "View library samples",
     },
     advantages: {
       title: "Why Aji?",
@@ -2071,9 +2269,9 @@ export const extraEn: DictionaryTree = {
       },
       platformsNote: "All English interfaces — combined subscriptions exceed $500+/month",
       compareSelf: "Subscribe yourself",
-      compareAji: "Premium membership (reports + courses)",
+      compareAji: "OptionsAji membership",
       closing:
-        "Aji subscribes to multiple premium platforms and delivers Chinese analysis directly — save money, save time, and truly learn options.",
+        "Aji subscribes to multiple premium platforms and turns the data into reusable Chinese research and course material for the member library.",
     },
     contact: {
       title: "Contact",
@@ -2084,26 +2282,18 @@ export const extraEn: DictionaryTree = {
     },
     about: {
       title: "About Aji",
-      subtitle: "Deep US options research · Proprietary analysis · Structured courses",
+      subtitle: "Deep US options research · Historical content library · Structured courses",
       teaser:
         "Aji focuses on US options research, helping investors understand market mechanics through a unique data-driven lens.",
       readMore: "Learn more",
       bodyZh: "",
       bodyEn: `## Who is Aji?
 
-Aji focuses on US options research and translates professional datasets into actionable Chinese insights for retail learners.
+Aji focuses on US options research and translates professional datasets, market structure, and options concepts into Chinese material that retail learners can understand and revisit.
 
-## Three pillars
-
-- **Data access** — Market Chameleon, SpotGamma, Unusual Whales, and more
-- **Proprietary analysis** — Daily deep-dive reports in Chinese
-- **Structured courses** — From basics to advanced strategies
-
-## Why Aji?
-
-Subscribing to multiple English platforms can exceed $500+/month. Premium membership bundles reports and courses at a fraction of the cost.`,
+This page keeps the bio and public social links focused. Product positioning, data capabilities, and member benefits live on the homepage and pricing page.`,
       membershipTitle: "Membership",
-      membershipBody: "Basic and Premium tiers include daily reports, unusual activity scans, courses, and pre-market briefs.",
+      membershipBody: "Membership unlocks full data boards, the historical content library, course material, and ongoing market reads.",
       membershipCta: "View pricing",
       platformTitle: "OptionsAji data platform",
       platformBody: "Leaderboards, GEX, and unusual activity tools complement the blog for systematic research.",

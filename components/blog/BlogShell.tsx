@@ -23,8 +23,6 @@ const NAV_LINKS = [
   { href: "/blog#posts", key: "blog.nav.posts", hash: true },
   { href: "/blog/documents", key: "blog.nav.documents" },
   { href: "/blog/about", key: "blog.nav.about" },
-  { href: "/blog#membership", key: "blog.nav.membership", hash: true },
-  { href: "/blog#contact", key: "blog.nav.contact", hash: true },
 ] as const;
 
 export default function BlogShell({
@@ -43,7 +41,7 @@ export default function BlogShell({
       <header className="sticky top-0 z-40 border-b-2 border-border bg-card/95 backdrop-blur-sm">
         <div className={cn("mx-auto flex flex-wrap items-center justify-between gap-4 px-4 py-3", maxWidth)}>
           <div className="flex items-center gap-3">
-            <Link href="/options/unusual" className="flex items-center gap-2 transition-opacity hover:opacity-80">
+            <Link href="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
               <span className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-primary bg-primary font-heading text-sm font-bold text-primary-foreground shadow-[2px_2px_0_0_hsl(var(--primary))]">
                 A
               </span>

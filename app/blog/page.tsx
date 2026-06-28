@@ -1,8 +1,8 @@
 import BlogHubPageClient from "@/components/blog/BlogHubPageClient";
 
 export const metadata = {
-  title: "阿吉生财有道 | OptionsAji",
-  description: "美股期权独家深度分析、会员资料与期权精品课程。",
+  title: "阿吉博客 | OptionsAji",
+  description: "美股期权文章、市场观察、资料库示例与期权教育内容。",
 };
 
 export default function BlogPage() {

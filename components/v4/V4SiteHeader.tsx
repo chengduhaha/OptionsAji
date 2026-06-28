@@ -42,7 +42,7 @@ function NavDropdown({
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "flex items-center gap-1 rounded-md px-3 py-2 text-sm transition-colors",
+          "flex items-center gap-1 whitespace-nowrap rounded-md px-2.5 py-2 text-sm transition-colors",
           activeInGroup
             ? "bg-primary/10 font-medium text-primary"
             : "text-foreground/70 hover:bg-secondary hover:text-foreground",
@@ -99,8 +99,8 @@ export default function V4SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background shadow-sm">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-        <Link href="/options/unusual" className="flex items-center gap-2">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
+        <Link href="/" className="flex flex-shrink-0 items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary font-heading text-sm font-bold text-primary-foreground">
             A
           </span>
@@ -110,7 +110,18 @@ export default function V4SiteHeader() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-2 lg:flex">
+        <nav className="hidden min-w-0 flex-1 items-center gap-1 overflow-visible xl:flex">
+          <Link
+            href="/"
+            className={cn(
+              "whitespace-nowrap rounded-md px-2.5 py-2 text-sm transition-colors",
+              pathname === "/"
+                ? "bg-primary/10 font-medium text-primary"
+                : "text-foreground/70 hover:bg-secondary hover:text-foreground",
+            )}
+          >
+            {t("home.nav.home")}
+          </Link>
           {V4_NAV_GROUPS.map((g) => (
             <NavDropdown
               key={g.groupKey}
@@ -123,7 +134,7 @@ export default function V4SiteHeader() {
           <Link
             href="/blog"
             className={cn(
-              "rounded-md px-3 py-2 text-sm transition-colors",
+              "whitespace-nowrap rounded-md px-2.5 py-2 text-sm transition-colors",
               pathname.startsWith("/blog")
                 ? "bg-primary/10 font-medium text-primary"
                 : "text-foreground/70 hover:bg-secondary hover:text-foreground",
@@ -132,9 +143,20 @@ export default function V4SiteHeader() {
             {t("blog.brand")}
           </Link>
           <Link
+            href="/blog/documents"
+            className={cn(
+              "whitespace-nowrap rounded-md px-2.5 py-2 text-sm transition-colors",
+              pathname === "/blog/documents"
+                ? "bg-primary/10 font-medium text-primary"
+                : "text-foreground/70 hover:bg-secondary hover:text-foreground",
+            )}
+          >
+            {t("home.nav.library")}
+          </Link>
+          <Link
             href="/pricing"
             className={cn(
-              "rounded-md px-3 py-2 text-sm transition-colors",
+              "whitespace-nowrap rounded-md px-2.5 py-2 text-sm transition-colors",
               pathname === "/pricing"
                 ? "bg-primary/10 font-medium text-primary"
                 : "text-foreground/70 hover:bg-secondary hover:text-foreground",
@@ -144,14 +166,14 @@ export default function V4SiteHeader() {
           </Link>
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-shrink-0 items-center gap-1.5">
           <V4ThemeToggle />
           <V4LanguageToggle className="hidden sm:block" />
           {ready && user ? (
             <>
               <Link
                 href="/account"
-                className="hidden rounded-md border border-border px-3 py-2 text-sm text-foreground/80 transition-colors hover:bg-secondary sm:block"
+                className="hidden whitespace-nowrap rounded-md border border-border px-2.5 py-2 text-sm text-foreground/80 transition-colors hover:bg-secondary sm:block"
               >
                 {membershipLabel(user.membership, locale)}
               </Link>
@@ -159,13 +181,13 @@ export default function V4SiteHeader() {
                 <>
                   <Link
                     href="/admin/codes"
-                    className="hidden rounded-md border border-border bg-secondary px-3 py-2 text-sm font-medium sm:block"
+                    className="hidden whitespace-nowrap rounded-md border border-border bg-secondary px-2.5 py-2 text-sm font-medium sm:block"
                   >
                     Admin
                   </Link>
                   <Link
                     href="/admin/blog"
-                    className="hidden rounded-md border border-border bg-secondary px-3 py-2 text-sm font-medium sm:block"
+                    className="hidden whitespace-nowrap rounded-md border border-border bg-secondary px-2.5 py-2 text-sm font-medium sm:block"
                   >
                     {t("blog.admin.nav")}
                   </Link>
@@ -174,7 +196,7 @@ export default function V4SiteHeader() {
               <button
                 type="button"
                 onClick={() => void logout()}
-                className="hidden rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground sm:block"
+                className="hidden whitespace-nowrap rounded-md px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground sm:block"
               >
                 {t("v3.membership.logout")}
               </button>
@@ -183,13 +205,13 @@ export default function V4SiteHeader() {
             <>
               <Link
                 href="/login"
-                className="hidden rounded-md px-3 py-2 text-sm text-foreground/70 transition-colors hover:text-foreground sm:block"
+                className="hidden whitespace-nowrap rounded-md px-2.5 py-2 text-sm text-foreground/70 transition-colors hover:text-foreground sm:block"
               >
                 {t("v3.membership.login")}
               </Link>
               <Link
                 href="/register"
-                className="rounded-md bg-accent px-3.5 py-2 text-sm font-semibold text-accent-foreground shadow-sm transition-colors hover:brightness-95"
+                className="whitespace-nowrap rounded-md bg-accent px-3 py-2 text-sm font-semibold text-accent-foreground shadow-sm transition-colors hover:brightness-95"
               >
                 {t("v3.membership.register")}
               </Link>
@@ -198,7 +220,7 @@ export default function V4SiteHeader() {
           {!isMember && ready ? (
             <Link
               href="/pricing"
-              className="hidden rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-sm font-medium text-primary lg:block"
+              className="hidden whitespace-nowrap rounded-md border border-primary/30 bg-primary/10 px-2.5 py-2 text-sm font-medium text-primary 2xl:block"
             >
               {t("v3.tier.unlockFull")}
             </Link>
@@ -207,7 +229,7 @@ export default function V4SiteHeader() {
             type="button"
             aria-label={t("v4.nav.openMenu")}
             onClick={() => setOpen((v) => !v)}
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-border lg:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-md border border-border xl:hidden"
           >
             {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>
@@ -215,11 +237,17 @@ export default function V4SiteHeader() {
       </div>
 
       {open ? (
-        <div className="border-t border-border bg-card lg:hidden">
+        <div className="border-t border-border bg-card xl:hidden">
           <div className="mx-auto max-w-6xl px-4 py-3">
             <div className="mb-3 sm:hidden">
               <V4LanguageToggle className="w-full" />
             </div>
+            <Link
+              href="/"
+              className="mb-3 flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-foreground"
+            >
+              {t("home.nav.home")}
+            </Link>
             {V4_NAV_GROUPS.map((g) => (
               <div key={g.groupKey} className="mb-3">
                 <div className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
@@ -260,6 +288,12 @@ export default function V4SiteHeader() {
               className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-foreground"
             >
               {t("blog.brand")}
+            </Link>
+            <Link
+              href="/blog/documents"
+              className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-foreground"
+            >
+              {t("home.nav.library")}
             </Link>
             <Link
               href="/pricing"

@@ -1,8 +1,8 @@
 import BlogAboutPageClient from "@/components/blog/BlogAboutPageClient";
 
 export const metadata = {
-  title: "关于阿吉 | 阿吉生财有道",
-  description: "深耕美股市场 · 独家深度分析 · 期权精品课程",
+  title: "关于阿吉 | 阿吉博客",
+  description: "阿吉的美股期权研究背景、内容方向与公开平台入口。",
 };
 
 export default function BlogAboutPage() {

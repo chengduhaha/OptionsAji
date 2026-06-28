@@ -1,8 +1,8 @@
 import BlogDocumentsPageClient from "@/components/blog/BlogDocumentsPageClient";
 
 export const metadata = {
-  title: "示例文档 | 阿吉生财有道",
-  description: "专属会员权益示例文档，提前了解报告与课程资料。",
+  title: "会员资料库 | 阿吉博客",
+  description: "浏览历史报告、课程资料和研究文档的公开示例。",
 };
 
 export default function BlogDocumentsPage() {

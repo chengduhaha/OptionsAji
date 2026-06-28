@@ -1,13 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowRight } from "lucide-react";
 
-import BlogAdvantagesSection from "@/components/blog/BlogAdvantagesSection";
-import BlogContactSection from "@/components/blog/BlogContactSection";
 import BlogHeroSection from "@/components/blog/BlogHeroSection";
-import BlogMembershipSection from "@/components/blog/BlogMembershipSection";
 import BlogPostCard from "@/components/blog/BlogPostCard";
 import BlogShell from "@/components/blog/BlogShell";
 import { fetchBlogPosts } from "@/lib/blog/api";
@@ -45,25 +40,8 @@ export default function BlogHubPageClient() {
 
   return (
     <BlogShell variant="hub" hideHeader>
-      <div className="space-y-16 sm:space-y-20">
+      <div className="space-y-10 sm:space-y-12">
         <BlogHeroSection />
-
-        <section id="about" className="scroll-mt-24">
-          <div className="rounded-2xl border-2 border-border bg-card p-6 sm:p-8">
-            <h2 className="font-heading text-2xl font-bold sm:text-3xl">{t("blog.about.title")}</h2>
-            <p className="mt-2 text-sm text-primary">{t("blog.about.subtitle")}</p>
-            <p className="mt-4 leading-relaxed text-muted-foreground">{t("blog.about.teaser")}</p>
-            <Link
-              href="/blog/about"
-              className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-            >
-              {t("blog.about.readMore")} <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </section>
-
-        <BlogMembershipSection />
-        <BlogAdvantagesSection />
 
         <section id="posts" className="scroll-mt-24">
           <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
@@ -117,8 +95,6 @@ export default function BlogHubPageClient() {
             </div>
           )}
         </section>
-
-        <BlogContactSection />
       </div>
     </BlogShell>
   );
