@@ -46,6 +46,7 @@ export const V4_FOOTER_COLS: { titleKey: string; links: { href: string; labelKey
     titleKey: "v4.footer.product",
     links: [
       { href: "/pricing", labelKey: "v3.footer.links.pricing" },
+      { href: "/blog", labelKey: "blog.nav.posts" },
       { href: "/register", labelKey: "v3.membership.register" },
       { href: "/login", labelKey: "v3.membership.login" },
       { href: "/about", labelKey: "v3.footer.links.about" },

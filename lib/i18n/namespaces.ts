@@ -863,6 +863,100 @@ export const extraZh: DictionaryTree = {
       equity: "个股",
     },
   },
+  blog: {
+    brand: "阿吉生财有道",
+    nav: { posts: "文章", about: "关于阿吉" },
+    listTitle: "阿吉生财有道",
+    listSubtitle: "美股期权独家深度分析、会员资料与教育内容",
+    allCategories: "全部",
+    loading: "加载中…",
+    loadFailed: "加载失败",
+    empty: "暂无文章",
+    readMore: "阅读全文",
+    backToList: "返回文章列表",
+    notFound: "文章不存在",
+    attachments: "PDF 附件",
+    openPdf: "新窗口打开",
+    downloadPdf: "下载",
+    pdfCount: "{count} 个 PDF",
+    disclaimer: "本平台内容仅供知识分享与教育交流，不构成任何投资建议。期权交易具有高风险，请独立决策、自负盈亏。",
+    about: {
+      title: "关于阿吉",
+      subtitle: "深耕美股市场 · 独家深度分析 · 期权精品课程",
+      bodyZh: `## 阿吉是谁
+
+做美股期权，最怕的是自己瞎琢磨、学零散知识踩坑。阿吉专注于美股期权市场研究，致力于通过独特的数据分析视角，帮助投资者更好地理解期权市场的运作机制。
+
+阿吉不仅整合多家顶级期权数据平台的专业数据，更具备独家深度数据分析能力——将海量期权数据转化为阿吉独家的深度分析报告，把复杂的专业信息翻译成普通投资者能看懂、用得上的中文洞察。
+
+## 三大核心优势
+
+- **数据优势** — 长年订阅 Market Chameleon、SpotGamma、Unusual Whales 等顶级平台
+- **独家深度分析** — 中文深度报告，让你看得懂、用得上
+- **期权精品课程** — 从入门到进阶的体系化课程
+
+## 为什么选择阿吉？
+
+自己订阅多家英文数据平台合计超过 $500+/月；高级档会员（含报告+课程）¥598/月，帮你省钱又省时间，还能真学会。`,
+      bodyEn: `## Who is Aji?
+
+Aji focuses on US options research and translates professional datasets into actionable Chinese insights for retail learners.
+
+## Three pillars
+
+- **Data access** — Market Chameleon, SpotGamma, Unusual Whales, and more
+- **Proprietary analysis** — Daily deep-dive reports in Chinese
+- **Structured courses** — From basics to advanced strategies
+
+## Why Aji?
+
+Subscribing to multiple English platforms can exceed $500+/month. Premium membership bundles reports and courses at a fraction of the cost.`,
+      membershipTitle: "专属会员",
+      membershipBody: "基础档与高级档会员可获得每日深度报告、异动扫描、期权课程与盘前前瞻等内容。",
+      membershipCta: "查看会员方案",
+      platformTitle: "OptionsAji 数据平台",
+      platformBody: "期权榜单、GEX 分析、异动检测等工具与博客内容互补，帮助系统化研究。",
+      platformCta: "进入期权榜单",
+      socialTitle: "全网同名：阿吉生财有道",
+      socialBody: "关注以下平台获取更多精彩内容（名称均为「阿吉生财有道」）。",
+      social: {
+        douyin: "抖音 · 阿吉生财有道",
+        xiaohongshu: "小红书 · 阿吉生财有道",
+        wechat: "公众号 · 阿吉生财有道",
+        video: "视频号 · 阿吉生财有道",
+        youtube: "YouTube · 阿吉生财有道",
+      },
+    },
+    admin: {
+      title: "博客管理",
+      subtitle: "创建文章、上传 PDF 附件（仅管理员）",
+      viewBlog: "查看博客",
+      newPost: "新建文章",
+      editPost: "编辑文章",
+      slug: "Slug",
+      category: "分类",
+      titleZh: "标题（中文）",
+      excerptZh: "摘要（中文）",
+      bodyZh: "正文 Markdown（中文）",
+      tags: "标签（逗号分隔）",
+      status: "状态",
+      draft: "草稿",
+      published: "已发布",
+      pdf: "PDF 附件",
+      save: "保存",
+      saving: "保存中…",
+      cancel: "取消",
+      postList: "文章列表",
+      preview: "预览",
+      edit: "编辑",
+      delete: "删除",
+      attachPdf: "附加 PDF",
+      confirmDelete: "确定删除这篇文章？",
+      loadFailed: "加载失败",
+      saveFailed: "保存失败",
+      loading: "加载中…",
+    },
+  },
 };
 
 export const extraEn: DictionaryTree = {
@@ -1728,6 +1822,83 @@ export const extraEn: DictionaryTree = {
       macro_release: "Macro",
       geopolitical: "Geopolitical",
       equity: "Equity",
+    },
+  },
+  blog: {
+    brand: "Aji Finance Blog",
+    nav: { posts: "Posts", about: "About Aji" },
+    listTitle: "Aji Finance",
+    listSubtitle: "US options research, membership samples, and education",
+    allCategories: "All",
+    loading: "Loading…",
+    loadFailed: "Failed to load",
+    empty: "No posts yet",
+    readMore: "Read more",
+    backToList: "Back to posts",
+    notFound: "Post not found",
+    attachments: "PDF attachments",
+    openPdf: "Open",
+    downloadPdf: "Download",
+    pdfCount: "{count} PDF(s)",
+    disclaimer:
+      "Educational content only—not investment advice. Options involve substantial risk; trade at your own discretion.",
+    about: {
+      title: "About Aji",
+      subtitle: "Deep US options research · Proprietary analysis · Structured courses",
+      bodyZh: "",
+      bodyEn: `## Who is Aji?
+
+Aji focuses on US options research and translates professional datasets into actionable Chinese insights for retail learners.
+
+## Three pillars
+
+- **Data access** — Market Chameleon, SpotGamma, Unusual Whales, and more
+- **Proprietary analysis** — Daily deep-dive reports in Chinese
+- **Structured courses** — From basics to advanced strategies`,
+      membershipTitle: "Membership",
+      membershipBody: "Basic and Premium tiers include daily reports, unusual activity scans, courses, and pre-market briefs.",
+      membershipCta: "View pricing",
+      platformTitle: "OptionsAji data platform",
+      platformBody: "Leaderboards, GEX, and unusual activity tools complement the blog for systematic research.",
+      platformCta: "Open leaderboards",
+      socialTitle: "Find Aji everywhere",
+      socialBody: "Search「阿吉生财有道」on Chinese social platforms and YouTube.",
+      social: {
+        douyin: "Douyin · 阿吉生财有道",
+        xiaohongshu: "Xiaohongshu · 阿吉生财有道",
+        wechat: "WeChat · 阿吉生财有道",
+        video: "Channels · 阿吉生财有道",
+        youtube: "YouTube · 阿吉生财有道",
+      },
+    },
+    admin: {
+      title: "Blog admin",
+      subtitle: "Create posts and upload PDFs (admin only)",
+      viewBlog: "View blog",
+      newPost: "New post",
+      editPost: "Edit post",
+      slug: "Slug",
+      category: "Category",
+      titleZh: "Title (ZH)",
+      excerptZh: "Excerpt (ZH)",
+      bodyZh: "Body Markdown (ZH)",
+      tags: "Tags (comma-separated)",
+      status: "Status",
+      draft: "Draft",
+      published: "Published",
+      pdf: "PDF attachment",
+      save: "Save",
+      saving: "Saving…",
+      cancel: "Cancel",
+      postList: "Posts",
+      preview: "Preview",
+      edit: "Edit",
+      delete: "Delete",
+      attachPdf: "Attach PDF",
+      confirmDelete: "Delete this post?",
+      loadFailed: "Load failed",
+      saveFailed: "Save failed",
+      loading: "Loading…",
     },
   },
 };
