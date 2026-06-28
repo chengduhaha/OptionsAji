@@ -156,12 +156,20 @@ export default function V4SiteHeader() {
                 {membershipLabel(user.membership, locale)}
               </Link>
               {isAdmin ? (
-                <Link
-                  href="/admin/codes"
-                  className="hidden rounded-md border border-border bg-secondary px-3 py-2 text-sm font-medium sm:block"
-                >
-                  Admin
-                </Link>
+                <>
+                  <Link
+                    href="/admin/codes"
+                    className="hidden rounded-md border border-border bg-secondary px-3 py-2 text-sm font-medium sm:block"
+                  >
+                    Admin
+                  </Link>
+                  <Link
+                    href="/admin/blog"
+                    className="hidden rounded-md border border-border bg-secondary px-3 py-2 text-sm font-medium sm:block"
+                  >
+                    {t("blog.admin.nav")}
+                  </Link>
+                </>
               ) : null}
               <button
                 type="button"
@@ -264,6 +272,16 @@ export default function V4SiteHeader() {
                 <Link href="/account" className="rounded-md px-3 py-2 text-sm hover:bg-secondary">
                   {membershipLabel(user.membership, locale)}
                 </Link>
+                {isAdmin ? (
+                  <>
+                    <Link href="/admin/codes" className="rounded-md px-3 py-2 text-sm hover:bg-secondary">
+                      Admin
+                    </Link>
+                    <Link href="/admin/blog" className="rounded-md px-3 py-2 text-sm hover:bg-secondary">
+                      {t("blog.admin.nav")}
+                    </Link>
+                  </>
+                ) : null}
                 <button
                   type="button"
                   onClick={() => void logout()}

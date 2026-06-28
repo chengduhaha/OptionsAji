@@ -1,8 +1,10 @@
 "use client";
 
 import { Download, ExternalLink } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { blogAttachmentHref } from "@/lib/blog/api";
+import { authFetch } from "@/lib/apiBase";
 import type { BlogAttachment } from "@/lib/blog/types";
 import { useI18n } from "@/lib/i18n/context";
 import type { Locale } from "@/lib/i18n/types";
@@ -19,11 +21,53 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-type BlogPdfViewerProps = {
-  attachments: BlogAttachment[];
+type AuthenticatedPdfFrameProps = {
+  viewHref: string;
+  title: string;
 };
 
-export default function BlogPdfViewer({ attachments }: BlogPdfViewerProps) {
+function AuthenticatedPdfFrame({ viewHref, title }: AuthenticatedPdfFrameProps) {
+  const { t } = useI18n();
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    let objectUrl: string | null = null;
+
+    void authFetch(viewHref)
+      .then(async (res) => {
+        if (!res.ok) throw new Error("pdf_load_failed");
+        const blob = await res.blob();
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(blob);
+        setBlobUrl(objectUrl);
+      })
+      .catch(() => {
+        if (!cancelled) setError(t("blog.pdfLoadFailed"));
+      });
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [viewHref, t]);
+
+  if (error) {
+    return <p className="px-4 py-6 text-sm text-destructive">{error}</p>;
+  }
+  if (!blobUrl) {
+    return <p className="px-4 py-6 text-sm text-muted-foreground">{t("blog.loading")}</p>;
+  }
+  return <iframe title={title} src={blobUrl} className="h-[min(70vh,720px)] w-full bg-muted" />;
+}
+
+type BlogPdfViewerProps = {
+  attachments: BlogAttachment[];
+  requireAuth?: boolean;
+};
+
+export default function BlogPdfViewer({ attachments, requireAuth = false }: BlogPdfViewerProps) {
   const { locale, t } = useI18n();
 
   if (attachments.length === 0) return null;
@@ -66,11 +110,15 @@ export default function BlogPdfViewer({ attachments }: BlogPdfViewerProps) {
                 </a>
               </div>
             </div>
-            <iframe
-              title={title}
-              src={viewHref}
-              className="h-[min(70vh,720px)] w-full bg-muted"
-            />
+            {requireAuth ? (
+              <AuthenticatedPdfFrame viewHref={viewHref} title={title} />
+            ) : (
+              <iframe
+                title={title}
+                src={viewHref}
+                className="h-[min(70vh,720px)] w-full bg-muted"
+              />
+            )}
           </div>
         );
       })}

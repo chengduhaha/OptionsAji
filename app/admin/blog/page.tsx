@@ -109,6 +109,12 @@ export default function AdminBlogPage() {
           },
           token,
         );
+        if (pdfFile) {
+          await uploadBlogPdf(pdfFile, token, {
+            postId: editingId,
+            titleZh: form.title_zh || undefined,
+          });
+        }
       } else {
         const created = await createBlogPost(
           {
@@ -302,6 +308,11 @@ export default function AdminBlogPage() {
                     /blog/{post.slug} · {post.status} · {post.category}
                     {post.attachment_count > 0 ? ` · PDF×${post.attachment_count}` : ""}
                   </p>
+                  {post.status === "draft" ? (
+                    <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                      {t("blog.admin.draftPublicHint")}
+                    </p>
+                  ) : null}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Link

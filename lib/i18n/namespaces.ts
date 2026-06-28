@@ -875,9 +875,14 @@ export const extraZh: DictionaryTree = {
     readMore: "阅读全文",
     backToList: "返回文章列表",
     notFound: "文章不存在",
+    draftTitle: "文章未发布",
+    draftNotPublic: "该文章尚未发布，公开链接暂不可访问。",
+    draftHint: "如需预览草稿，请登录管理员账号后点击「预览」，或先将状态改为「已发布」。",
+    draftPreviewBanner: "草稿预览 — 仅管理员可见，发布后公众才可访问此链接。",
     attachments: "PDF 附件",
     openPdf: "新窗口打开",
     downloadPdf: "下载",
+    pdfLoadFailed: "PDF 加载失败",
     pdfCount: "{count} 个 PDF",
     disclaimer: "本平台内容仅供知识分享与教育交流，不构成任何投资建议。期权交易具有高风险，请独立决策、自负盈亏。",
     about: {
@@ -928,6 +933,7 @@ Subscribing to multiple English platforms can exceed $500+/month. Premium member
       },
     },
     admin: {
+      nav: "文章管理",
       title: "博客管理",
       subtitle: "创建文章、上传 PDF 附件（仅管理员）",
       viewBlog: "查看博客",
@@ -955,6 +961,7 @@ Subscribing to multiple English platforms can exceed $500+/month. Premium member
       loadFailed: "加载失败",
       saveFailed: "保存失败",
       loading: "加载中…",
+      draftPublicHint: "草稿状态：公开 URL 不可访问，请登录后点「预览」或先发布。",
     },
   },
 };
@@ -1836,9 +1843,14 @@ export const extraEn: DictionaryTree = {
     readMore: "Read more",
     backToList: "Back to posts",
     notFound: "Post not found",
+    draftTitle: "Post not published",
+    draftNotPublic: "This post is still a draft and is not publicly available.",
+    draftHint: "Log in as admin and use Preview in Blog Admin, or publish the post first.",
+    draftPreviewBanner: "Draft preview — visible to admins only. Publish to make this URL public.",
     attachments: "PDF attachments",
     openPdf: "Open",
     downloadPdf: "Download",
+    pdfLoadFailed: "Failed to load PDF",
     pdfCount: "{count} PDF(s)",
     disclaimer:
       "Educational content only—not investment advice. Options involve substantial risk; trade at your own discretion.",
@@ -1872,6 +1884,7 @@ Aji focuses on US options research and translates professional datasets into act
       },
     },
     admin: {
+      nav: "Blog Admin",
       title: "Blog admin",
       subtitle: "Create posts and upload PDFs (admin only)",
       viewBlog: "View blog",
@@ -1899,6 +1912,7 @@ Aji focuses on US options research and translates professional datasets into act
       loadFailed: "Load failed",
       saveFailed: "Save failed",
       loading: "Loading…",
+      draftPublicHint: "Draft: public URL is hidden. Log in and use Preview, or publish first.",
     },
   },
 };

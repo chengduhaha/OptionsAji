@@ -1,4 +1,4 @@
-import { apiFetch } from "@/lib/apiBase";
+import { apiFetch, authFetch } from "@/lib/apiBase";
 import type {
   BlogPostCreateInput,
   BlogPostDetail,
@@ -7,24 +7,54 @@ import type {
   BlogUploadPdfResponse,
 } from "@/lib/blog/types";
 
-function parseError(payload: unknown): string {
-  if (!payload || typeof payload !== "object") return "请求失败";
-  const detail = (payload as { detail?: unknown }).detail;
-  if (typeof detail === "string") return detail;
-  if (
-    detail &&
-    typeof detail === "object" &&
-    "message" in detail &&
-    typeof (detail as { message: unknown }).message === "string"
-  ) {
-    return (detail as { message: string }).message;
+export class BlogApiError extends Error {
+  readonly code: string;
+  readonly status: number;
+
+  constructor(message: string, code: string, status: number) {
+    super(message);
+    this.name = "BlogApiError";
+    this.code = code;
+    this.status = status;
   }
-  return "请求失败";
+}
+
+function parseError(payload: unknown, status: number): BlogApiError {
+  if (!payload || typeof payload !== "object") {
+    return new BlogApiError("请求失败", "request_failed", status);
+  }
+
+  const wrapped = payload as { error?: unknown; detail?: unknown };
+  if (wrapped.error && typeof wrapped.error === "object") {
+    const error = wrapped.error as { code?: unknown; message?: unknown };
+    const message =
+      typeof error.message === "string" && error.message.trim() ? error.message : "请求失败";
+    const code =
+      typeof error.code === "string" && error.code.trim() ? error.code : "request_failed";
+    return new BlogApiError(message, code, status);
+  }
+
+  const detail = wrapped.detail;
+  if (typeof detail === "string") {
+    return new BlogApiError(detail, "request_failed", status);
+  }
+  if (detail && typeof detail === "object") {
+    const message =
+      "message" in detail && typeof (detail as { message: unknown }).message === "string"
+        ? (detail as { message: string }).message
+        : "请求失败";
+    const code =
+      "code" in detail && typeof (detail as { code: unknown }).code === "string"
+        ? (detail as { code: string }).code
+        : "request_failed";
+    return new BlogApiError(message, code, status);
+  }
+  return new BlogApiError("请求失败", "request_failed", status);
 }
 
 async function readJson<T>(res: Response): Promise<T> {
   const raw: unknown = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(parseError(raw));
+  if (!res.ok) throw parseError(raw, res.status);
   return raw as T;
 }
 
@@ -43,14 +73,15 @@ export async function fetchBlogPosts(params?: {
   const suffix = qs.toString() ? `?${qs.toString()}` : "";
   const headers: HeadersInit = {};
   if (params?.token) headers.Authorization = `Bearer ${params.token}`;
-  const res = await apiFetch(`/api/blog/posts${suffix}`, { headers, cache: "no-store" });
+  const fetcher = params?.token || params?.include_drafts ? authFetch : apiFetch;
+  const res = await fetcher(`/api/blog/posts${suffix}`, { headers, cache: "no-store" });
   return readJson<BlogPostListResponse>(res);
 }
 
 export async function fetchBlogPost(slug: string, token?: string): Promise<BlogPostDetail> {
   const headers: HeadersInit = {};
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await apiFetch(`/api/blog/posts/${encodeURIComponent(slug)}`, {
+  const res = await authFetch(`/api/blog/posts/${encodeURIComponent(slug)}`, {
     headers,
     cache: "no-store",
   });
@@ -61,7 +92,7 @@ export async function createBlogPost(
   input: BlogPostCreateInput,
   token: string,
 ): Promise<BlogPostDetail> {
-  const res = await apiFetch("/api/blog/posts", {
+  const res = await authFetch("/api/blog/posts", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -77,7 +108,7 @@ export async function updateBlogPost(
   input: BlogPostUpdateInput,
   token: string,
 ): Promise<BlogPostDetail> {
-  const res = await apiFetch(`/api/blog/posts/${encodeURIComponent(postId)}`, {
+  const res = await authFetch(`/api/blog/posts/${encodeURIComponent(postId)}`, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -89,13 +120,13 @@ export async function updateBlogPost(
 }
 
 export async function deleteBlogPost(postId: string, token: string): Promise<void> {
-  const res = await apiFetch(`/api/blog/posts/${encodeURIComponent(postId)}`, {
+  const res = await authFetch(`/api/blog/posts/${encodeURIComponent(postId)}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
     const raw: unknown = await res.json().catch(() => ({}));
-    throw new Error(parseError(raw));
+    throw parseError(raw, res.status);
   }
 }
 
@@ -110,7 +141,7 @@ export async function uploadBlogPdf(
   if (options?.titleZh) form.append("title_zh", options.titleZh);
   if (options?.titleEn) form.append("title_en", options.titleEn);
 
-  const res = await apiFetch("/api/blog/upload-pdf", {
+  const res = await authFetch("/api/blog/upload-pdf", {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
     body: form,

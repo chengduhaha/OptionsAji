@@ -87,12 +87,20 @@ export default function V3OptionsShell({ children }: V3OptionsShellProps) {
                   {membershipLabel(user.membership, locale)}
                 </Link>
                 {isAdmin ? (
-                  <Link
-                    href="/admin/codes"
-                    className="border-2 border-ink px-2.5 py-1 font-mono text-[10px] font-bold uppercase bg-peach shadow-neo-sm"
-                  >
-                    Admin
-                  </Link>
+                  <>
+                    <Link
+                      href="/admin/codes"
+                      className="border-2 border-ink px-2.5 py-1 font-mono text-[10px] font-bold uppercase bg-peach shadow-neo-sm"
+                    >
+                      Admin
+                    </Link>
+                    <Link
+                      href="/admin/blog"
+                      className="border-2 border-ink px-2.5 py-1 font-mono text-[10px] font-bold uppercase bg-peach shadow-neo-sm"
+                    >
+                      {t("blog.admin.nav")}
+                    </Link>
+                  </>
                 ) : null}
                 <button
                   type="button"
