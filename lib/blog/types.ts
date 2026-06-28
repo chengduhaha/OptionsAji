@@ -5,8 +5,19 @@ export type BlogAttachment = {
   file_size: number;
   title_zh: string | null;
   title_en: string | null;
+  category: string;
+  description_zh: string | null;
+  description_en: string | null;
+  is_sample: boolean;
+  post_id: string | null;
   download_url: string;
   view_url: string;
+  created_at: string | null;
+};
+
+export type BlogDocumentListResponse = {
+  items: BlogAttachment[];
+  categories: string[];
 };
 
 export type BlogPostSummary = {

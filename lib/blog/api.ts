@@ -1,9 +1,11 @@
 import { apiFetch, authFetch } from "@/lib/apiBase";
 import type {
+  BlogAttachment,
   BlogPostCreateInput,
   BlogPostDetail,
   BlogPostListResponse,
   BlogPostUpdateInput,
+  BlogDocumentListResponse,
   BlogUploadPdfResponse,
 } from "@/lib/blog/types";
 
@@ -133,13 +135,25 @@ export async function deleteBlogPost(postId: string, token: string): Promise<voi
 export async function uploadBlogPdf(
   file: File,
   token: string,
-  options?: { postId?: string; titleZh?: string; titleEn?: string },
+  options?: {
+    postId?: string;
+    titleZh?: string;
+    titleEn?: string;
+    category?: string;
+    descriptionZh?: string;
+    descriptionEn?: string;
+    isSample?: boolean;
+  },
 ): Promise<BlogUploadPdfResponse> {
   const form = new FormData();
   form.append("file", file);
   if (options?.postId) form.append("post_id", options.postId);
   if (options?.titleZh) form.append("title_zh", options.titleZh);
   if (options?.titleEn) form.append("title_en", options.titleEn);
+  if (options?.category) form.append("category", options.category);
+  if (options?.descriptionZh) form.append("description_zh", options.descriptionZh);
+  if (options?.descriptionEn) form.append("description_en", options.descriptionEn);
+  if (options?.isSample !== undefined) form.append("is_sample", options.isSample ? "true" : "false");
 
   const res = await authFetch("/api/blog/upload-pdf", {
     method: "POST",
@@ -147,6 +161,65 @@ export async function uploadBlogPdf(
     body: form,
   });
   return readJson<BlogUploadPdfResponse>(res);
+}
+
+export async function fetchBlogDocuments(params?: {
+  category?: string;
+}): Promise<BlogDocumentListResponse> {
+  const qs = new URLSearchParams();
+  if (params?.category) qs.set("category", params.category);
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  const res = await apiFetch(`/api/blog/documents${suffix}`, { cache: "no-store" });
+  return readJson<BlogDocumentListResponse>(res);
+}
+
+export async function fetchBlogAttachments(
+  token: string,
+  params?: { standaloneOnly?: boolean },
+): Promise<BlogDocumentListResponse> {
+  const qs = new URLSearchParams();
+  if (params?.standaloneOnly) qs.set("standalone_only", "true");
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  const res = await authFetch(`/api/blog/attachments${suffix}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  return readJson<BlogDocumentListResponse>(res);
+}
+
+export async function updateBlogAttachment(
+  attachmentId: string,
+  input: {
+    title_zh?: string;
+    title_en?: string;
+    category?: string;
+    description_zh?: string;
+    description_en?: string;
+    is_sample?: boolean;
+    post_id?: string | null;
+  },
+  token: string,
+): Promise<BlogAttachment> {
+  const res = await authFetch(`/api/blog/attachments/${encodeURIComponent(attachmentId)}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+  return readJson<BlogAttachment>(res);
+}
+
+export async function deleteBlogAttachment(attachmentId: string, token: string): Promise<void> {
+  const res = await authFetch(`/api/blog/attachments/${encodeURIComponent(attachmentId)}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const raw: unknown = await res.json().catch(() => ({}));
+    throw parseError(raw, res.status);
+  }
 }
 
 export function blogAttachmentHref(path: string): string {

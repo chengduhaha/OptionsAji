@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Calendar, Tag } from "lucide-react";
 
 import BlogMarkdown from "@/components/blog/BlogMarkdown";
 import BlogPdfViewer from "@/components/blog/BlogPdfViewer";
@@ -81,7 +82,7 @@ export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
 
   if (loading) {
     return (
-      <BlogShell title={t("blog.loading")}>
+      <BlogShell title={t("blog.loading")} variant="wide">
         <p className="text-sm text-muted-foreground">{t("blog.loading")}</p>
       </BlogShell>
     );
@@ -95,12 +96,12 @@ export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
           ? t("blog.notFound")
           : t("blog.loadFailed");
     return (
-      <BlogShell title={title}>
+      <BlogShell title={title} variant="wide">
         <p className="text-sm text-destructive">{error ?? t("blog.notFound")}</p>
         {errorCode === "draft" ? (
           <p className="mt-2 text-sm text-muted-foreground">{t("blog.draftHint")}</p>
         ) : null}
-        <Link href="/blog" className="mt-4 inline-block text-sm text-primary hover:underline">
+        <Link href="/blog#posts" className="mt-4 inline-block text-sm font-semibold text-primary hover:underline">
           ← {t("blog.backToList")}
         </Link>
       </BlogShell>
@@ -109,33 +110,61 @@ export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
 
   const title = pickLocalized(locale, post.title_zh, post.title_en, post.slug);
   const body = pickLocalized(locale, post.body_zh, post.body_en, post.body_zh);
+  const dateStr = formatDate(post.published_at, locale);
 
   return (
-    <BlogShell title={title} subtitle={formatDate(post.published_at, locale)}>
+    <BlogShell variant="wide" hideHeader>
       {post.status === "draft" && isAdmin ? (
-        <div className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+        <div className="mb-6 rounded-xl border-2 border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-200">
           {t("blog.draftPreviewBanner")}
         </div>
       ) : null}
-      <article className="rounded-xl border border-border bg-card px-5 py-6 md:px-8">
-        <div className="mb-6 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <span className="rounded-full bg-primary/10 px-2.5 py-0.5 font-medium text-primary">
-            {post.category}
-          </span>
-          {post.tags.map((tag) => (
-            <span key={tag} className="rounded-md border border-border px-2 py-0.5">
-              #{tag}
+
+      <article className="mx-auto max-w-3xl">
+        <header className="mb-8 border-b-2 border-border pb-6">
+          <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-semibold text-primary">
+              {post.category}
             </span>
-          ))}
+            {dateStr ? (
+              <span className="inline-flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5" />
+                <time dateTime={post.published_at ?? undefined}>{dateStr}</time>
+              </span>
+            ) : null}
+          </div>
+          <h1 className="font-heading text-3xl font-bold leading-tight tracking-tight md:text-4xl">{title}</h1>
+          {post.tags.length > 0 ? (
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+              {post.tags.map((tag) => (
+                <span key={tag} className="rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </header>
+
+        <div className="prose-blog rounded-xl border-2 border-border bg-card px-5 py-6 md:px-8 md:py-8">
+          <BlogMarkdown content={body} />
         </div>
-        <BlogMarkdown content={body} />
-        <BlogPdfViewer attachments={post.attachments} requireAuth={post.status === "draft"} />
+
+        {post.attachments.length > 0 ? (
+          <div className="mt-8">
+            <BlogPdfViewer attachments={post.attachments} requireAuth={post.status === "draft"} />
+          </div>
+        ) : null}
+
+        <div className="mt-10 flex flex-wrap gap-4 border-t-2 border-border pt-6">
+          <Link href="/blog#posts" className="text-sm font-semibold text-primary hover:underline">
+            ← {t("blog.backToList")}
+          </Link>
+          <Link href="/blog/documents" className="text-sm text-muted-foreground hover:text-primary hover:underline">
+            {t("blog.nav.documents")}
+          </Link>
+        </div>
       </article>
-      <div className="mt-6">
-        <Link href="/blog" className="text-sm text-primary hover:underline">
-          ← {t("blog.backToList")}
-        </Link>
-      </div>
     </BlogShell>
   );
 }

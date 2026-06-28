@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FileText } from "lucide-react";
+import { Calendar, FileText } from "lucide-react";
 
 import type { BlogPostSummary } from "@/lib/blog/types";
 import { useI18n } from "@/lib/i18n/context";
@@ -40,42 +40,51 @@ export default function BlogPostCard({ post }: BlogPostCardProps) {
   const excerpt = pickLocalized(locale, post.excerpt_zh, post.excerpt_en, "");
 
   return (
-    <article className="group rounded-xl border border-border bg-card p-5 transition-shadow hover:shadow-md">
+    <article className="group flex h-full flex-col rounded-xl border-2 border-border bg-card p-5 transition-all hover:border-primary/40 hover:shadow-[4px_4px_0_0_hsl(var(--primary)/0.12)]">
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-        <span className="rounded-full bg-primary/10 px-2.5 py-0.5 font-medium text-primary">
+        <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 font-semibold text-primary">
           {post.category}
         </span>
         {post.published_at ? (
-          <time dateTime={post.published_at}>{formatDate(post.published_at, locale)}</time>
+          <span className="inline-flex items-center gap-1">
+            <Calendar className="h-3 w-3" />
+            <time dateTime={post.published_at}>{formatDate(post.published_at, locale)}</time>
+          </span>
         ) : null}
         {post.attachment_count > 0 ? (
           <span className="inline-flex items-center gap-1">
-            <FileText className="h-3.5 w-3.5" />
+            <FileText className="h-3 w-3" />
             {t("blog.pdfCount").replace("{count}", String(post.attachment_count))}
           </span>
         ) : null}
       </div>
-      <h2 className="mt-3 font-heading text-xl font-bold tracking-tight group-hover:text-primary">
-        <Link href={`/blog/${post.slug}`} className="hover:underline">
-          {title}
-        </Link>
+
+      <h2 className="mt-3 font-heading text-xl font-bold leading-snug tracking-tight transition-colors group-hover:text-primary">
+        <Link href={`/blog/${post.slug}`}>{title}</Link>
       </h2>
-      {excerpt ? <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">{excerpt}</p> : null}
+
+      {excerpt ? (
+        <p className="mt-2 line-clamp-3 flex-1 text-sm leading-relaxed text-muted-foreground">{excerpt}</p>
+      ) : (
+        <div className="flex-1" />
+      )}
+
       {post.tags.length > 0 ? (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {post.tags.map((tag) => (
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {post.tags.slice(0, 4).map((tag) => (
             <span
               key={tag}
-              className="rounded-md border border-border bg-secondary/60 px-2 py-0.5 text-[11px] text-muted-foreground"
+              className="rounded-md border border-border bg-secondary/50 px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
             >
               #{tag}
             </span>
           ))}
         </div>
       ) : null}
+
       <Link
         href={`/blog/${post.slug}`}
-        className="mt-4 inline-flex text-sm font-medium text-primary hover:underline"
+        className="mt-4 inline-flex text-sm font-semibold text-primary hover:underline"
       >
         {t("blog.readMore")} →
       </Link>

@@ -177,9 +177,14 @@ export default function AdminBlogPage() {
           <h1 className="font-heading text-2xl font-bold">{t("blog.admin.title")}</h1>
           <p className="text-sm text-muted-foreground">{t("blog.admin.subtitle")}</p>
         </div>
-        <Link href="/blog" className="text-sm text-primary hover:underline">
-          {t("blog.admin.viewBlog")}
-        </Link>
+        <div className="flex flex-wrap gap-4">
+          <Link href="/blog" className="text-sm text-primary hover:underline">
+            {t("blog.admin.viewBlog")}
+          </Link>
+          <Link href="/admin/documents" className="text-sm font-semibold text-primary hover:underline">
+            {t("blog.admin.documents.nav")}
+          </Link>
+        </div>
       </div>
 
       {error ? (
