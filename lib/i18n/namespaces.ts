@@ -811,6 +811,43 @@ export const extraZh: DictionaryTree = {
       strikeAria: "{ticker} Strike Gamma 分布图",
     },
   },
+  v4: {
+    brand: {
+      tagline: "期权阿吉 · V4",
+    },
+    nav: {
+      hot: "热门榜单",
+      advanced: "进阶榜单",
+      openMenu: "打开菜单",
+      tagline: {
+        unusual: "成交量远超持仓，捕捉当日大举建仓",
+        volume: "当日成交最活跃的合约",
+        openInterest: "未平仓合约最多，看主力仓位",
+        turnover: "真金白银流入最多的合约",
+        highIv: "隐含波动率最高，预期波动剧烈",
+        highGamma: "Delta 变化最快，临近行权敏感",
+        seller: "时间价值衰减收益最优的卖方机会",
+        liquidity: "买卖价差最小，进出最顺滑",
+        sentiment: "全市场 Put/Call 与多空情绪指数",
+        gex: "做市商 GEX 分布与 Gamma Flip 关键价位",
+      },
+    },
+    footer: {
+      boards: "榜单",
+      product: "产品",
+      legal: "法务",
+      contact: "联系",
+      tagline: "面向华语美股期权交易者的数据分析与教育平台。数据延迟约 15 分钟，仅供研究参考。",
+      risk: "本平台不提供投资建议、不代客交易、不托管任何资金。期权交易具有高风险，可能导致全部本金损失。",
+      copyright: "© 2026 OptionsAji 期权阿吉 · V4",
+    },
+    paywall: {
+      title: "解锁完整榜单与标的",
+    },
+    disclaimer: {
+      dataOnly: "数据仅供研究参考，不构成投资建议。",
+    },
+  },
   polymarket: {
     title: "Polymarket 热点",
     subtitle: "与美股相关的 Polymarket 预测市场：宏观（Fed）、财报、单股主题等，按 24h 成交量排序。",
@@ -1636,6 +1673,43 @@ export const extraEn: DictionaryTree = {
       putGex: "Put GEX",
       gammaFlipRef: "Γ flip ${value}",
       strikeAria: "{ticker} strike gamma distribution chart",
+    },
+  },
+  v4: {
+    brand: {
+      tagline: "Options Aji · V4",
+    },
+    nav: {
+      hot: "Hot boards",
+      advanced: "Advanced",
+      openMenu: "Open menu",
+      tagline: {
+        unusual: "Volume far above OI — spot unusual new positioning",
+        volume: "Most actively traded contracts today",
+        openInterest: "Highest open interest — where size sits",
+        turnover: "Largest premium turnover",
+        highIv: "Highest implied volatility",
+        highGamma: "Highest gamma — price-sensitive strikes",
+        seller: "Best theta harvest for sellers",
+        liquidity: "Tightest spreads — easiest to trade",
+        sentiment: "Market-wide put/call sentiment",
+        gex: "Dealer GEX profile & gamma flip levels",
+      },
+    },
+    footer: {
+      boards: "Boards",
+      product: "Product",
+      legal: "Legal",
+      contact: "Contact",
+      tagline: "Data & education for Chinese-speaking US options traders. ~15 min delay; research only.",
+      risk: "Not investment advice. We do not trade for you or hold funds. Options are high risk.",
+      copyright: "© 2026 OptionsAji · V4",
+    },
+    paywall: {
+      title: "Unlock full boards & symbols",
+    },
+    disclaimer: {
+      dataOnly: "For research only — not investment advice.",
     },
   },
   polymarket: {

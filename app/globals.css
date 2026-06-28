@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./v4-tokens.css";
 
 /* Enable class-based dark mode (default theme is light; `.dark` on <html> opts in). */
 @custom-variant dark (&:where(.dark, .dark *));

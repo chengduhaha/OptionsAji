@@ -1,5 +1,5 @@
-import V3OptionsShell from "@/components/v3/V3OptionsShell";
+import V4OptionsShell from "@/components/v4/V4OptionsShell";
 
 export default function OptionsLayout({ children }: { children: React.ReactNode }) {
-  return <V3OptionsShell>{children}</V3OptionsShell>;
+  return <V4OptionsShell>{children}</V4OptionsShell>;
 }

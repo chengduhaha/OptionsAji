@@ -1,5 +1,5 @@
-import V3GexDashboard from "@/components/v3/V3GexDashboard";
+import V4GexDashboard from "@/components/v4/V4GexDashboard";
 
 export default function OptionsGexPage() {
-  return <V3GexDashboard embedded />;
+  return <V4GexDashboard />;
 }

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import TurnstileWidget from "@/components/auth/TurnstileWidget";
-import V3AuthShell from "@/components/v3/V3AuthShell";
+import V4AuthShell from "@/components/v4/V4AuthShell";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n/context";
 import { formatMessage } from "@/lib/i18n/dictionary";
@@ -112,7 +112,7 @@ export default function RegisterPage() {
       : formatMessage(t("v3.auth.subtitleVerify"), { email: pendingEmail });
 
   return (
-    <V3AuthShell title={shellTitle} subtitle={shellSubtitle}>
+    <V4AuthShell title={shellTitle} subtitle={shellSubtitle}>
       {phase === "register" ? (
         <form onSubmit={onRegisterSubmit} className="space-y-4">
           <div>
@@ -125,7 +125,7 @@ export default function RegisterPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="neo-input w-full font-mono text-sm"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
           </div>
           <div>
@@ -137,7 +137,7 @@ export default function RegisterPage() {
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               maxLength={128}
-              className="neo-input w-full font-mono text-sm"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
           </div>
           <div>
@@ -151,7 +151,7 @@ export default function RegisterPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={8}
-              className="neo-input w-full font-mono text-sm"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
           </div>
           {turnstileSiteKey ? (
@@ -167,7 +167,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={busy || !ready || (Boolean(turnstileSiteKey) && !turnstileToken)}
-            className="w-full border-[3px] border-ink bg-peach px-4 py-2.5 font-mono text-sm font-bold uppercase shadow-neo transition hover:-translate-x-px hover:-translate-y-px disabled:opacity-50"
+            className="w-full rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-accent-foreground shadow-sm transition-colors hover:brightness-95 disabled:opacity-50"
           >
             {busy ? t("v3.auth.busyRegister") : t("v3.auth.submitRegister")}
           </button>
@@ -183,7 +183,7 @@ export default function RegisterPage() {
               value={code}
               onChange={(e) => setCode(e.target.value)}
               required
-              className="neo-input w-full font-mono text-sm tracking-widest"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm tracking-widest focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
           </div>
           {verificationExpiresAt ? (
@@ -203,7 +203,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={busy || !ready}
-            className="w-full border-[3px] border-ink bg-peach px-4 py-2.5 font-mono text-sm font-bold uppercase shadow-neo transition hover:-translate-x-px hover:-translate-y-px disabled:opacity-50"
+            className="w-full rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-accent-foreground shadow-sm transition-colors hover:brightness-95 disabled:opacity-50"
           >
             {busy ? t("v3.auth.busyVerify") : t("v3.auth.submitVerify")}
           </button>
@@ -220,14 +220,14 @@ export default function RegisterPage() {
             type="button"
             disabled={busy || !ready || (Boolean(turnstileSiteKey) && !resendTurnstileToken)}
             onClick={() => void onResendCode()}
-            className="w-full border-[3px] border-ink bg-cream px-4 py-2.5 font-mono text-[12px] font-bold uppercase shadow-neo-sm transition hover:bg-lavender/30 disabled:opacity-50"
+            className="w-full rounded-md border border-border bg-secondary px-4 py-2.5 text-sm font-medium transition-colors hover:bg-secondary/80 disabled:opacity-50"
           >
             {busy ? t("v3.auth.busyResend") : t("v3.auth.resendCta")}
           </button>
           <button
             type="button"
             onClick={() => setPhase("register")}
-            className="w-full border-2 border-ink/30 py-2 font-mono text-[12px] text-ink/70 hover:text-ink"
+            className="w-full rounded-md py-2 text-sm text-muted-foreground hover:text-foreground"
           >
             {t("v3.auth.backToRegister")}
           </button>
@@ -239,6 +239,6 @@ export default function RegisterPage() {
           {t("v3.auth.loginLink")}
         </Link>
       </p>
-    </V3AuthShell>
+    </V4AuthShell>
   );
 }

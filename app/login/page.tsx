@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import TurnstileWidget from "@/components/auth/TurnstileWidget";
-import V3AuthShell from "@/components/v3/V3AuthShell";
+import V4AuthShell from "@/components/v4/V4AuthShell";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n/context";
 
@@ -52,10 +52,10 @@ function LoginInner() {
   }, [t]);
 
   return (
-    <V3AuthShell title={t("v3.auth.titleLogin")} subtitle={t("v3.auth.subtitleLogin")}>
+    <V4AuthShell title={t("v3.auth.titleLogin")} subtitle={t("v3.auth.subtitleLogin")}>
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
-          <label className="mb-1.5 block font-mono text-[10px] font-bold uppercase tracking-widest text-ink/60">
+          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
             {t("v3.auth.email")}
           </label>
           <input
@@ -64,11 +64,11 @@ function LoginInner() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="neo-input w-full font-mono text-sm"
+            className="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </div>
         <div>
-          <label className="mb-1.5 block font-mono text-[10px] font-bold uppercase tracking-widest text-ink/60">
+          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
             {t("v3.auth.password")}
           </label>
           <input
@@ -77,7 +77,7 @@ function LoginInner() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="neo-input w-full font-mono text-sm"
+            className="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </div>
         {turnstileSiteKey ? (
@@ -89,11 +89,11 @@ function LoginInner() {
             onError={handleTurnstileError}
           />
         ) : null}
-        {error ? <p className="font-mono text-[12px] text-red-600">{error}</p> : null}
+        {error ? <p className="font-mono text-[12px] text-destructive">{error}</p> : null}
         <button
           type="submit"
           disabled={busy || !ready || (Boolean(turnstileSiteKey) && !turnstileToken)}
-          className="w-full border-[3px] border-ink bg-peach px-4 py-2.5 font-mono text-sm font-bold uppercase shadow-neo transition hover:-translate-x-px hover:-translate-y-px disabled:opacity-50"
+          className="w-full rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-accent-foreground shadow-sm transition-colors hover:brightness-95 disabled:opacity-50"
         >
           {busy ? t("v3.auth.busyLogin") : t("v3.auth.submitLogin")}
         </button>
@@ -108,7 +108,7 @@ function LoginInner() {
           {t("v3.auth.landingLink")}
         </Link>
       </p>
-    </V3AuthShell>
+    </V4AuthShell>
   );
 }
 
@@ -117,7 +117,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-cream font-mono text-[13px] text-ink/60">
+        <div className="flex min-h-screen items-center justify-center bg-background font-mono text-[13px] text-muted-foreground">
           {t("v3.auth.loading")}
         </div>
       }

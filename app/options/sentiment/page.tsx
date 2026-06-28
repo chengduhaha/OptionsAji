@@ -1,5 +1,5 @@
-import SentimentPage from "@/components/v3/SentimentPage";
+import V4SentimentPage from "@/components/v4/V4SentimentPage";
 
 export default function OptionsSentimentPage() {
-  return <SentimentPage />;
+  return <V4SentimentPage />;
 }

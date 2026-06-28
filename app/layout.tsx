@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
-import { JetBrains_Mono, Syne } from "next/font/google";
+import { JetBrains_Mono, Space_Grotesk, Syne } from "next/font/google";
 import Providers from "./providers";
 import "./globals.css";
 
@@ -8,6 +8,12 @@ const syne = Syne({
   subsets: ["latin"],
   variable: "--font-display",
   weight: ["700", "800"],
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+  weight: ["500", "600", "700"],
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -46,12 +52,12 @@ export default function RootLayout({
     <html
       lang="zh"
       suppressHydrationWarning
-      className={`${GeistSans.variable} ${syne.variable} ${jetbrainsMono.variable}`}
+      className={`${GeistSans.variable} ${spaceGrotesk.variable} ${syne.variable} ${jetbrainsMono.variable}`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="bg-cream text-ink font-sans antialiased">
+      <body className="bg-background text-foreground font-sans antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -3,9 +3,7 @@
 import Link from "next/link";
 import { clsx } from "clsx";
 
-import LanguageToggle from "@/components/LanguageToggle";
-import V3SiteFooter from "@/components/v3/V3SiteFooter";
-import V3ThemeToggle from "@/components/v3/V3ThemeToggle";
+import V4StandaloneShell from "@/components/v4/V4StandaloneShell";
 import { useI18n } from "@/lib/i18n/context";
 import { formatMessage } from "@/lib/i18n/dictionary";
 
@@ -53,24 +51,11 @@ export default function PricingPage() {
   const isZh = locale === "zh";
 
   return (
-    <div className="min-h-screen bg-cream text-ink">
-      <div className="mx-auto max-w-5xl px-4 py-8 space-y-8">
-        <header className="flex flex-wrap items-start justify-between gap-4 border-[3px] border-ink bg-cream px-4 py-3 shadow-neo-sm">
-          <div>
-            <Link href="/options/unusual" className="font-display text-sm font-extrabold uppercase tracking-wider">
-              OptionsAji <span className="opacity-55">v3</span>
-            </Link>
-            <h1 className="font-display mt-3 text-3xl font-extrabold uppercase tracking-tight">
-              {t("v3.membership.pricingTitle")}
-            </h1>
-            <p className="mt-1 max-w-xl text-sm text-ink/70">{t("v3.membership.pricingSubtitle")}</p>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <V3ThemeToggle />
-            <LanguageToggle variant="neo" />
-          </div>
-        </header>
-
+    <V4StandaloneShell
+      title={t("v3.membership.pricingTitle")}
+      subtitle={t("v3.membership.pricingSubtitle")}
+    >
+      <div className="space-y-8">
         <div className="grid gap-5 md:grid-cols-3 md:items-end">
           {TIERS.map((tier) => {
             const price = isZh ? tier.cny : tier.usd;
@@ -81,31 +66,33 @@ export default function PricingPage() {
               <article
                 key={tier.id}
                 className={clsx(
-                  "relative flex flex-col border-[3px] border-ink bg-cream shadow-neo",
-                  tier.featured && "md:-translate-y-2 md:scale-[1.02] bg-lavender/20",
+                  "relative flex flex-col rounded-xl border border-border bg-card shadow-sm",
+                  tier.featured && "md:-translate-y-2 border-primary/40 ring-1 ring-primary/20",
                 )}
               >
                 {tier.featured ? (
-                  <div className="absolute -top-3 left-4 border-[3px] border-ink bg-peach px-2 py-0.5 font-mono text-[10px] font-bold uppercase shadow-neo-sm">
+                  <div className="absolute -top-3 left-4 rounded-md bg-accent px-2 py-0.5 text-[10px] font-semibold text-accent-foreground">
                     ⭐ {t("v3.membership.tierFeatured")}
                   </div>
                 ) : null}
-                <header className="border-b-[3px] border-ink px-4 py-4">
-                  <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-ink/50">
+                <header className="border-b border-border px-4 py-4">
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                     {t(tier.daysKey)}
                   </p>
-                  <h2 className="font-display text-xl font-extrabold uppercase">{t(tier.labelKey)}</h2>
+                  <h2 className="font-heading text-xl font-bold">{t(tier.labelKey)}</h2>
                 </header>
                 <div className="flex flex-1 flex-col px-4 py-5">
-                  <p className="font-mono text-[11px] text-ink/50 line-through">
+                  <p className="font-mono text-[11px] text-muted-foreground line-through">
                     {t("v3.membership.tierWas")} {wasPrice}
                   </p>
-                  <p className="font-display mt-1 text-5xl font-extrabold tracking-tight">{price}</p>
-                  <p className="mt-2 font-mono text-[11px] text-ink/60">
+                  <p className="mt-1 font-heading text-5xl font-bold tracking-tight">{price}</p>
+                  <p className="mt-2 text-[11px] text-muted-foreground">
                     {formatMessage(t("v3.membership.tierPerDay"), { price: perDay })}
                   </p>
-                  <p className="mt-4 flex-1 text-sm leading-relaxed text-ink/75">{t("v3.membership.tierUnlock")}</p>
-                  <p className="mt-4 border-t-2 border-ink/15 pt-3 font-mono text-[10px] text-ink/45">
+                  <p className="mt-4 flex-1 text-sm leading-relaxed text-muted-foreground">
+                    {t("v3.membership.tierUnlock")}
+                  </p>
+                  <p className="mt-4 border-t border-border pt-3 font-mono text-[10px] text-muted-foreground">
                     OAJI-{tier.id}-••••••••
                   </p>
                 </div>
@@ -114,8 +101,8 @@ export default function PricingPage() {
           })}
         </div>
 
-        <section className="border-[3px] border-ink bg-peach/30 p-6 shadow-neo">
-          <h2 className="font-display text-lg font-extrabold uppercase">{t("v3.membership.contactTitle")}</h2>
+        <section className="rounded-xl border border-border bg-secondary/30 p-6">
+          <h2 className="font-heading text-lg font-bold">{t("v3.membership.contactTitle")}</h2>
           <ul className="mt-4 space-y-2 font-mono text-sm">
             <li>
               {t("v3.membership.contactWechat")}: <strong className="text-base">183456821</strong>
@@ -124,28 +111,28 @@ export default function PricingPage() {
               {t("v3.membership.contactDiscord")}: <strong className="text-base">ajifinance</strong>
             </li>
           </ul>
-          <p className="mt-4 text-sm leading-relaxed text-ink/80">{t("v3.membership.contactSteps")}</p>
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+            {t("v3.membership.contactSteps")}
+          </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <Link
               href="/register"
-              className="border-[3px] border-ink bg-peach px-4 py-2 font-mono text-xs font-bold uppercase shadow-neo-sm hover:-translate-x-px hover:-translate-y-px"
+              className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground shadow-sm hover:brightness-95"
             >
               {t("v3.membership.register")}
             </Link>
             <Link
               href="/account"
-              className="border-[3px] border-ink bg-cream px-4 py-2 font-mono text-xs font-bold uppercase shadow-neo-sm hover:-translate-x-px hover:-translate-y-px"
+              className="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-secondary"
             >
               {t("v3.membership.redeemCta")}
             </Link>
-            <Link href="/options/unusual" className="self-center font-mono text-xs underline text-ink/70">
+            <Link href="/options/unusual" className="self-center text-sm text-muted-foreground underline">
               ← Options
             </Link>
           </div>
         </section>
-
-        <V3SiteFooter />
       </div>
-    </div>
+    </V4StandaloneShell>
   );
 }

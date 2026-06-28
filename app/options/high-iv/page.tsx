@@ -1,5 +1,5 @@
-import LeaderboardPage from "@/components/v3/LeaderboardPage";
+import V4LeaderboardPage from "@/components/v4/V4LeaderboardPage";
 
 export default function HighIvLeaderboardPage() {
-  return <LeaderboardPage boardId="high-iv" />;
+  return <V4LeaderboardPage boardId="high-iv" />;
 }

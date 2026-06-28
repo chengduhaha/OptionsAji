@@ -1,5 +1,5 @@
-import LeaderboardPage from "@/components/v3/LeaderboardPage";
+import V4LeaderboardPage from "@/components/v4/V4LeaderboardPage";
 
 export default function UnusualLeaderboardPage() {
-  return <LeaderboardPage boardId="unusual" />;
+  return <V4LeaderboardPage boardId="unusual" />;
 }
