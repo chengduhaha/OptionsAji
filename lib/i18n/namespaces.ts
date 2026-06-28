@@ -504,7 +504,7 @@ export const extraZh: DictionaryTree = {
         sectionCount: "3",
         s1: {
           heading: "我们是谁",
-          body: "OptionsAji（期权阿吉）是面向华语美股期权交易者的数据分析与教育平台。我们整理期权链、Gamma 敞口、成交量榜单等信息，帮助用户建立独立研究框架。\n\n本平台不提供投资建议、不代客交易、不托管任何资金。",
+          body: "OptionsAji（期权阿吉）是面向美股期权交易者的中英双语数据分析与教育平台。我们整理期权链、Gamma 敞口、成交量榜单等信息，帮助用户建立独立研究框架。\n\n本平台不提供投资建议、不代客交易、不托管任何资金。",
         },
         s2: {
           heading: "产品定位",
@@ -771,7 +771,7 @@ export const extraZh: DictionaryTree = {
       contactTitle: "购买与联系",
       contactWechat: "微信",
       contactDiscord: "Discord",
-      contactSteps: "支持微信/支付宝付款后联系获取激活码；付款备注注册邮箱。",
+      contactSteps: "添加联系方式后进行支付，支持微信/支付宝/wise",
       adminTitle: "激活码管理",
       adminGenerate: "批量生成",
       adminTier: "时长档位",
@@ -816,7 +816,7 @@ export const extraZh: DictionaryTree = {
   },
   v4: {
     brand: {
-      tagline: "期权阿吉 · V4",
+      tagline: "期权阿吉",
     },
     nav: {
       hot: "热门榜单",
@@ -840,9 +840,9 @@ export const extraZh: DictionaryTree = {
       product: "产品",
       legal: "法务",
       contact: "联系",
-      tagline: "面向华语美股期权交易者的数据分析与教育平台。数据延迟约 15 分钟，仅供研究参考。",
+      tagline: "面向美股期权交易者的中英双语数据分析与教育平台。数据延迟约 15 分钟，仅供研究参考。",
       risk: "本平台不提供投资建议、不代客交易、不托管任何资金。期权交易具有高风险，可能导致全部本金损失。",
-      copyright: "© 2026 OptionsAji 期权阿吉 · V4",
+      copyright: "© 2026 OptionsAji 期权阿吉",
     },
     paywall: {
       title: "解锁完整榜单与标的",
@@ -1370,7 +1370,7 @@ export const extraEn: DictionaryTree = {
         sectionCount: "3",
         s1: {
           heading: "Who we are",
-          body: "OptionsAji is a data analysis and education platform for US options traders in the Chinese-speaking community. We organize chains, gamma exposure, and volume leaderboards to support independent research.\n\nWe do not provide investment advice, execute trades, or hold client funds.",
+          body: "OptionsAji is a bilingual data analysis and education platform for US options traders (Chinese and English). We organize chains, gamma exposure, and volume leaderboards to support independent research.\n\nWe do not provide investment advice, execute trades, or hold client funds.",
         },
         s2: {
           heading: "Product",
@@ -1638,7 +1638,7 @@ export const extraEn: DictionaryTree = {
       contactTitle: "Purchase & contact",
       contactWechat: "WeChat",
       contactDiscord: "Discord",
-      contactSteps: "Pay via WeChat/Alipay, then contact us for your code. Include your registered email in the payment note.",
+      contactSteps: "Add our contact details before payment. We accept WeChat, Alipay, and Wise.",
       adminTitle: "Activation codes",
       adminGenerate: "Generate batch",
       adminTier: "Duration tier",
@@ -1683,7 +1683,7 @@ export const extraEn: DictionaryTree = {
   },
   v4: {
     brand: {
-      tagline: "Options Aji · V4",
+      tagline: "OptionsAji",
     },
     nav: {
       hot: "Hot boards",
@@ -1707,9 +1707,9 @@ export const extraEn: DictionaryTree = {
       product: "Product",
       legal: "Legal",
       contact: "Contact",
-      tagline: "Data & education for Chinese-speaking US options traders. ~15 min delay; research only.",
+      tagline: "Data & education for US options traders — bilingual in Chinese and English. ~15 min delay; research only.",
       risk: "Not investment advice. We do not trade for you or hold funds. Options are high risk.",
-      copyright: "© 2026 OptionsAji · V4",
+      copyright: "© 2026 OptionsAji",
     },
     paywall: {
       title: "Unlock full boards & symbols",
