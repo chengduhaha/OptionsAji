@@ -169,7 +169,7 @@ export async function fetchBlogDocuments(params?: {
   const qs = new URLSearchParams();
   if (params?.category) qs.set("category", params.category);
   const suffix = qs.toString() ? `?${qs.toString()}` : "";
-  const res = await apiFetch(`/api/blog/documents${suffix}`, { cache: "no-store" });
+  const res = await authFetch(`/api/blog/documents${suffix}`, { cache: "no-store" });
   return readJson<BlogDocumentListResponse>(res);
 }
 

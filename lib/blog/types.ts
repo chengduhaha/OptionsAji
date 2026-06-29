@@ -18,6 +18,15 @@ export type BlogAttachment = {
 export type BlogDocumentListResponse = {
   items: BlogAttachment[];
   categories: string[];
+  access: BlogDocumentAccess;
+};
+
+export type BlogDocumentAccess = {
+  tier: "guest" | "free" | "member" | "admin";
+  is_member: boolean;
+  membership_expires_at: string | null;
+  days_remaining: number | null;
+  expiring_soon: boolean;
 };
 
 export type BlogPostSummary = {
