@@ -9,6 +9,7 @@ export type BlogAttachment = {
   description_zh: string | null;
   description_en: string | null;
   is_sample: boolean;
+  is_preview?: boolean;
   post_id: string | null;
   download_url: string;
   view_url: string;

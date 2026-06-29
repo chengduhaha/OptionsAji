@@ -3,6 +3,7 @@
 import { FileText } from "lucide-react";
 
 import BlogAttachmentActionButtons from "@/components/blog/BlogAttachmentActionButtons";
+import { blogCategoryLabel } from "@/lib/blog/categories";
 import type { BlogAttachment } from "@/lib/blog/types";
 import { useI18n } from "@/lib/i18n/context";
 import type { Locale } from "@/lib/i18n/types";
@@ -25,12 +26,6 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function categoryLabel(t: (key: string) => string, category: string): string {
-  const key = `blog.documents.categories.${category}`;
-  const translated = t(key);
-  return translated === key ? category : translated;
-}
-
 type BlogDocumentCardProps = {
   doc: BlogAttachment;
 };
@@ -47,7 +42,7 @@ export default function BlogDocumentCard({ doc }: BlogDocumentCardProps) {
           <FileText className="h-5 w-5" />
         </div>
         <span className="rounded-full border border-border bg-secondary/60 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-          {categoryLabel(t, doc.category)}
+          {blogCategoryLabel(t, doc.category)}
         </span>
       </div>
 

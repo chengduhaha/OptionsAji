@@ -8,6 +8,7 @@ import BlogPdfViewer from "@/components/blog/BlogPdfViewer";
 import BlogReadingProgress from "@/components/blog/BlogReadingProgress";
 import BlogShell from "@/components/blog/BlogShell";
 import { BlogApiError, fetchBlogPost } from "@/lib/blog/api";
+import { blogCategoryLabel } from "@/lib/blog/categories";
 import { estimateReadingMinutes } from "@/lib/blog/reading-time";
 import type { BlogPostDetail } from "@/lib/blog/types";
 import { useAuth } from "@/lib/auth-context";
@@ -120,7 +121,7 @@ export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
   const readingMinutes = estimateReadingMinutes(body);
   const readTimeLabel = formatMessage(t("blog.article.readTime"), { minutes: readingMinutes });
 
-  const metaParts = [post.category, dateStr, readTimeLabel].filter(Boolean);
+  const metaParts = [blogCategoryLabel(t, post.category), dateStr, readTimeLabel].filter(Boolean);
 
   return (
     <BlogShell variant="wide" hideHeader>

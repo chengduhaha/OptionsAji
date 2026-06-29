@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import BlogDocumentCard from "@/components/blog/BlogDocumentCard";
 import BlogShell from "@/components/blog/BlogShell";
 import { fetchBlogDocuments } from "@/lib/blog/api";
+import { blogCategoryLabel } from "@/lib/blog/categories";
 import type { BlogAttachment, BlogDocumentAccess } from "@/lib/blog/types";
 import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
@@ -66,7 +67,7 @@ export default function BlogDocumentsPageClient() {
                   : "border-border text-muted-foreground hover:bg-secondary",
               )}
             >
-              {t(`blog.documents.categories.${cat}`) === `blog.documents.categories.${cat}` ? cat : t(`blog.documents.categories.${cat}`)}
+              {blogCategoryLabel(t, cat)}
             </button>
           ))}
         </div>

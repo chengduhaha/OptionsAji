@@ -58,6 +58,12 @@ export default function HomeLandingPage() {
                 >
                   {t("home.hero.secondaryCta")}
                 </Link>
+                <Link
+                  href="/about"
+                  className="inline-flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-5 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
+                >
+                  {t("home.nav.about")}
+                </Link>
               </div>
               <p className="mt-4 text-xs leading-relaxed text-muted-foreground">{t("home.hero.riskNote")}</p>
             </div>

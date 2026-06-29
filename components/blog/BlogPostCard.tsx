@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Calendar, FileText } from "lucide-react";
 
+import { blogCategoryLabel } from "@/lib/blog/categories";
 import type { BlogPostSummary } from "@/lib/blog/types";
 import { useI18n } from "@/lib/i18n/context";
 import type { Locale } from "@/lib/i18n/types";
@@ -43,7 +44,7 @@ export default function BlogPostCard({ post }: BlogPostCardProps) {
     <article className="group flex h-full flex-col rounded-xl border-2 border-border bg-card p-5 transition-all hover:border-primary/40 hover:shadow-[4px_4px_0_0_hsl(var(--primary)/0.12)]">
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
         <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 font-semibold text-primary">
-          {post.category}
+          {blogCategoryLabel(t, post.category)}
         </span>
         {post.published_at ? (
           <span className="inline-flex items-center gap-1">

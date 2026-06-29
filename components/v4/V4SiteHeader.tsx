@@ -154,6 +154,17 @@ export default function V4SiteHeader() {
             {t("home.nav.library")}
           </Link>
           <Link
+            href="/about"
+            className={cn(
+              "whitespace-nowrap rounded-md px-2.5 py-2 text-sm transition-colors",
+              pathname === "/about"
+                ? "bg-primary/10 font-medium text-primary"
+                : "text-foreground/70 hover:bg-secondary hover:text-foreground",
+            )}
+          >
+            {t("home.nav.about")}
+          </Link>
+          <Link
             href="/pricing"
             className={cn(
               "whitespace-nowrap rounded-md px-2.5 py-2 text-sm transition-colors",
@@ -294,6 +305,12 @@ export default function V4SiteHeader() {
               className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-foreground"
             >
               {t("home.nav.library")}
+            </Link>
+            <Link
+              href="/about"
+              className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-foreground"
+            >
+              {t("home.nav.about")}
             </Link>
             <Link
               href="/pricing"

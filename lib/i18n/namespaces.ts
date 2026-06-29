@@ -5,6 +5,7 @@ export const extraZh: DictionaryTree = {
     nav: {
       home: "首页",
       library: "会员资料库",
+      about: "关于阿吉",
     },
     hero: {
       badge: "期权数据 · 阿吉内容库 · 系统课程",
@@ -595,7 +596,7 @@ export const extraZh: DictionaryTree = {
       copyright: "© 2026 OptionsAji / 期权阿吉",
       disclaimerLink: "完整免责声明",
       links: {
-        about: "关于我们",
+        about: "关于阿吉",
         terms: "服务条款",
         privacy: "隐私政策",
         refund: "退款政策",
@@ -1017,11 +1018,11 @@ export const extraZh: DictionaryTree = {
       "本平台内容仅供知识分享与教育交流，不构成任何投资建议。期权交易具有高风险，请独立决策、自负盈亏。",
     documents: {
       title: "会员资料库",
-      subtitle: "预览会员可查阅的历史报告、课程资料和研究文档。完整版资料库面向会员开放。",
+      subtitle: "预览会员可查阅的历史报告、课程资料和研究文档。每个分类展示约 30% 最新文档，完整版面向会员开放。",
       empty: "暂无公开示例",
       emptyHint: "管理员可在文档管理中上传公开 PDF 示例",
       ctaTitle: "想获取完整版报告与资料？",
-      ctaBody: "公开示例只展示资料库的一部分；会员可查阅历史内容库与后续不定期更新。",
+      ctaBody: "公开示例按分类展示约 30% 最新文档；会员可查阅历史内容库与后续不定期更新。",
       ctaButton: "了解会员方案",
       categories: {
         "daily-report": "市场报告",
@@ -1034,7 +1035,7 @@ export const extraZh: DictionaryTree = {
         "investing-method": "投资干货",
         "options-intel": "期权情报观察",
         premkt: "盘前资料",
-        insights: "不定期分享",
+        insights: "市场解读",
         general: "综合",
       },
     },
@@ -1204,6 +1205,7 @@ export const extraEn: DictionaryTree = {
     nav: {
       home: "Home",
       library: "Member library",
+      about: "About Aji",
     },
     hero: {
       badge: "Options data · Aji library · Structured courses",
@@ -1795,7 +1797,7 @@ export const extraEn: DictionaryTree = {
       copyright: "© 2026 OptionsAji",
       disclaimerLink: "Full disclaimer",
       links: {
-        about: "About",
+        about: "About Aji",
         terms: "Terms",
         privacy: "Privacy",
         refund: "Refund",
@@ -2218,11 +2220,11 @@ export const extraEn: DictionaryTree = {
       "Educational content only—not investment advice. Options involve substantial risk; trade at your own discretion.",
     documents: {
       title: "Member library",
-      subtitle: "Preview the reports, course material, and research documents available in the member archive",
+      subtitle: "Preview reports, course material, and research in the member archive. About 30% of the newest docs per category are public; members get the full library.",
       empty: "No public samples yet",
       emptyHint: "Admins can upload public PDF samples in Document Admin",
       ctaTitle: "Want full reports and materials?",
-      ctaBody: "Public samples show only part of the library. Members get the historical archive and ongoing updates.",
+      ctaBody: "Public samples show about 30% of the newest docs per category. Members get the historical archive and ongoing updates.",
       ctaButton: "View pricing",
       categories: {
         "daily-report": "Market reports",
@@ -2235,7 +2237,7 @@ export const extraEn: DictionaryTree = {
         "investing-method": "Investing methods",
         "options-intel": "Options intelligence",
         premkt: "Pre-market material",
-        insights: "Occasional insights",
+        insights: "Market reads",
         general: "General",
       },
     },
