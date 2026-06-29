@@ -3,15 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Download, Eye, FileUp, Trash2, Upload } from "lucide-react";
+import { FileUp, Trash2, Upload } from "lucide-react";
 
 import {
-  blogAttachmentHref,
   deleteBlogAttachment,
   fetchBlogAttachments,
   updateBlogAttachment,
   uploadBlogPdf,
 } from "@/lib/blog/api";
+import BlogAttachmentActionButtons from "@/components/blog/BlogAttachmentActionButtons";
 import type { BlogAttachment } from "@/lib/blog/types";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n/context";
@@ -312,23 +312,13 @@ export default function AdminDocumentsPage() {
                     <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{doc.description_zh}</p>
                   ) : null}
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <a
-                    href={blogAttachmentHref(doc.view_url)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-lg border-2 border-border px-3 py-1.5 text-xs hover:bg-secondary"
-                  >
-                    <Eye className="h-3.5 w-3.5" />
-                    {t("blog.admin.preview")}
-                  </a>
-                  <a
-                    href={`${blogAttachmentHref(doc.download_url)}?download=true`}
-                    className="inline-flex items-center gap-1 rounded-lg border-2 border-border px-3 py-1.5 text-xs hover:bg-secondary"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    {t("blog.downloadPdf")}
-                  </a>
+                <div className="flex flex-wrap items-center gap-2">
+                  <BlogAttachmentActionButtons
+                    attachment={doc}
+                    openLabel={t("blog.admin.preview")}
+                    downloadLabel={t("blog.downloadPdf")}
+                    variant="admin"
+                  />
                   <button
                     type="button"
                     onClick={() => startEdit(doc)}
