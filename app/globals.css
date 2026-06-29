@@ -616,6 +616,21 @@
   padding: 0.2rem 0.6rem;
 }
 
+/* Blog article — Scheme C hybrid editorial prose container */
+.prose-blog {
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  color: var(--color-foreground);
+}
+
+.prose-blog > :first-child {
+  margin-top: 0;
+}
+
+.prose-blog > :last-child {
+  margin-bottom: 0;
+}
+
 /* v3 elevated panels — slightly lifted surface in dark mode */
 .dark .neo-panel {
   background: var(--color-surface);

@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Calendar, Tag } from "lucide-react";
 
 import BlogMarkdown from "@/components/blog/BlogMarkdown";
 import BlogPdfViewer from "@/components/blog/BlogPdfViewer";
+import BlogReadingProgress from "@/components/blog/BlogReadingProgress";
 import BlogShell from "@/components/blog/BlogShell";
 import { BlogApiError, fetchBlogPost } from "@/lib/blog/api";
+import { estimateReadingMinutes } from "@/lib/blog/reading-time";
 import type { BlogPostDetail } from "@/lib/blog/types";
 import { useAuth } from "@/lib/auth-context";
+import { formatMessage } from "@/lib/i18n/dictionary";
 import { useI18n } from "@/lib/i18n/context";
 import type { Locale } from "@/lib/i18n/types";
 
@@ -101,8 +103,11 @@ export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
         {errorCode === "draft" ? (
           <p className="mt-2 text-sm text-muted-foreground">{t("blog.draftHint")}</p>
         ) : null}
-        <Link href="/blog#posts" className="mt-4 inline-block text-sm font-semibold text-primary hover:underline">
-          ← {t("blog.backToList")}
+        <Link
+          href="/blog#posts"
+          className="mt-4 inline-block text-sm font-bold text-primary underline decoration-primary decoration-2 underline-offset-4 hover:opacity-90"
+        >
+          ← {t("blog.article.backToList")}
         </Link>
       </BlogShell>
     );
@@ -110,35 +115,52 @@ export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
 
   const title = pickLocalized(locale, post.title_zh, post.title_en, post.slug);
   const body = pickLocalized(locale, post.body_zh, post.body_en, post.body_zh);
+  const excerpt = pickLocalized(locale, post.excerpt_zh, post.excerpt_en, "");
   const dateStr = formatDate(post.published_at, locale);
+  const readingMinutes = estimateReadingMinutes(body);
+  const readTimeLabel = formatMessage(t("blog.article.readTime"), { minutes: readingMinutes });
+
+  const metaParts = [post.category, dateStr, readTimeLabel].filter(Boolean);
 
   return (
     <BlogShell variant="wide" hideHeader>
+      <BlogReadingProgress />
+
       {post.status === "draft" && isAdmin ? (
-        <div className="mb-6 rounded-xl border-2 border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-200">
+        <div className="mb-6 border-2 border-amber-500/60 bg-amber-500/10 px-4 py-3 text-sm font-medium text-amber-800 shadow-neo-sm dark:text-amber-200">
           {t("blog.draftPreviewBanner")}
         </div>
       ) : null}
 
-      <article className="mx-auto max-w-3xl">
-        <header className="mb-8 border-b-2 border-border pb-6">
-          <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-            <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-semibold text-primary">
-              {post.category}
-            </span>
-            {dateStr ? (
-              <span className="inline-flex items-center gap-1">
-                <Calendar className="h-3.5 w-3.5" />
-                <time dateTime={post.published_at ?? undefined}>{dateStr}</time>
+      <div className="mx-auto max-w-[calc(42rem+4rem)]">
+        <header className="mb-8 border-2 border-foreground bg-card p-6 shadow-neo sm:p-8 md:p-9">
+          <p className="mb-4 text-[0.8rem] font-bold tracking-wide text-muted-foreground">
+            {metaParts.map((part, index) => (
+              <span key={`${part}-${index}`}>
+                {index > 0 ? (
+                  <span className="mx-1.5 text-primary" aria-hidden>
+                    ·
+                  </span>
+                ) : null}
+                {part}
               </span>
-            ) : null}
-          </div>
-          <h1 className="font-heading text-3xl font-bold leading-tight tracking-tight md:text-4xl">{title}</h1>
+            ))}
+          </p>
+          <h1 className="border-b-2 border-foreground pb-5 font-heading text-[clamp(1.85rem,4.5vw,2.5rem)] font-black leading-[1.2] tracking-tight">
+            {title}
+          </h1>
+          {excerpt ? (
+            <p className="mt-5 border-l-[5px] border-primary pl-5 text-[1.1rem] font-medium leading-[1.7] text-muted-foreground">
+              {excerpt}
+            </p>
+          ) : null}
           {post.tags.length > 0 ? (
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+            <div className="mt-5 flex flex-wrap gap-2">
               {post.tags.map((tag) => (
-                <span key={tag} className="rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground">
+                <span
+                  key={tag}
+                  className="border border-border bg-background px-2.5 py-0.5 text-xs font-semibold text-muted-foreground"
+                >
                   #{tag}
                 </span>
               ))}
@@ -146,25 +168,20 @@ export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
           ) : null}
         </header>
 
-        <div className="prose-blog rounded-xl border-2 border-border bg-card px-5 py-6 md:px-8 md:py-8">
+        <div className="border-2 border-foreground bg-card p-6 shadow-neo sm:p-8 md:px-11 md:py-10">
           <BlogMarkdown content={body} />
+          {post.attachments.length > 0 ? <BlogPdfViewer attachments={post.attachments} /> : null}
         </div>
 
-        {post.attachments.length > 0 ? (
-          <div className="mt-8">
-            <BlogPdfViewer attachments={post.attachments} requireAuth={post.status === "draft"} />
-          </div>
-        ) : null}
-
-        <div className="mt-10 flex flex-wrap gap-4 border-t-2 border-border pt-6">
-          <Link href="/blog#posts" className="text-sm font-semibold text-primary hover:underline">
-            ← {t("blog.backToList")}
+        <footer className="mt-10 border-t-2 border-border pt-6">
+          <Link
+            href="/blog#posts"
+            className="inline-flex items-center gap-1 text-sm font-bold text-foreground underline decoration-primary decoration-2 underline-offset-4 transition-colors hover:text-primary"
+          >
+            ← {t("blog.article.backToList")}
           </Link>
-          <Link href="/blog/documents" className="text-sm text-muted-foreground hover:text-primary hover:underline">
-            {t("blog.nav.documents")}
-          </Link>
-        </div>
-      </article>
+        </footer>
+      </div>
     </BlogShell>
   );
 }
