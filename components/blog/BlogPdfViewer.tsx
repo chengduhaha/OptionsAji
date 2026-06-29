@@ -50,6 +50,7 @@ function BlogPdfAttachmentRow({ attachment }: { attachment: BlogAttachment }) {
       </div>
       <BlogAttachmentActionButtons
         attachment={attachment}
+        previewTitle={title}
         openLabel={t("blog.openPdf")}
         downloadLabel={formatMessage(t("blog.article.downloadAttachment"))}
         variant="article"

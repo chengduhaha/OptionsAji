@@ -16,13 +16,21 @@ test("blog documents client forwards auth and exposes access metadata", () => {
   assert.match(types, /is_member:\s*boolean/);
 });
 
-test("blog attachment preview uses authenticated blob fetch", () => {
+test("blog attachment preview uses authenticated blob fetch and inline iframe modal", () => {
   const attachmentFile = readFileSync(
     new URL("../lib/blog/attachmentFile.ts", import.meta.url),
     "utf8",
   );
   const actionButtons = readFileSync(
     new URL("../components/blog/BlogAttachmentActionButtons.tsx", import.meta.url),
+    "utf8",
+  );
+  const previewModal = readFileSync(
+    new URL("../components/blog/BlogPdfPreviewModal.tsx", import.meta.url),
+    "utf8",
+  );
+  const attachmentActions = readFileSync(
+    new URL("../lib/blog/useBlogAttachmentActions.ts", import.meta.url),
     "utf8",
   );
   const documentCard = readFileSync(
@@ -32,10 +40,17 @@ test("blog attachment preview uses authenticated blob fetch", () => {
   const pdfViewer = readFileSync(new URL("../components/blog/BlogPdfViewer.tsx", import.meta.url), "utf8");
 
   assert.match(attachmentFile, /authFetch/);
-  assert.match(attachmentFile, /createObjectURL/);
+  assert.match(attachmentFile, /fetchBlogAttachmentPreviewUrl/);
+  assert.match(attachmentFile, /revokeBlogAttachmentPreviewUrl/);
+  assert.doesNotMatch(attachmentFile, /window\.open/);
+  assert.match(previewModal, /<iframe/);
+  assert.match(actionButtons, /BlogPdfPreviewModal/);
   assert.match(actionButtons, /useBlogAttachmentActions/);
-  assert.match(actionButtons, /void open\(attachment\.view_url\)/);
+  assert.match(actionButtons, /void open\(attachment\.view_url, previewTitle\)/);
   assert.doesNotMatch(actionButtons, /<a[\s\S]*href=/);
+  assert.match(attachmentActions, /closePreview/);
   assert.match(documentCard, /BlogAttachmentActionButtons/);
+  assert.match(documentCard, /previewTitle=\{title\}/);
   assert.match(pdfViewer, /BlogAttachmentActionButtons/);
+  assert.match(pdfViewer, /previewTitle=\{title\}/);
 });

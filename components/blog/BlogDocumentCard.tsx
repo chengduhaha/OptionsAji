@@ -63,6 +63,7 @@ export default function BlogDocumentCard({ doc }: BlogDocumentCardProps) {
         <p className="mt-0.5 text-xs text-muted-foreground">{formatFileSize(doc.file_size)}</p>
         <BlogAttachmentActionButtons
           attachment={doc}
+          previewTitle={title}
           openLabel={t("blog.openPdf")}
           downloadLabel={t("blog.downloadPdf")}
           variant="card"

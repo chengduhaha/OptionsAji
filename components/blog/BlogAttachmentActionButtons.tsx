@@ -2,12 +2,14 @@
 
 import { Download, Eye, ExternalLink, Loader2 } from "lucide-react";
 
+import BlogPdfPreviewModal from "@/components/blog/BlogPdfPreviewModal";
 import { useBlogAttachmentActions } from "@/lib/blog/useBlogAttachmentActions";
 import type { BlogAttachment } from "@/lib/blog/types";
 import { cn } from "@/lib/utils";
 
 type BlogAttachmentActionButtonsProps = {
   attachment: Pick<BlogAttachment, "view_url" | "download_url" | "original_filename">;
+  previewTitle: string;
   openLabel: string;
   downloadLabel: string;
   variant?: "card" | "article" | "admin";
@@ -38,22 +40,34 @@ const variantClasses = {
 
 export default function BlogAttachmentActionButtons({
   attachment,
+  previewTitle,
   openLabel,
   downloadLabel,
   variant = "card",
 }: BlogAttachmentActionButtonsProps) {
-  const { open, download, isViewing, isDownloading, error } = useBlogAttachmentActions();
+  const {
+    open,
+    download,
+    closePreview,
+    previewOpen,
+    previewTitle: modalTitle,
+    previewObjectUrl,
+    isViewing,
+    isDownloading,
+    error,
+  } = useBlogAttachmentActions();
   const styles = variantClasses[variant];
   const OpenIcon = styles.OpenIcon;
+  const inlineError = error && !previewOpen ? error : null;
 
   return (
     <div>
-      {error ? <p className="mt-2 text-xs text-destructive">{error}</p> : null}
+      {inlineError ? <p className="mt-2 text-xs text-destructive">{inlineError}</p> : null}
       <div className={cn(styles.wrap)}>
         <button
           type="button"
           disabled={isViewing || isDownloading}
-          onClick={() => void open(attachment.view_url)}
+          onClick={() => void open(attachment.view_url, previewTitle)}
           className={styles.open}
         >
           {isViewing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <OpenIcon className="h-3.5 w-3.5" />}
@@ -69,6 +83,15 @@ export default function BlogAttachmentActionButtons({
           {downloadLabel}
         </button>
       </div>
+
+      <BlogPdfPreviewModal
+        open={previewOpen}
+        title={modalTitle}
+        objectUrl={previewObjectUrl}
+        loading={isViewing}
+        error={previewOpen ? error : null}
+        onClose={closePreview}
+      />
     </div>
   );
 }

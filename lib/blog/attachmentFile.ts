@@ -26,25 +26,20 @@ async function readAttachmentBlob(path: string, download: boolean): Promise<Blob
     }
     throw new BlogApiError("无法打开附件", "request_failed", res.status);
   }
-  return res.blob();
+
+  const blob = await res.blob();
+  if (blob.type === "application/pdf" || download) return blob;
+  return new Blob([blob], { type: "application/pdf" });
 }
 
-/** Open a member-gated PDF in a new tab using JWT from localStorage. */
-export async function openBlogAttachment(viewUrl: string): Promise<void> {
-  const popup = window.open("about:blank", "_blank", "noopener,noreferrer");
-  if (!popup) {
-    throw new BlogApiError("请允许弹出窗口以预览 PDF", "popup_blocked", 0);
-  }
+/** Fetch a member-gated PDF and return a blob URL for inline preview. Caller must revoke. */
+export async function fetchBlogAttachmentPreviewUrl(viewUrl: string): Promise<string> {
+  const blob = await readAttachmentBlob(viewUrl, false);
+  return URL.createObjectURL(blob);
+}
 
-  try {
-    const blob = await readAttachmentBlob(viewUrl, false);
-    const objectUrl = URL.createObjectURL(blob);
-    popup.location.href = objectUrl;
-    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
-  } catch (error) {
-    popup.close();
-    throw error;
-  }
+export function revokeBlogAttachmentPreviewUrl(objectUrl: string): void {
+  URL.revokeObjectURL(objectUrl);
 }
 
 /** Download a member-gated PDF using JWT from localStorage. */

@@ -1,21 +1,47 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { BlogApiError } from "@/lib/blog/api";
-import { downloadBlogAttachment, openBlogAttachment } from "@/lib/blog/attachmentFile";
+import {
+  downloadBlogAttachment,
+  fetchBlogAttachmentPreviewUrl,
+  revokeBlogAttachmentPreviewUrl,
+} from "@/lib/blog/attachmentFile";
 
 type AttachmentAction = "view" | "download" | null;
+
+type PreviewState = {
+  title: string;
+  objectUrl: string | null;
+};
 
 export function useBlogAttachmentActions() {
   const [activeAction, setActiveAction] = useState<AttachmentAction>(null);
   const [error, setError] = useState<string | null>(null);
+  const [preview, setPreview] = useState<PreviewState | null>(null);
 
-  const open = useCallback(async (viewUrl: string) => {
+  const closePreview = useCallback(() => {
+    setPreview((current) => {
+      if (current?.objectUrl) revokeBlogAttachmentPreviewUrl(current.objectUrl);
+      return null;
+    });
+    setError(null);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (preview?.objectUrl) revokeBlogAttachmentPreviewUrl(preview.objectUrl);
+    };
+  }, [preview?.objectUrl]);
+
+  const open = useCallback(async (viewUrl: string, title: string) => {
     setActiveAction("view");
     setError(null);
+    setPreview({ title, objectUrl: null });
     try {
-      await openBlogAttachment(viewUrl);
+      const objectUrl = await fetchBlogAttachmentPreviewUrl(viewUrl);
+      setPreview({ title, objectUrl });
     } catch (e: unknown) {
       const message =
         e instanceof BlogApiError
@@ -24,6 +50,7 @@ export function useBlogAttachmentActions() {
             ? e.message
             : "无法打开附件";
       setError(message);
+      setPreview(null);
     } finally {
       setActiveAction(null);
     }
@@ -50,8 +77,12 @@ export function useBlogAttachmentActions() {
   return {
     open,
     download,
+    closePreview,
+    previewOpen: preview !== null,
+    previewTitle: preview?.title ?? "",
+    previewObjectUrl: preview?.objectUrl ?? null,
     activeAction,
-    isViewing: activeAction === "view",
+    isViewing: activeAction === "view" || (preview !== null && preview.objectUrl === null),
     isDownloading: activeAction === "download",
     error,
     clearError: () => setError(null),

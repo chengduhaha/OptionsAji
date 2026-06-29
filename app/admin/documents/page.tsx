@@ -315,6 +315,7 @@ export default function AdminDocumentsPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   <BlogAttachmentActionButtons
                     attachment={doc}
+                    previewTitle={doc.title_zh ?? doc.original_filename}
                     openLabel={t("blog.admin.preview")}
                     downloadLabel={t("blog.downloadPdf")}
                     variant="admin"
