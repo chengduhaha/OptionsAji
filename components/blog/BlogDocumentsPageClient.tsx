@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import BlogDocumentCard from "@/components/blog/BlogDocumentCard";
+import BlogDocumentsAccessBanner from "@/components/blog/BlogDocumentsAccessBanner";
 import BlogShell from "@/components/blog/BlogShell";
 import { LeaderboardPagination } from "@/components/v4/LeaderboardPagination";
 import { fetchBlogDocuments } from "@/lib/blog/api";
@@ -57,6 +58,10 @@ export default function BlogDocumentsPageClient() {
 
   return (
     <BlogShell title={t("blog.documents.title")} subtitle={t("blog.documents.subtitle")} variant="wide">
+      {access && access.member_total_count > 0 ? (
+        <BlogDocumentsAccessBanner access={access} categoryFilter={category || undefined} />
+      ) : null}
+
       {categories.length > 0 ? (
         <div className="mb-8 flex flex-wrap gap-2">
           <button
@@ -119,10 +124,15 @@ export default function BlogDocumentsPageClient() {
         />
       ) : null}
 
-      {access?.is_member ? null : (
+      {access?.is_member ? null : access && access.member_total_count > 0 ? (
         <div className="mt-12 rounded-xl border-2 border-primary/30 bg-primary/5 px-6 py-8 text-center">
           <h3 className="font-heading text-lg font-bold">{t("blog.documents.ctaTitle")}</h3>
-          <p className="mt-2 text-sm text-muted-foreground">{t("blog.documents.ctaBody")}</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {t("blog.documents.ctaBodyWithCounts", {
+              visible: String(access.visible_count),
+              total: String(access.member_total_count),
+            })}
+          </p>
           <Link
             href="/pricing"
             className="mt-4 inline-flex rounded-lg border-2 border-primary bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
@@ -130,7 +140,7 @@ export default function BlogDocumentsPageClient() {
             {t("blog.documents.ctaButton")}
           </Link>
         </div>
-      )}
+      ) : null}
     </BlogShell>
   );
 }

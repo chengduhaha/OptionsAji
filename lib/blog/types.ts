@@ -25,12 +25,22 @@ export type BlogDocumentListResponse = {
   access: BlogDocumentAccess;
 };
 
+export type BlogDocumentCategoryBreakdown = {
+  category: string;
+  member_count: number;
+  guest_visible_count: number;
+};
+
 export type BlogDocumentAccess = {
   tier: "guest" | "free" | "member" | "admin";
   is_member: boolean;
   membership_expires_at: string | null;
   days_remaining: number | null;
   expiring_soon: boolean;
+  visible_count: number;
+  member_total_count: number;
+  guest_teaser_count: number;
+  category_breakdown: BlogDocumentCategoryBreakdown[];
 };
 
 export type BlogPostSummary = {
