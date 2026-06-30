@@ -1025,7 +1025,6 @@ export const extraZh: DictionaryTree = {
       ctaBody: "公开示例按分类展示约 30% 最新文档；会员可查阅历史内容库与后续不定期更新。",
       ctaButton: "了解会员方案",
       categories: {
-        "daily-report": "市场报告",
         "market-report": "市场报告",
         unusual: "异动观察",
         "unusual-flow": "期权异动",
@@ -2230,7 +2229,6 @@ export const extraEn: DictionaryTree = {
       ctaBody: "Public samples show about 30% of the newest docs per category. Members get the historical archive and ongoing updates.",
       ctaButton: "View pricing",
       categories: {
-        "daily-report": "Market reports",
         "market-report": "Market reports",
         unusual: "Unusual activity",
         "unusual-flow": "Unusual options flow",

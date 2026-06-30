@@ -18,7 +18,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 
 const DOC_CATEGORIES = [
-  "daily-report",
+  "market-report",
   "unusual",
   "course",
   "analysis",
@@ -29,7 +29,7 @@ const DOC_CATEGORIES = [
 
 const EMPTY_FORM = {
   title_zh: "",
-  category: "daily-report",
+  category: "market-report",
   description_zh: "",
   is_sample: true,
 };
