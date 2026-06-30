@@ -13,6 +13,13 @@ type BlogDocumentsAccessBannerProps = {
   categoryFilter?: string;
 };
 
+function formatDocAccessText(template: string, values: Record<string, string>): string {
+  return Object.entries(values).reduce(
+    (text, [key, value]) => text.replaceAll(`{${key}}`, value),
+    template,
+  );
+}
+
 export default function BlogDocumentsAccessBanner({
   access,
   categoryFilter,
@@ -32,7 +39,9 @@ export default function BlogDocumentsAccessBanner({
           </span>
           <div className="min-w-0 flex-1">
             <p className="font-heading text-base font-bold sm:text-lg">
-              {t("blog.documents.accessBanner.memberHeadline", { total: String(total) })}
+              {formatDocAccessText(t("blog.documents.accessBanner.memberHeadline"), {
+                total: String(total),
+              })}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
               {t("blog.documents.accessBanner.memberSubline")}
@@ -57,7 +66,7 @@ export default function BlogDocumentsAccessBanner({
             </span>
             <div>
               <p className="font-heading text-base font-bold sm:text-lg">
-                {t("blog.documents.accessBanner.guestHeadline", {
+                {formatDocAccessText(t("blog.documents.accessBanner.guestHeadline"), {
                   visible: String(visible),
                   total: String(total),
                 })}
@@ -72,7 +81,7 @@ export default function BlogDocumentsAccessBanner({
             <div className="mt-4 sm:pl-11">
               <div className="flex items-center justify-between gap-3 text-xs font-medium text-muted-foreground">
                 <span>
-                  {t("blog.documents.accessBanner.progressLabel", {
+                  {formatDocAccessText(t("blog.documents.accessBanner.progressLabel"), {
                     visible: String(visible),
                     total: String(total),
                   })}
@@ -85,7 +94,7 @@ export default function BlogDocumentsAccessBanner({
                 aria-valuenow={visible}
                 aria-valuemin={0}
                 aria-valuemax={total}
-                aria-label={t("blog.documents.accessBanner.progressLabel", {
+                aria-label={formatDocAccessText(t("blog.documents.accessBanner.progressLabel"), {
                   visible: String(visible),
                   total: String(total),
                 })}
@@ -119,11 +128,13 @@ export default function BlogDocumentsAccessBanner({
                 <span
                   key={row.category}
                   className="inline-flex items-center gap-1.5 rounded-full border-2 border-border bg-background px-3 py-1 text-xs font-medium"
-                  title={t("blog.documents.accessBanner.categoryMore", { locked: String(locked) })}
+                  title={formatDocAccessText(t("blog.documents.accessBanner.categoryMore"), {
+                    locked: String(locked),
+                  })}
                 >
                   <span className="text-muted-foreground">{blogCategoryLabel(t, row.category)}</span>
                   <span className="font-mono font-semibold text-foreground">
-                    {t("blog.documents.accessBanner.categoryLine", {
+                    {formatDocAccessText(t("blog.documents.accessBanner.categoryLine"), {
                       visible: String(row.guest_visible_count),
                       total: String(row.member_count),
                     })}

@@ -128,10 +128,9 @@ export default function BlogDocumentsPageClient() {
         <div className="mt-12 rounded-xl border-2 border-primary/30 bg-primary/5 px-6 py-8 text-center">
           <h3 className="font-heading text-lg font-bold">{t("blog.documents.ctaTitle")}</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            {t("blog.documents.ctaBodyWithCounts", {
-              visible: String(access.visible_count),
-              total: String(access.member_total_count),
-            })}
+            {t("blog.documents.ctaBodyWithCounts")
+              .replace("{visible}", String(access.visible_count))
+              .replace("{total}", String(access.member_total_count))}
           </p>
           <Link
             href="/pricing"
