@@ -165,9 +165,13 @@ export async function uploadBlogPdf(
 
 export async function fetchBlogDocuments(params?: {
   category?: string;
+  page?: number;
+  page_size?: number;
 }): Promise<BlogDocumentListResponse> {
   const qs = new URLSearchParams();
   if (params?.category) qs.set("category", params.category);
+  if (params?.page) qs.set("page", String(params.page));
+  if (params?.page_size) qs.set("page_size", String(params.page_size));
   const suffix = qs.toString() ? `?${qs.toString()}` : "";
   const res = await authFetch(`/api/blog/documents${suffix}`, { cache: "no-store" });
   return readJson<BlogDocumentListResponse>(res);

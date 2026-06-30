@@ -18,6 +18,9 @@ export type BlogAttachment = {
 
 export type BlogDocumentListResponse = {
   items: BlogAttachment[];
+  total: number;
+  page: number;
+  page_size: number;
   categories: string[];
   access: BlogDocumentAccess;
 };

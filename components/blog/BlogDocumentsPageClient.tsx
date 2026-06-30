@@ -5,11 +5,14 @@ import { useCallback, useEffect, useState } from "react";
 
 import BlogDocumentCard from "@/components/blog/BlogDocumentCard";
 import BlogShell from "@/components/blog/BlogShell";
+import { LeaderboardPagination } from "@/components/v4/LeaderboardPagination";
 import { fetchBlogDocuments } from "@/lib/blog/api";
 import { blogCategoryLabel } from "@/lib/blog/categories";
 import type { BlogAttachment, BlogDocumentAccess } from "@/lib/blog/types";
 import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
+
+const DOCUMENTS_PAGE_SIZE = 20;
 
 export default function BlogDocumentsPageClient() {
   const { t } = useI18n();
@@ -17,27 +20,40 @@ export default function BlogDocumentsPageClient() {
   const [categories, setCategories] = useState<string[]>([]);
   const [access, setAccess] = useState<BlogDocumentAccess | null>(null);
   const [category, setCategory] = useState("");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const totalPages = Math.max(1, Math.ceil(total / DOCUMENTS_PAGE_SIZE));
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchBlogDocuments({ category: category || undefined });
+      const data = await fetchBlogDocuments({
+        category: category || undefined,
+        page,
+        page_size: DOCUMENTS_PAGE_SIZE,
+      });
       setDocs(data.items);
       setCategories(data.categories);
       setAccess(data.access);
+      setTotal(data.total);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : t("blog.loadFailed"));
     } finally {
       setLoading(false);
     }
-  }, [category, t]);
+  }, [category, page, t]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [category]);
 
   return (
     <BlogShell title={t("blog.documents.title")} subtitle={t("blog.documents.subtitle")} variant="wide">
@@ -85,12 +101,23 @@ export default function BlogDocumentsPageClient() {
           <p className="mt-2 text-sm text-muted-foreground">{t("blog.documents.emptyHint")}</p>
         </div>
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-col gap-4">
           {docs.map((doc) => (
-            <BlogDocumentCard key={doc.id} doc={doc} />
+            <BlogDocumentCard key={doc.id} doc={doc} variant="row" />
           ))}
         </div>
       )}
+
+      {!loading && !error && totalPages > 1 ? (
+        <LeaderboardPagination
+          page={page}
+          totalPages={totalPages}
+          totalRows={total}
+          loading={loading}
+          onPageChange={setPage}
+          className="mt-8 rounded-xl border-2 border-border"
+        />
+      ) : null}
 
       {access?.is_member ? null : (
         <div className="mt-12 rounded-xl border-2 border-primary/30 bg-primary/5 px-6 py-8 text-center">
