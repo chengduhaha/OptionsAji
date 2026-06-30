@@ -4,7 +4,17 @@ import assert from "node:assert/strict";
 
 test("blog about route redirects to site-level about page", () => {
   const page = readFileSync(new URL("../app/blog/about/page.tsx", import.meta.url), "utf8");
+  const config = readFileSync(new URL("../next.config.ts", import.meta.url), "utf8");
   assert.match(page, /redirect\("\/about"\)/);
+  assert.match(config, /\/blog\/about.*\/about/);
+});
+
+test("blog categories expose optional localized hints", () => {
+  const helper = readFileSync(new URL("../lib/blog/categories.ts", import.meta.url), "utf8");
+  const i18n = readFileSync(new URL("../lib/i18n/namespaces.ts", import.meta.url), "utf8");
+  assert.match(helper, /blogCategoryHint/);
+  assert.match(i18n, /categoryHints/);
+  assert.match(i18n, /insights: "市场洞察"/);
 });
 
 test("site about page uses dedicated AboutAjiPageClient", () => {

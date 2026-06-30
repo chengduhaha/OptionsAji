@@ -22,6 +22,7 @@ const nextConfig: NextConfig = {
       { source: "/portfolio", destination: "/", permanent: false },
       { source: "/news", destination: "/", permanent: false },
       { source: "/learn", destination: "/", permanent: false },
+      { source: "/blog/about", destination: "/about", permanent: true },
     ];
   },
 };

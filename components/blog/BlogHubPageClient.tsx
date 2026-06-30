@@ -6,7 +6,7 @@ import BlogHeroSection from "@/components/blog/BlogHeroSection";
 import BlogPostCard from "@/components/blog/BlogPostCard";
 import BlogShell from "@/components/blog/BlogShell";
 import { fetchBlogPosts } from "@/lib/blog/api";
-import { blogCategoryLabel } from "@/lib/blog/categories";
+import { blogCategoryHint, blogCategoryLabel } from "@/lib/blog/categories";
 import type { BlogPostSummary } from "@/lib/blog/types";
 import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
@@ -70,6 +70,7 @@ export default function BlogHubPageClient() {
                 <button
                   key={cat}
                   type="button"
+                  title={blogCategoryHint(t, cat)}
                   onClick={() => setCategory(cat)}
                   className={cn(
                     "rounded-full border-2 px-3 py-1 text-xs font-semibold transition-colors",

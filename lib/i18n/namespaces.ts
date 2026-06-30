@@ -1035,8 +1035,11 @@ export const extraZh: DictionaryTree = {
         "investing-method": "投资干货",
         "options-intel": "期权情报观察",
         premkt: "盘前资料",
-        insights: "市场解读",
+        insights: "市场洞察",
         general: "综合",
+      },
+      categoryHints: {
+        insights: "宏观与个股的市场解读、观点与复盘，非纯数据报告",
       },
     },
     membership: {
@@ -2237,8 +2240,11 @@ export const extraEn: DictionaryTree = {
         "investing-method": "Investing methods",
         "options-intel": "Options intelligence",
         premkt: "Pre-market material",
-        insights: "Market reads",
+        insights: "Market insights",
         general: "General",
+      },
+      categoryHints: {
+        insights: "Market commentary, views, and recap — not raw data reports",
       },
     },
     membership: {
