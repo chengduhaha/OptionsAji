@@ -19,10 +19,16 @@ test("home page is a landing page instead of redirecting straight to data tables
 test("membership positioning is centralized for pricing and blog surfaces", () => {
   assert.equal(existsSync(offerUrl), true);
   const offer = readFileSync(offerUrl, "utf8");
+  const pricingPage = readFileSync(new URL("../app/pricing/page.tsx", import.meta.url), "utf8");
 
   assert.match(offer, /contentLibrary/);
   assert.match(offer, /dataDashboards/);
   assert.match(offer, /ongoingUpdates/);
+  assert.match(offer, /id: "member"/);
+  assert.doesNotMatch(offer, /id: "premium"/);
+  assert.match(pricingPage, /md:grid-cols-2/);
+  assert.match(pricingPage, /BillingPeriod/);
+  assert.doesNotMatch(pricingPage, /md:grid-cols-3/);
 });
 
 test("membership copy does not promise daily or weekly output cadence", () => {

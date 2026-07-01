@@ -6,6 +6,31 @@ export const MEMBERSHIP_VALUE_KEYS = [
   "community",
 ] as const;
 
+export type BillingPeriod = "monthly" | "annual";
+
+export const MEMBER_BILLING = {
+  monthly: {
+    priceZh: "¥199",
+    priceEn: "$29",
+    periodZh: "/月",
+    periodEn: "/mo",
+    referenceEn: "≈ $29/mo",
+  },
+  annual: {
+    priceZh: "¥1,499",
+    priceEn: "$199",
+    periodZh: "/年",
+    periodEn: "/yr",
+    wasZh: "¥1,999",
+    wasEn: "$249",
+    monthlyEquivZh: "月均 ¥125",
+    monthlyEquivEn: "≈ $17/mo",
+    saveZh: "相较月付省 ¥889",
+    saveEn: "Save ¥889 vs monthly",
+    referenceEn: "≈ $199/yr",
+  },
+} as const;
+
 export const PRICING_TIERS = [
   {
     id: "free",
@@ -21,41 +46,24 @@ export const PRICING_TIERS = [
       "membershipOffer.tiers.free.f1",
       "membershipOffer.tiers.free.f2",
       "membershipOffer.tiers.free.f3",
+      "membershipOffer.tiers.free.f4",
     ],
   },
   {
-    id: "standard",
-    nameKey: "membershipOffer.tiers.standard.name",
-    eyebrowKey: "membershipOffer.tiers.standard.eyebrow",
-    descriptionKey: "membershipOffer.tiers.standard.description",
-    priceZh: "¥199/月起",
-    priceEn: "From $29/mo",
-    ctaKey: "membershipOffer.tiers.standard.cta",
+    id: "member",
+    nameKey: "membershipOffer.tiers.member.name",
+    eyebrowKey: "membershipOffer.tiers.member.eyebrow",
+    descriptionKey: "membershipOffer.tiers.member.description",
+    ctaKey: "membershipOffer.tiers.member.cta",
     ctaHref: "/register",
     featured: true,
     featureKeys: [
-      "membershipOffer.tiers.standard.f1",
-      "membershipOffer.tiers.standard.f2",
-      "membershipOffer.tiers.standard.f3",
-      "membershipOffer.tiers.standard.f4",
-      "membershipOffer.tiers.standard.f5",
-    ],
-  },
-  {
-    id: "premium",
-    nameKey: "membershipOffer.tiers.premium.name",
-    eyebrowKey: "membershipOffer.tiers.premium.eyebrow",
-    descriptionKey: "membershipOffer.tiers.premium.description",
-    priceZh: "¥598/月",
-    priceEn: "$89/mo",
-    ctaKey: "membershipOffer.tiers.premium.cta",
-    ctaHref: "/contact",
-    featured: false,
-    featureKeys: [
-      "membershipOffer.tiers.premium.f1",
-      "membershipOffer.tiers.premium.f2",
-      "membershipOffer.tiers.premium.f3",
-      "membershipOffer.tiers.premium.f4",
+      "membershipOffer.tiers.member.f1",
+      "membershipOffer.tiers.member.f2",
+      "membershipOffer.tiers.member.f3",
+      "membershipOffer.tiers.member.f4",
+      "membershipOffer.tiers.member.f5",
+      "membershipOffer.tiers.member.f6",
     ],
   },
 ] as const;

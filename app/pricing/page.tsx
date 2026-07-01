@@ -1,80 +1,126 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { clsx } from "clsx";
 import { Check } from "lucide-react";
 
 import V4StandaloneShell from "@/components/v4/V4StandaloneShell";
-import { PRICING_TIERS } from "@/lib/membership-offer";
+import {
+  MEMBER_BILLING,
+  PRICING_TIERS,
+  type BillingPeriod,
+} from "@/lib/membership-offer";
 import { useI18n } from "@/lib/i18n/context";
 
 export default function PricingPage() {
   const { t, locale } = useI18n();
   const isZh = locale === "zh";
+  const [billing, setBilling] = useState<BillingPeriod>("annual");
+
+  const freeTier = PRICING_TIERS.find((tier) => tier.id === "free");
+  const memberTier = PRICING_TIERS.find((tier) => tier.id === "member");
+
+  if (!freeTier || !memberTier) {
+    return null;
+  }
+
+  const billingInfo = MEMBER_BILLING[billing];
+  const annualBilling = MEMBER_BILLING.annual;
+  const isAnnual = billing === "annual";
 
   return (
     <V4StandaloneShell
-      title={t("v3.membership.pricingTitle")}
-      subtitle={t("v3.membership.pricingSubtitle")}
+      title={t("membershipOffer.pricingPage.title")}
+      subtitle={t("membershipOffer.pricingPage.subtitle")}
     >
       <div className="space-y-8">
-        <div className="rounded-xl border border-border bg-card p-5">
-          <h2 className="font-heading text-lg font-bold">{t("membershipOffer.pricingIntro.title")}</h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">{t("membershipOffer.pricingIntro.body")}</p>
-        </div>
+        <div className="grid gap-5 md:grid-cols-2 md:items-stretch">
+          <PricingCard tier={freeTier as FreePricingTier} isZh={isZh} t={t} />
 
-        <div className="grid gap-5 md:grid-cols-3 md:items-stretch">
-          {PRICING_TIERS.map((tier) => {
-            const price = isZh ? tier.priceZh : tier.priceEn;
-
-            return (
-              <article
-                key={tier.id}
-                className={clsx(
-                  "relative flex flex-col rounded-xl border border-border bg-card shadow-sm",
-                  tier.featured && "border-primary/50 ring-1 ring-primary/20",
-                )}
-              >
-                {tier.featured ? (
-                  <div className="absolute -top-3 left-4 rounded-md bg-accent px-2 py-0.5 text-[10px] font-semibold text-accent-foreground">
-                    {t("membershipOffer.recommended")}
-                  </div>
-                ) : null}
-                <header className="border-b border-border px-4 py-4">
-                  <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                    {t(tier.eyebrowKey)}
-                  </p>
-                  <h2 className="font-heading text-xl font-bold">{t(tier.nameKey)}</h2>
-                  <p className="mt-2 min-h-[3rem] text-sm leading-6 text-muted-foreground">
-                    {t(tier.descriptionKey)}
-                  </p>
-                </header>
-                <div className="flex flex-1 flex-col px-4 py-5">
-                  <p className="mt-1 font-heading text-5xl font-bold tracking-tight">{price}</p>
-                  <ul className="mt-5 flex-1 space-y-3">
-                    {tier.featureKeys.map((key) => (
-                      <li key={key} className="flex items-start gap-2 text-sm leading-5">
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                        <span>{t(key)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Link
-                    href={tier.ctaHref}
+          <article
+            className={clsx(
+              "relative flex flex-col rounded-xl border border-primary/50 bg-card shadow-sm ring-1 ring-primary/20",
+            )}
+          >
+            <div className="absolute -top-3 left-4 rounded-md bg-accent px-2 py-0.5 text-[10px] font-semibold text-accent-foreground">
+              {t("membershipOffer.recommended")}
+            </div>
+            <header className="border-b border-border px-4 py-4">
+              <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                {t(memberTier.eyebrowKey)}
+              </p>
+              <h2 className="font-heading text-xl font-bold">{t(memberTier.nameKey)}</h2>
+              <p className="mt-2 min-h-[3rem] text-sm leading-6 text-muted-foreground">
+                {t(memberTier.descriptionKey)}
+              </p>
+            </header>
+            <div className="flex flex-1 flex-col px-4 py-5">
+              <div className="mb-4 inline-flex rounded-lg border-2 border-border bg-secondary/40 p-1">
+                {(["monthly", "annual"] as const).map((period) => (
+                  <button
+                    key={period}
+                    type="button"
+                    onClick={() => setBilling(period)}
                     className={clsx(
-                      "mt-6 inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold transition-colors",
-                      tier.featured
-                        ? "bg-primary text-primary-foreground hover:brightness-95"
-                        : "border border-border bg-background hover:bg-secondary",
+                      "rounded-md px-3 py-1.5 text-xs font-semibold transition-colors",
+                      billing === period
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
                     )}
                   >
-                    {t(tier.ctaKey)}
-                  </Link>
-                </div>
-              </article>
-            );
-          })}
+                    {t(period === "monthly" ? "membershipOffer.billingMonthly" : "membershipOffer.billingAnnual")}
+                    {period === "annual" ? " ⭐" : ""}
+                  </button>
+                ))}
+              </div>
+
+              <div className="space-y-1">
+                {isAnnual ? (
+                  <p className="text-sm text-muted-foreground line-through">
+                    {isZh ? annualBilling.wasZh : annualBilling.wasEn}
+                  </p>
+                ) : null}
+                <p className="font-heading text-5xl font-bold tracking-tight">
+                  {isZh ? billingInfo.priceZh : billingInfo.priceEn}
+                  <span className="text-lg font-semibold text-muted-foreground">
+                    {isZh ? billingInfo.periodZh : billingInfo.periodEn}
+                  </span>
+                </p>
+                {isAnnual ? (
+                  <p className="text-sm font-medium text-primary">
+                    {isZh ? annualBilling.monthlyEquivZh : annualBilling.monthlyEquivEn}
+                    <span className="mx-1.5 text-muted-foreground">·</span>
+                    <span className="text-accent">{isZh ? annualBilling.saveZh : annualBilling.saveEn}</span>
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {isZh ? "参考价" : "Reference"} {billingInfo.referenceEn}
+                  </p>
+                )}
+              </div>
+
+              <ul className="mt-5 flex-1 space-y-3">
+                {memberTier.featureKeys.map((key) => (
+                  <li key={key} className="flex items-start gap-2 text-sm leading-5">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <span>{t(key)}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href={memberTier.ctaHref}
+                className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:brightness-95"
+              >
+                {t(memberTier.ctaKey)}
+              </Link>
+            </div>
+          </article>
         </div>
+
+        <p className="rounded-lg border border-dashed border-border bg-secondary/20 px-4 py-3 text-center text-sm text-muted-foreground">
+          {t("membershipOffer.activationCodeNote")}
+        </p>
 
         <section className="rounded-xl border border-border bg-secondary/30 p-6">
           <h2 className="font-heading text-lg font-bold">{t("v3.membership.contactTitle")}</h2>
@@ -107,7 +153,55 @@ export default function PricingPage() {
             </Link>
           </div>
         </section>
+
+        <p className="text-center text-sm text-muted-foreground">
+          {t("membershipOffer.privateGroupHint")}{" "}
+          <Link href="/contact" className="font-semibold text-primary underline-offset-2 hover:underline">
+            {t("membershipOffer.privateGroupCta")}
+          </Link>
+        </p>
       </div>
     </V4StandaloneShell>
+  );
+}
+
+type FreePricingTier = Extract<(typeof PRICING_TIERS)[number], { id: "free" }>;
+
+type PricingCardProps = {
+  tier: FreePricingTier;
+  isZh: boolean;
+  t: (key: string) => string;
+};
+
+function PricingCard({ tier, isZh, t }: PricingCardProps) {
+  const price = isZh ? tier.priceZh : tier.priceEn;
+
+  return (
+    <article className="relative flex flex-col rounded-xl border border-border bg-card shadow-sm">
+      <header className="border-b border-border px-4 py-4">
+        <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+          {t(tier.eyebrowKey)}
+        </p>
+        <h2 className="font-heading text-xl font-bold">{t(tier.nameKey)}</h2>
+        <p className="mt-2 min-h-[3rem] text-sm leading-6 text-muted-foreground">{t(tier.descriptionKey)}</p>
+      </header>
+      <div className="flex flex-1 flex-col px-4 py-5">
+        <p className="mt-1 font-heading text-5xl font-bold tracking-tight">{price}</p>
+        <ul className="mt-5 flex-1 space-y-3">
+          {tier.featureKeys.map((key) => (
+            <li key={key} className="flex items-start gap-2 text-sm leading-5">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <span>{t(key)}</span>
+            </li>
+          ))}
+        </ul>
+        <Link
+          href={tier.ctaHref}
+          className="mt-6 inline-flex items-center justify-center rounded-md border border-border bg-background px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-secondary"
+        >
+          {t(tier.ctaKey)}
+        </Link>
+      </div>
+    </article>
   );
 }
