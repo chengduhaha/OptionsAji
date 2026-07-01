@@ -7,8 +7,10 @@ import BlogMarkdown from "@/components/blog/BlogMarkdown";
 import BlogPdfViewer from "@/components/blog/BlogPdfViewer";
 import BlogReadingProgress from "@/components/blog/BlogReadingProgress";
 import BlogShell from "@/components/blog/BlogShell";
+import BlogTableOfContents from "@/components/blog/BlogTableOfContents";
 import { BlogApiError, fetchBlogPost } from "@/lib/blog/api";
 import { blogCategoryLabel } from "@/lib/blog/categories";
+import { extractHeadings } from "@/lib/blog/headings";
 import { estimateReadingMinutes } from "@/lib/blog/reading-time";
 import type { BlogPostDetail } from "@/lib/blog/types";
 import { useAuth } from "@/lib/auth-context";
@@ -122,6 +124,8 @@ export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
   const readTimeLabel = formatMessage(t("blog.article.readTime"), { minutes: readingMinutes });
 
   const metaParts = [blogCategoryLabel(t, post.category), dateStr, readTimeLabel].filter(Boolean);
+  const tocHeadings = extractHeadings(body);
+  const hasToc = tocHeadings.length > 0;
 
   return (
     <BlogShell variant="wide" hideHeader>
@@ -133,7 +137,7 @@ export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
         </div>
       ) : null}
 
-      <div className="mx-auto max-w-[calc(42rem+4rem)]">
+      <div className="mx-auto w-full max-w-6xl">
         <header className="mb-8 border-2 border-foreground bg-card p-6 shadow-neo sm:p-8 md:p-9">
           <p className="mb-4 text-[0.8rem] font-bold tracking-wide text-muted-foreground">
             {metaParts.map((part, index) => (
@@ -169,19 +173,41 @@ export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
           ) : null}
         </header>
 
-        <div className="border-2 border-foreground bg-card p-6 shadow-neo sm:p-8 md:px-11 md:py-10">
-          <BlogMarkdown content={body} />
-          {post.attachments.length > 0 ? <BlogPdfViewer attachments={post.attachments} /> : null}
-        </div>
+        <div
+          className={
+            hasToc
+              ? "lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:items-start lg:gap-8 xl:grid-cols-[minmax(0,1fr)_16.5rem] xl:gap-10"
+              : undefined
+          }
+        >
+          <div className="min-w-0">
+            <div className="border-2 border-foreground bg-card p-6 shadow-neo sm:p-8 md:px-11 md:py-10">
+              <BlogMarkdown content={body} headings={tocHeadings} />
+              {post.attachments.length > 0 ? <BlogPdfViewer attachments={post.attachments} /> : null}
+            </div>
 
-        <footer className="mt-10 border-t-2 border-border pt-6">
-          <Link
-            href="/blog#posts"
-            className="inline-flex items-center gap-1 text-sm font-bold text-foreground underline decoration-primary decoration-2 underline-offset-4 transition-colors hover:text-primary"
-          >
-            ← {t("blog.article.backToList")}
-          </Link>
-        </footer>
+            <footer className="mt-10 border-t-2 border-border pt-6">
+              <Link
+                href="/blog#posts"
+                className="inline-flex items-center gap-1 text-sm font-bold text-foreground underline decoration-primary decoration-2 underline-offset-4 transition-colors hover:text-primary"
+              >
+                ← {t("blog.article.backToList")}
+              </Link>
+            </footer>
+          </div>
+
+          {hasToc ? (
+            <aside className="hidden lg:block">
+              <div className="sticky top-24">
+                <BlogTableOfContents
+                  headings={tocHeadings}
+                  title={t("blog.article.toc")}
+                  navLabel={t("blog.article.tocNav")}
+                />
+              </div>
+            </aside>
+          ) : null}
+        </div>
       </div>
     </BlogShell>
   );
