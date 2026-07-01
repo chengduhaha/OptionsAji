@@ -62,8 +62,6 @@ export const PRICING_TIERS = [
       "membershipOffer.tiers.member.f2",
       "membershipOffer.tiers.member.f3",
       "membershipOffer.tiers.member.f4",
-      "membershipOffer.tiers.member.f5",
-      "membershipOffer.tiers.member.f6",
     ],
   },
 ] as const;

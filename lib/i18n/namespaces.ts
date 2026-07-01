@@ -59,11 +59,11 @@ export const extraZh: DictionaryTree = {
     privateGroupCta: "联系等候名单",
     pricingPage: {
       title: "一个会员，看懂美股期权",
-      subtitle: "完整榜单、任意标的 GEX、108 份资料库、AI 分析与会员文章，一价全含。",
+      subtitle: "完整榜单、任意标的 GEX、历史资料库与会员文章，一价全含。",
     },
     pricingIntro: {
       title: "一个会员，看懂美股期权",
-      body: "完整榜单、任意标的 GEX、108 份资料库、AI 分析与会员文章，一价全含。",
+      body: "完整榜单、任意标的 GEX、历史资料库与会员文章，一价全含。",
     },
     value: {
       contentLibrary: {
@@ -101,14 +101,12 @@ export const extraZh: DictionaryTree = {
       member: {
         eyebrow: "会员",
         name: "OptionsAji 会员",
-        description: "解锁完整数据工具、历史资料库与 AI 分析。",
+        description: "解锁完整数据工具与历史资料库。",
         cta: "注册并获取激活码",
         f1: "完整期权榜单（异动、成交量、持仓等）",
         f2: "任意标的 GEX 深度分析",
-        f3: "108 份历史报告与课程资料库",
-        f4: "AI 分析师与策略解读",
-        f5: "会员文章、PDF 与资料下载",
-        f6: "激活码兑换，时长可叠加",
+        f3: "历史报告、课程资料、会员文章与 PDF 下载",
+        f4: "激活码兑换，时长可叠加",
       },
     },
   },
@@ -868,7 +866,7 @@ export const extraZh: DictionaryTree = {
       redeemSuccess: "兑换成功，会员已生效。",
       loginRequired: "请先登录后再兑换激活码。",
       pricingTitle: "一个会员，看懂美股期权",
-      pricingSubtitle: "完整榜单、任意标的 GEX、108 份资料库、AI 分析与会员文章，一价全含。",
+      pricingSubtitle: "完整榜单、任意标的 GEX、历史资料库与会员文章，一价全含。",
       tier7: "免费预览",
       tier30: "月会员",
       tier365: "年会员",
@@ -1074,7 +1072,7 @@ export const extraZh: DictionaryTree = {
     },
     membership: {
       title: "会员方案",
-      subtitle: "一个会员，解锁完整数据工具、108 份资料库与 AI 分析。",
+      subtitle: "一个会员，解锁完整数据工具与历史资料库。",
       cta: "查看定价与方案",
       basic: {
         name: "标准会员",
@@ -1293,11 +1291,11 @@ export const extraEn: DictionaryTree = {
     privateGroupCta: "join the waitlist",
     pricingPage: {
       title: "Unlock US options research",
-      subtitle: "Full boards, any-symbol GEX, 108-document library, AI analysis, and member posts—in one plan.",
+      subtitle: "Full boards, any-symbol GEX, historical library, and member posts—in one plan.",
     },
     pricingIntro: {
       title: "Unlock US options research",
-      body: "Full boards, any-symbol GEX, 108-document library, AI analysis, and member posts—in one plan.",
+      body: "Full boards, any-symbol GEX, historical library, and member posts—in one plan.",
     },
     value: {
       contentLibrary: {
@@ -1335,14 +1333,12 @@ export const extraEn: DictionaryTree = {
       member: {
         eyebrow: "Member",
         name: "OptionsAji Member",
-        description: "Unlock full data tools, the historical library, and AI analysis.",
+        description: "Unlock full data tools and the historical content library.",
         cta: "Sign up and redeem",
         f1: "Full options boards (unusual, volume, OI, and more)",
         f2: "Any-symbol GEX deep dive",
-        f3: "108 historical reports and course documents",
-        f4: "AI analyst and strategy reads",
-        f5: "Member posts, PDFs, and downloads",
-        f6: "Activation-code access with stackable duration",
+        f3: "Historical reports, course material, member posts, and PDF downloads",
+        f4: "Activation-code access with stackable duration",
       },
     },
   },
@@ -2104,7 +2100,7 @@ export const extraEn: DictionaryTree = {
       redeemSuccess: "Code redeemed successfully.",
       loginRequired: "Please log in to redeem a code.",
       pricingTitle: "Unlock US options research",
-      pricingSubtitle: "Full boards, any-symbol GEX, 108-document library, AI analysis, and member posts—in one plan.",
+      pricingSubtitle: "Full boards, any-symbol GEX, historical library, and member posts—in one plan.",
       tier7: "Free preview",
       tier30: "Monthly",
       tier365: "Annual",
@@ -2310,7 +2306,7 @@ export const extraEn: DictionaryTree = {
     },
     membership: {
       title: "Membership plans",
-      subtitle: "One plan for full data tools, the 108-document library, and AI analysis.",
+      subtitle: "One plan for full data tools and the historical content library.",
       cta: "View pricing",
       basic: {
         name: "Standard member",
