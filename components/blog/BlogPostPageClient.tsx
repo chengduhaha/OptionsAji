@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import BlogMarkdown from "@/components/blog/BlogMarkdown";
 import BlogPdfViewer from "@/components/blog/BlogPdfViewer";
 import BlogReadingProgress from "@/components/blog/BlogReadingProgress";
+import BlogShareButtons from "@/components/blog/BlogShareButtons";
 import BlogShell from "@/components/blog/BlogShell";
 import BlogTableOfContents from "@/components/blog/BlogTableOfContents";
 import { BlogApiError, fetchBlogPost } from "@/lib/blog/api";
@@ -139,18 +140,21 @@ export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
 
       <div className="mx-auto w-full max-w-6xl">
         <header className="mb-8 border-2 border-foreground bg-card p-6 shadow-neo sm:p-8 md:p-9">
-          <p className="mb-4 text-[0.8rem] font-bold tracking-wide text-muted-foreground">
-            {metaParts.map((part, index) => (
-              <span key={`${part}-${index}`}>
-                {index > 0 ? (
-                  <span className="mx-1.5 text-primary" aria-hidden>
-                    ·
-                  </span>
-                ) : null}
-                {part}
-              </span>
-            ))}
-          </p>
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
+            <p className="text-[0.8rem] font-bold tracking-wide text-muted-foreground">
+              {metaParts.map((part, index) => (
+                <span key={`${part}-${index}`}>
+                  {index > 0 ? (
+                    <span className="mx-1.5 text-primary" aria-hidden>
+                      ·
+                    </span>
+                  ) : null}
+                  {part}
+                </span>
+              ))}
+            </p>
+            <BlogShareButtons slug={post.slug} title={title} />
+          </div>
           <h1 className="border-b-2 border-foreground pb-5 font-heading text-[clamp(1.85rem,4.5vw,2.5rem)] font-black leading-[1.2] tracking-tight">
             {title}
           </h1>
