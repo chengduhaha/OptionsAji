@@ -27,6 +27,7 @@ export const V4_DATA_BOARDS = {
       links: [
         { href: "/options/high-iv", labelKey: "v3.nav.highIv", taglineKey: "v4.nav.tagline.highIv" },
         { href: "/options/high-gamma", labelKey: "v3.nav.highGamma", taglineKey: "v4.nav.tagline.highGamma" },
+        { href: "/options/near-atm-gamma", labelKey: "v3.nav.nearAtmGamma", taglineKey: "v4.nav.tagline.nearAtmGamma" },
         { href: "/options/seller", labelKey: "v3.nav.seller", taglineKey: "v4.nav.tagline.seller" },
         { href: "/options/liquidity", labelKey: "v3.nav.liquidity", taglineKey: "v4.nav.tagline.liquidity" },
         { href: "/options/sentiment", labelKey: "v3.nav.sentiment", taglineKey: "v4.nav.tagline.sentiment" },

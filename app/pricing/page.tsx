@@ -1,22 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { clsx } from "clsx";
 import { Check } from "lucide-react";
 
 import V4StandaloneShell from "@/components/v4/V4StandaloneShell";
-import {
-  MEMBER_BILLING,
-  PRICING_TIERS,
-  type BillingPeriod,
-} from "@/lib/membership-offer";
+import { MEMBER_BILLING, PRICING_TIERS } from "@/lib/membership-offer";
 import { useI18n } from "@/lib/i18n/context";
 
 export default function PricingPage() {
   const { t, locale } = useI18n();
   const isZh = locale === "zh";
-  const [billing, setBilling] = useState<BillingPeriod>("annual");
 
   const freeTier = PRICING_TIERS.find((tier) => tier.id === "free");
   const memberTier = PRICING_TIERS.find((tier) => tier.id === "member");
@@ -25,9 +19,7 @@ export default function PricingPage() {
     return null;
   }
 
-  const billingInfo = MEMBER_BILLING[billing];
   const annualBilling = MEMBER_BILLING.annual;
-  const isAnnual = billing === "annual";
 
   return (
     <V4StandaloneShell
@@ -56,48 +48,23 @@ export default function PricingPage() {
               </p>
             </header>
             <div className="flex flex-1 flex-col px-4 py-5">
-              <div className="mb-4 inline-flex rounded-lg border-2 border-border bg-secondary/40 p-1">
-                {(["monthly", "annual"] as const).map((period) => (
-                  <button
-                    key={period}
-                    type="button"
-                    onClick={() => setBilling(period)}
-                    className={clsx(
-                      "rounded-md px-3 py-1.5 text-xs font-semibold transition-colors",
-                      billing === period
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    {t(period === "monthly" ? "membershipOffer.billingMonthly" : "membershipOffer.billingAnnual")}
-                    {period === "annual" ? " ⭐" : ""}
-                  </button>
-                ))}
-              </div>
-
               <div className="space-y-1">
-                {isAnnual ? (
-                  <p className="text-sm text-muted-foreground line-through">
-                    {isZh ? annualBilling.wasZh : annualBilling.wasEn}
-                  </p>
-                ) : null}
+                <p className="text-sm text-muted-foreground line-through">
+                  {isZh ? annualBilling.wasZh : annualBilling.wasEn}
+                </p>
                 <p className="font-heading text-5xl font-bold tracking-tight">
-                  {isZh ? billingInfo.priceZh : billingInfo.priceEn}
+                  {isZh ? annualBilling.priceZh : annualBilling.priceEn}
                   <span className="text-lg font-semibold text-muted-foreground">
-                    {isZh ? billingInfo.periodZh : billingInfo.periodEn}
+                    {isZh ? annualBilling.periodZh : annualBilling.periodEn}
                   </span>
                 </p>
-                {isAnnual ? (
-                  <p className="text-sm font-medium text-primary">
-                    {isZh ? annualBilling.monthlyEquivZh : annualBilling.monthlyEquivEn}
-                    <span className="mx-1.5 text-muted-foreground">·</span>
-                    <span className="text-accent">{isZh ? annualBilling.saveZh : annualBilling.saveEn}</span>
-                  </p>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    {isZh ? "参考价" : "Reference"} {billingInfo.referenceEn}
-                  </p>
-                )}
+                <p className="text-sm font-medium text-primary">
+                  {isZh ? annualBilling.monthlyEquivZh : annualBilling.monthlyEquivEn}
+                  <span className="mx-1.5 text-muted-foreground">·</span>
+                  <span className="text-muted-foreground">
+                    {isZh ? "参考价" : "Reference"} {annualBilling.referenceEn}
+                  </span>
+                </p>
               </div>
 
               <ul className="mt-5 flex-1 space-y-3">

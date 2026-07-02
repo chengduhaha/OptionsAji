@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import BlogHtmlContent from "@/components/blog/BlogHtmlContent";
 import BlogMarkdown from "@/components/blog/BlogMarkdown";
 import BlogPdfViewer from "@/components/blog/BlogPdfViewer";
 import BlogReadingProgress from "@/components/blog/BlogReadingProgress";
@@ -120,12 +121,13 @@ export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
   const title = pickLocalized(locale, post.title_zh, post.title_en, post.slug);
   const body = pickLocalized(locale, post.body_zh, post.body_en, post.body_zh);
   const excerpt = pickLocalized(locale, post.excerpt_zh, post.excerpt_en, "");
+  const isHtml = post.content_format === "html";
   const dateStr = formatDate(post.published_at, locale);
-  const readingMinutes = estimateReadingMinutes(body);
+  const readingMinutes = estimateReadingMinutes(isHtml ? post.title_zh : body);
   const readTimeLabel = formatMessage(t("blog.article.readTime"), { minutes: readingMinutes });
 
   const metaParts = [blogCategoryLabel(t, post.category), dateStr, readTimeLabel].filter(Boolean);
-  const tocHeadings = extractHeadings(body);
+  const tocHeadings = isHtml ? [] : extractHeadings(body);
   const hasToc = tocHeadings.length > 0;
 
   return (
@@ -186,7 +188,11 @@ export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
         >
           <div className="min-w-0">
             <div className="border-2 border-foreground bg-card p-6 shadow-neo sm:p-8 md:px-11 md:py-10">
-              <BlogMarkdown content={body} headings={tocHeadings} />
+              {isHtml ? (
+                <BlogHtmlContent html={body} />
+              ) : (
+                <BlogMarkdown content={body} headings={tocHeadings} />
+              )}
               {post.attachments.length > 0 ? <BlogPdfViewer attachments={post.attachments} /> : null}
             </div>
 

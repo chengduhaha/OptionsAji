@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import BlogHtmlAdminHelper from "@/components/blog/BlogHtmlAdminHelper";
 import {
   createBlogPost,
   deleteBlogPost,
@@ -25,6 +26,7 @@ const EMPTY_FORM = {
   category: "insights",
   tags: "",
   status: "draft" as "draft" | "published",
+  content_format: "markdown" as "markdown" | "html",
 };
 
 export default function AdminBlogPage() {
@@ -78,10 +80,17 @@ export default function AdminBlogPage() {
         category: detail.category,
         tags: detail.tags.join(", "),
         status: detail.status,
+        content_format: detail.content_format ?? "markdown",
       });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t("blog.admin.loadFailed"));
     }
+  }
+
+  async function handleHtmlFile(file: File | null) {
+    if (!file) return;
+    const text = await file.text();
+    setForm((f) => ({ ...f, body_zh: text, content_format: "html" }));
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -94,21 +103,19 @@ export default function AdminBlogPage() {
         .split(",")
         .map((tag) => tag.trim())
         .filter(Boolean);
+      const payload = {
+        slug: form.slug,
+        title_zh: form.title_zh,
+        title_en: form.title_en || undefined,
+        excerpt_zh: form.excerpt_zh || undefined,
+        body_zh: form.body_zh,
+        content_format: form.content_format,
+        category: form.category,
+        tags,
+        status: form.status,
+      };
       if (editingId) {
-        await updateBlogPost(
-          editingId,
-          {
-            slug: form.slug,
-            title_zh: form.title_zh,
-            title_en: form.title_en || undefined,
-            excerpt_zh: form.excerpt_zh || undefined,
-            body_zh: form.body_zh || undefined,
-            category: form.category,
-            tags,
-            status: form.status,
-          },
-          token,
-        );
+        await updateBlogPost(editingId, payload, token);
         if (pdfFile) {
           await uploadBlogPdf(pdfFile, token, {
             postId: editingId,
@@ -116,19 +123,7 @@ export default function AdminBlogPage() {
           });
         }
       } else {
-        const created = await createBlogPost(
-          {
-            slug: form.slug,
-            title_zh: form.title_zh,
-            title_en: form.title_en || undefined,
-            excerpt_zh: form.excerpt_zh || undefined,
-            body_zh: form.body_zh,
-            category: form.category,
-            tags,
-            status: form.status,
-          },
-          token,
-        );
+        const created = await createBlogPost(payload, token);
         if (pdfFile) {
           await uploadBlogPdf(pdfFile, token, { postId: created.id, titleZh: form.title_zh });
         }
@@ -169,6 +164,8 @@ export default function AdminBlogPage() {
   if (!ready || !user || !isAdmin) {
     return <div className="p-8 text-sm text-muted-foreground">{t("blog.admin.loading")}</div>;
   }
+
+  const isHtml = form.content_format === "html";
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 px-4 py-8">
@@ -237,16 +234,50 @@ export default function AdminBlogPage() {
             className="w-full rounded-md border border-border bg-background px-3 py-2"
           />
         </label>
+
+        <fieldset className="space-y-3">
+          <legend className="text-sm text-muted-foreground">{t("blog.admin.contentFormat")}</legend>
+          <div className="flex flex-wrap gap-4">
+            {(["markdown", "html"] as const).map((format) => (
+              <label key={format} className="inline-flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  name="content_format"
+                  checked={form.content_format === format}
+                  onChange={() => setForm((f) => ({ ...f, content_format: format }))}
+                />
+                {format === "markdown" ? t("blog.admin.formatMarkdown") : t("blog.admin.formatHtml")}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        {isHtml ? <BlogHtmlAdminHelper /> : null}
+
         <label className="block text-sm">
-          <span className="mb-1 block text-muted-foreground">{t("blog.admin.bodyZh")}</span>
+          <span className="mb-1 block text-muted-foreground">
+            {isHtml ? t("blog.admin.bodyHtml") : t("blog.admin.bodyMarkdown")}
+          </span>
           <textarea
             required={!editingId}
             value={form.body_zh}
             onChange={(e) => setForm((f) => ({ ...f, body_zh: e.target.value }))}
-            rows={12}
+            rows={isHtml ? 16 : 12}
             className="w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-xs"
           />
         </label>
+
+        {isHtml ? (
+          <label className="block text-sm">
+            <span className="mb-1 block text-muted-foreground">{t("blog.admin.htmlUpload")}</span>
+            <input
+              type="file"
+              accept=".html,text/html"
+              onChange={(e) => void handleHtmlFile(e.target.files?.[0] ?? null)}
+            />
+          </label>
+        ) : null}
+
         <label className="block text-sm">
           <span className="mb-1 block text-muted-foreground">{t("blog.admin.tags")}</span>
           <input
@@ -314,6 +345,7 @@ export default function AdminBlogPage() {
                   <p className="font-medium">{post.title_zh}</p>
                   <p className="text-xs text-muted-foreground">
                     /blog/{post.slug} · {post.status} · {post.category}
+                    {post.content_format === "html" ? " · HTML" : " · MD"}
                     {post.attachment_count > 0 ? ` · PDF×${post.attachment_count}` : ""}
                   </p>
                   {post.status === "draft" ? (

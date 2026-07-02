@@ -372,55 +372,6 @@
     letter-spacing: -0.02em;
   }
 
-  .panorama-flow .react-flow__pane {
-    cursor: grab;
-  }
-
-  .panorama-flow .react-flow__pane:active {
-    cursor: grabbing;
-  }
-
-  .panorama-flow .react-flow__controls-button {
-    background: var(--color-panel);
-    border-bottom: 1px solid var(--color-border);
-    color: var(--color-foreground);
-  }
-
-  .panorama-flow .react-flow__controls-button:hover {
-    background: var(--color-primary-dim);
-  }
-
-  .panorama-flow .react-flow__edge-textbg {
-    rx: 6;
-  }
-
-  /* Smooth node glide as the force sim ticks; dragging stays 1:1. */
-  .panorama-flow .react-flow__node {
-    transition: transform 0.08s linear;
-  }
-  .panorama-flow .react-flow__node.dragging {
-    transition: none;
-  }
-
-  /* Flowing dashes on monopoly ("exclusive") supply links. */
-  .panorama-edge-flow {
-    stroke-dasharray: 7 5;
-    animation: panoramaDash 0.55s linear infinite;
-  }
-
-  .panorama-edge-particle {
-    filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.75));
-    opacity: 0.9;
-  }
-
-  .panorama-edge-particle-exclusive {
-    filter: drop-shadow(0 0 8px rgba(240, 180, 41, 0.9));
-    opacity: 0.98;
-  }
-}
-
-@keyframes panoramaDash {
-  to { stroke-dashoffset: -24; }
 }
 
 /* Animations */
@@ -629,6 +580,76 @@
 
 .prose-blog > :last-child {
   margin-bottom: 0;
+}
+
+/* Admin HTML articles — scoped brutalist shell (does not leak to site chrome) */
+.blog-html-article {
+  --blog-html-cream: #f5f2f0;
+  --blog-html-ink: #151617;
+  --blog-html-gold: #c9a227;
+  --blog-html-muted: #5a5d66;
+  color: var(--blog-html-ink);
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.blog-html-article h1,
+.blog-html-article h2,
+.blog-html-article h3 {
+  font-family: var(--font-heading), system-ui, sans-serif;
+  font-weight: 800;
+  line-height: 1.25;
+  margin: 1.5rem 0 0.75rem;
+}
+
+.blog-html-article h2 {
+  border-bottom: 2px solid var(--blog-html-ink);
+  padding-bottom: 0.35rem;
+}
+
+.blog-html-article p {
+  margin: 0 0 1rem;
+}
+
+.blog-html-article .chart-card,
+.blog-html-article .data-table {
+  border: 2px solid var(--blog-html-ink);
+  background: var(--blog-html-cream);
+  padding: 1rem 1.25rem;
+  margin: 1.25rem 0;
+  box-shadow: 3px 3px 0 var(--blog-html-ink);
+}
+
+.blog-html-article .chart-note {
+  font-size: 0.875rem;
+  color: var(--blog-html-muted);
+  margin-bottom: 0.75rem;
+}
+
+.blog-html-article canvas,
+.blog-html-article iframe {
+  max-width: 100%;
+  display: block;
+  margin: 0.5rem auto;
+}
+
+.blog-html-article table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.blog-html-article th,
+.blog-html-article td {
+  border: 1px solid color-mix(in srgb, var(--blog-html-ink) 25%, transparent);
+  padding: 0.4rem 0.6rem;
+}
+
+.blog-html-article th {
+  background: color-mix(in srgb, var(--blog-html-gold) 18%, var(--blog-html-cream));
+  text-align: left;
 }
 
 /* v3 elevated panels — slightly lifted surface in dark mode */

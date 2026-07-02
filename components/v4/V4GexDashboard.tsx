@@ -1,23 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Search, Sparkles } from "lucide-react";
+import { ArrowRight, Search, Sparkles } from "lucide-react";
 
 import V4GammaFlipChart from "@/components/v4/charts/V4GammaFlipChart";
 import V4NetGexTrendChart, { type V4HistRow } from "@/components/v4/charts/V4NetGexTrendChart";
 import V4StrikeGammaChart from "@/components/v4/charts/V4StrikeGammaChart";
 import { V4MembershipPaywall } from "@/components/v4/V4MembershipPaywall";
 import V4Panel from "@/components/v4/V4Panel";
-import { LeaderboardPagination } from "@/components/v4/LeaderboardPagination";
 import { useAuth } from "@/lib/auth-context";
 import { authFetch } from "@/lib/apiBase";
-import { formatContractStrike } from "@/lib/leaderboard/formatContract";
-import {
-  LEADERBOARD_MAX_PAGES,
-  LEADERBOARD_MAX_ROWS,
-  LEADERBOARD_PAGE_SIZE,
-} from "@/lib/leaderboard/constants";
-import type { LeaderboardRow } from "@/lib/leaderboard/types";
 import { formatMessage } from "@/lib/i18n/dictionary";
 import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
@@ -108,29 +101,6 @@ function mergeHistory(profile: GexProfile | null, hist: GexHistApi | null): V4Hi
     .map((k) => byDay[k]!);
 }
 
-function isNearAtm(row: LeaderboardRow): boolean {
-  const moneyness = (row.moneyness ?? "").toUpperCase();
-  if (moneyness === "ATM") return true;
-  const delta = row.delta;
-  if (delta == null || !Number.isFinite(delta)) return false;
-  return Math.abs(delta) >= 0.35 && Math.abs(delta) <= 0.65;
-}
-
-function pickNearAtmHighGamma(items: LeaderboardRow[]): LeaderboardRow[] {
-  return items
-    .filter((row) => isNearAtm(row) && row.gamma != null && Number.isFinite(row.gamma))
-    .sort((a, b) => (b.gamma ?? 0) - (a.gamma ?? 0))
-    .slice(0, LEADERBOARD_MAX_ROWS);
-}
-
-function paginateAtmGammaRows(rows: LeaderboardRow[], page: number): LeaderboardRow[] {
-  const start = (page - 1) * LEADERBOARD_PAGE_SIZE;
-  return rows.slice(start, start + LEADERBOARD_PAGE_SIZE).map((row, index) => ({
-    ...row,
-    rank: start + index + 1,
-  }));
-}
-
 export default function V4GexDashboard() {
   const { t } = useI18n();
   const { isMember, ready: authReady } = useAuth();
@@ -142,9 +112,6 @@ export default function V4GexDashboard() {
   const [histLoading, setHistLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [membershipBlocked, setMembershipBlocked] = useState(false);
-  const [atmGammaRows, setAtmGammaRows] = useState<LeaderboardRow[]>([]);
-  const [atmGammaLoading, setAtmGammaLoading] = useState(true);
-  const [atmGammaPage, setAtmGammaPage] = useState(1);
 
   const fetchData = useCallback(
     async (sym: string) => {
@@ -210,38 +177,7 @@ export default function V4GexDashboard() {
     void fetchData(symbol);
   }, [symbol, fetchData, authReady]);
 
-  useEffect(() => {
-    if (!authReady) return;
-    setAtmGammaLoading(true);
-    void (async () => {
-      try {
-        const res = await authFetch("/api/options/leaderboard/high-gamma", { cache: "no-store" });
-        if (!res.ok) {
-          setAtmGammaRows([]);
-          return;
-        }
-        const payload = (await res.json()) as { items?: LeaderboardRow[] };
-        setAtmGammaRows(pickNearAtmHighGamma(payload.items ?? []));
-        setAtmGammaPage(1);
-      } catch {
-        setAtmGammaRows([]);
-      } finally {
-        setAtmGammaLoading(false);
-      }
-    })();
-  }, [authReady]);
-
   const merged = useMemo(() => mergeHistory(profile, hist), [profile, hist]);
-
-  const atmGammaTotalPages = Math.min(
-    LEADERBOARD_MAX_PAGES,
-    Math.max(1, Math.ceil(atmGammaRows.length / LEADERBOARD_PAGE_SIZE)),
-  );
-  const visibleAtmGammaRows = useMemo(
-    () => paginateAtmGammaRows(atmGammaRows, atmGammaPage),
-    [atmGammaRows, atmGammaPage],
-  );
-
   const spot =
     profile?.underlyingPrice && profile.underlyingPrice > 0
       ? profile.underlyingPrice
@@ -371,65 +307,16 @@ export default function V4GexDashboard() {
 
           <V4Panel title={t("v3.gex.atmGamma.title")}>
             <ChartAnswer answerKey="v3.gex.atmGamma.answer" />
-            {atmGammaLoading ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">{t("v3.loading")}</p>
-            ) : atmGammaRows.length ? (
-              <>
-                <div className="overflow-x-auto rounded-lg border border-border">
-                  <table className="w-full min-w-[640px] text-[13px]">
-                    <thead>
-                      <tr className="border-b border-border bg-secondary/50 text-left text-[11px] uppercase tracking-wide text-muted-foreground">
-                        <th className="w-10 py-2.5 pl-4 pr-2 text-center font-medium">#</th>
-                        <th className="px-2 py-2.5 font-medium">{t("v3.leaderboard.col.contract")}</th>
-                        <th className="px-2 py-2.5 text-right font-medium">Γ</th>
-                        <th className="px-2 py-2.5 text-right font-medium">Δ</th>
-                        <th className="px-2 py-2.5 text-right font-medium pr-4">
-                          {t("v3.leaderboard.col.volume")}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {visibleAtmGammaRows.map((row) => (
-                        <tr
-                          key={row.code}
-                          className="border-b border-border/70 transition-colors hover:bg-secondary/50"
-                        >
-                          <td className="py-3 pl-4 pr-2 text-center font-heading text-sm font-bold text-muted-foreground">
-                            {row.rank}
-                          </td>
-                          <td className="px-2 py-3 font-mono text-xs">
-                            {row.symbol_masked ? "•••" : row.underlying}{" "}
-                            {row.option_type} {formatContractStrike(row)}{" "}
-                            {row.expiry?.slice(5) ?? ""}
-                          </td>
-                          <td className="px-2 py-3 text-right font-mono text-sm font-semibold tabular-nums">
-                            {row.gamma?.toFixed(4) ?? "—"}
-                          </td>
-                          <td className="px-2 py-3 text-right font-mono text-sm font-semibold tabular-nums">
-                            {row.delta?.toFixed(2) ?? "—"}
-                          </td>
-                          <td className="px-2 py-3 pr-4 text-right font-mono text-sm font-semibold tabular-nums">
-                            {row.volume.toLocaleString("en-US")}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                {isMember ? (
-                  <LeaderboardPagination
-                    page={atmGammaPage}
-                    totalPages={atmGammaTotalPages}
-                    totalRows={atmGammaRows.length}
-                    loading={atmGammaLoading}
-                    onPageChange={setAtmGammaPage}
-                    className="rounded-b-lg border-x-0 border-b-0"
-                  />
-                ) : null}
-              </>
-            ) : (
-              <p className="py-8 text-center text-sm text-muted-foreground">{t("v3.noData")}</p>
-            )}
+            <div className="flex flex-col items-start gap-4 rounded-lg border border-dashed border-border bg-secondary/20 px-5 py-6">
+              <p className="text-sm leading-relaxed text-muted-foreground">{t("v3.gex.atmGamma.teaser")}</p>
+              <Link
+                href="/options/near-atm-gamma"
+                className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:brightness-95"
+              >
+                {t("v3.gex.atmGamma.viewBoard")}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
           </V4Panel>
         </div>
       )}

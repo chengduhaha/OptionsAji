@@ -53,6 +53,7 @@ export type BlogPostSummary = {
   title_en: string | null;
   excerpt_zh: string | null;
   excerpt_en: string | null;
+  content_format: "markdown" | "html";
   category: string;
   tags: string[];
   status: "draft" | "published";
@@ -83,6 +84,7 @@ export type BlogPostCreateInput = {
   excerpt_en?: string;
   body_zh: string;
   body_en?: string;
+  content_format?: "markdown" | "html";
   category: string;
   tags: string[];
   status: "draft" | "published";

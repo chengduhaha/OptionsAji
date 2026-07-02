@@ -5,6 +5,7 @@ export type BoardId =
   | "turnover"
   | "high-iv"
   | "high-gamma"
+  | "near-atm-gamma"
   | "seller"
   | "liquidity";
 

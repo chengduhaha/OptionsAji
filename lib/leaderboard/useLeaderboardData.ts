@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { authFetch } from "@/lib/apiBase";
-import type { BoardId, DteFilter, LeaderboardResponse } from "@/lib/leaderboard/types";
+import { pickNearAtmHighGamma } from "@/lib/leaderboard/nearAtmGamma";
+import type { BoardId, DteFilter, LeaderboardResponse, LeaderboardRow } from "@/lib/leaderboard/types";
 import { defaultBoardAccess, type BoardAccessMeta } from "@/lib/membership";
 
 type UseLeaderboardDataOptions = {
@@ -12,6 +13,17 @@ type UseLeaderboardDataOptions = {
   authReady: boolean;
   loadErrorMessage: string;
 };
+
+function transformBoardItems(boardId: BoardId, items: LeaderboardRow[]): LeaderboardRow[] {
+  if (boardId === "near-atm-gamma") {
+    return pickNearAtmHighGamma(items);
+  }
+  return items;
+}
+
+function apiBoardId(boardId: BoardId): BoardId {
+  return boardId === "near-atm-gamma" ? "high-gamma" : boardId;
+}
 
 export function useLeaderboardData({
   boardId,
@@ -28,13 +40,19 @@ export function useLeaderboardData({
     setLoading(true);
     setError(null);
     try {
-      const res = await authFetch(`/api/options/leaderboard/${boardId}`, { cache: "no-store" });
+      const res = await authFetch(`/api/options/leaderboard/${apiBoardId(boardId)}`, { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const payload = (await res.json()) as LeaderboardResponse;
       if (payload.error && (!payload.items || payload.items.length === 0)) {
         throw new Error(payload.error);
       }
-      setData(payload);
+      const items = transformBoardItems(boardId, payload.items ?? []);
+      setData({
+        ...payload,
+        board: boardId,
+        items,
+        total: items.length,
+      });
       setAccess(payload.access ?? defaultBoardAccess(isMember, boardId));
     } catch (err) {
       setData(null);

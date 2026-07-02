@@ -58,6 +58,15 @@ export const BOARD_CONFIGS: Record<string, BoardUiConfig> = {
     accent: "peach",
     ...PAGINATED_BOARD,
   },
+  "near-atm-gamma": {
+    boardId: "near-atm-gamma",
+    titleKey: "v3.boards.nearAtmGamma.title",
+    answerKey: "v3.boards.nearAtmGamma.answer",
+    heroColumn: "gamma",
+    columns: ["gamma", "delta", "vega", "theta", "oi", "dte"],
+    accent: "lavender",
+    ...PAGINATED_BOARD,
+  },
   seller: {
     boardId: "seller",
     titleKey: "v3.boards.seller.title",
@@ -86,6 +95,7 @@ export const NAV_BOARDS = [
   { href: "/options/turnover", labelKey: "v3.nav.turnover" },
   { href: "/options/high-iv", labelKey: "v3.nav.highIv" },
   { href: "/options/high-gamma", labelKey: "v3.nav.highGamma" },
+  { href: "/options/near-atm-gamma", labelKey: "v3.nav.nearAtmGamma" },
   { href: "/options/seller", labelKey: "v3.nav.seller" },
   { href: "/options/liquidity", labelKey: "v3.nav.liquidity" },
   { href: "/options/sentiment", labelKey: "v3.nav.sentiment" },

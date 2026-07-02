@@ -54,8 +54,8 @@ export const extraZh: DictionaryTree = {
     billingMonthly: "月付",
     billingAnnual: "年付",
     activationCodeNote:
-      "激活码后缀 7D 为 7 天体验，30D 为月会员，365D 为年会员。支付后获取激活码，在账户页兑换；时长可叠加。",
-    trialHint: "想先体验？7 天体验 ¥49（$9.9），联系阿吉或 Discord 获取激活码。",
+      "标准会员为年付，激活码后缀 365D 为年会员（¥1,499/年）。7D 为 7 天体验，30D 为遗留月码。支付后获取激活码，在账户页兑换；时长可叠加。",
+    trialHint: "脚注：可先申请 7 天体验码（¥49 / $9.9）—联系阿吉或 Discord。",
     privateGroupHint: "想加入阿吉私享群？名额有限，",
     privateGroupCta: "联系等候名单",
     pricingPage: {
@@ -577,6 +577,8 @@ export const extraZh: DictionaryTree = {
         title: "近 ATM 高 Gamma 合约",
         answer:
           "Delta 接近 0.5 的高 Gamma 合约是上方 GEX 柱状图最敏感的对冲节点——价格小幅变动就会触发大量做市商调仓。",
+        teaser: "完整榜单已独立为数据看板，可按 Gamma、Delta、到期等维度筛选与翻页。",
+        viewBoard: "查看近 ATM 高 Gamma 榜",
       },
     },
     sentiment: {
@@ -804,6 +806,7 @@ export const extraZh: DictionaryTree = {
       turnover: "权利金榜",
       highIv: "高 IV Rank",
       highGamma: "高 GAMMA 榜",
+      nearAtmGamma: "近 ATM 高 Gamma",
       seller: "卖方收益榜",
       liquidity: "流动性榜",
       sentiment: "情绪",
@@ -879,6 +882,10 @@ export const extraZh: DictionaryTree = {
       highGamma: {
         title: "高 GAMMA 榜",
         answer: "对标的价格变化最敏感，做市商对冲压力集中在这些合约。",
+      },
+      nearAtmGamma: {
+        title: "近 ATM 高 Gamma 合约",
+        answer: "Delta 接近 0.5 的高 Gamma 合约是对冲最敏感的节点——价格小幅变动就会触发大量做市商调仓。",
       },
       seller: {
         title: "卖方收益榜",
@@ -1029,6 +1036,7 @@ export const extraZh: DictionaryTree = {
         turnover: "真金白银流入最多的合约",
         highIv: "隐含波动率最高，预期波动剧烈",
         highGamma: "Delta 变化最快，临近行权敏感",
+        nearAtmGamma: "近 ATM、高 Gamma 对冲敏感合约",
         seller: "时间价值衰减收益最优的卖方机会",
         liquidity: "买卖价差最小，进出最顺滑",
         sentiment: "全市场 Put/Call 与多空情绪指数",
@@ -1331,7 +1339,13 @@ This page keeps the bio and public social links focused. Product positioning, da
       category: "分类",
       titleZh: "标题（中文）",
       excerptZh: "摘要（中文）",
-      bodyZh: "正文 Markdown（中文）",
+      bodyZh: "正文（中文）",
+      bodyMarkdown: "正文 Markdown（中文）",
+      bodyHtml: "正文 HTML（中文）",
+      contentFormat: "正文格式",
+      formatMarkdown: "Markdown",
+      formatHtml: "HTML",
+      htmlUpload: "上传 .html 文件",
       tags: "标签（逗号分隔）",
       status: "状态",
       draft: "草稿",
@@ -1350,6 +1364,19 @@ This page keeps the bio and public social links focused. Product positioning, da
       saveFailed: "保存失败",
       loading: "加载中…",
       draftPublicHint: "草稿状态：公开 URL 不可访问，请登录后点「预览」或先发布。",
+      htmlHelper: {
+        title: "HTML 文章助手（样式指南 + AI 提示词）",
+        styleGuide: "样式指南（Scheme C brutalist）",
+        style1: "容器 class：chart-card、chart-note、data-table；配色 cream #f5f2f0 / ink #151617 / gold #c9a227",
+        style2: "图表用 <canvas> + Chart.js（仅 jsDelivr CDN）；复杂交互可用 sandbox iframe",
+        style3: "不要写完整 <!DOCTYPE> 页面，只输出可嵌入的正文片段",
+        promptTitle: "AI 生成提示词模板",
+        exampleTitle: "最小 HTML 示例（Chart.js）",
+        copy: "复制",
+        copied: "已复制",
+        securityNote:
+          "安全说明：公开页经 DOMPurify 过滤，仅允许安全标签与 jsDelivr 外链脚本；内联脚本会被移除。",
+      },
       documents: {
         nav: "文档管理",
         title: "文档管理",
@@ -1441,8 +1468,8 @@ export const extraEn: DictionaryTree = {
     billingMonthly: "Monthly",
     billingAnnual: "Annual",
     activationCodeNote:
-      "Activation codes ending in 7D are a 7-day trial, 30D are monthly, and 365D are annual. Redeem on your account page—duration stacks.",
-    trialHint: "Want to try first? 7-day trial ¥49 ($9.9)—contact Aji or Discord for a code.",
+      "Standard membership is annual. Codes ending in 365D unlock one year (¥1,499/yr). 7D is a 7-day trial; 30D is a legacy monthly code. Redeem on your account page—duration stacks.",
+    trialHint: "Footnote: 7-day trial codes (¥49 / $9.9) available—contact Aji or Discord.",
     privateGroupHint: "Interested in the Aji private group? Limited spots—",
     privateGroupCta: "join the waitlist",
     pricingPage: {
@@ -1965,6 +1992,8 @@ export const extraEn: DictionaryTree = {
         title: "Near-ATM High Gamma Contracts",
         answer:
           "High-gamma contracts with delta near 0.5 are the most sensitive hedging nodes in the GEX chart above—small price moves trigger large dealer rebalancing.",
+        teaser: "The full board is now a standalone data view with Gamma, Delta, expiry filters and pagination.",
+        viewBoard: "Open Near-ATM High Gamma board",
       },
     },
     sentiment: {
@@ -2193,6 +2222,7 @@ export const extraEn: DictionaryTree = {
       turnover: "Premium $",
       highIv: "High IV Rank",
       highGamma: "High Gamma",
+      nearAtmGamma: "Near-ATM High Gamma",
       seller: "Seller Yield",
       liquidity: "Liquidity",
       sentiment: "Sentiment",
@@ -2268,6 +2298,11 @@ export const extraEn: DictionaryTree = {
       highGamma: {
         title: "High Gamma",
         answer: "Most price-sensitive contracts where dealer hedging concentrates.",
+      },
+      nearAtmGamma: {
+        title: "Near-ATM High Gamma",
+        answer:
+          "High-gamma contracts with delta near 0.5 are the most sensitive hedging nodes — small price moves trigger large dealer rebalancing.",
       },
       seller: {
         title: "Seller Yield",
@@ -2418,6 +2453,7 @@ export const extraEn: DictionaryTree = {
         turnover: "Largest premium turnover",
         highIv: "Highest implied volatility",
         highGamma: "Highest gamma — price-sensitive strikes",
+        nearAtmGamma: "Near-ATM, high-gamma hedging hotspots",
         seller: "Best theta harvest for sellers",
         liquidity: "Tightest spreads — easiest to trade",
         sentiment: "Market-wide put/call sentiment",
@@ -2715,7 +2751,13 @@ This page keeps the bio and public social links focused. Product positioning, da
       category: "Category",
       titleZh: "Title (ZH)",
       excerptZh: "Excerpt (ZH)",
-      bodyZh: "Body Markdown (ZH)",
+      bodyZh: "Body (ZH)",
+      bodyMarkdown: "Body Markdown (ZH)",
+      bodyHtml: "Body HTML (ZH)",
+      contentFormat: "Content format",
+      formatMarkdown: "Markdown",
+      formatHtml: "HTML",
+      htmlUpload: "Upload .html file",
       tags: "Tags (comma-separated)",
       status: "Status",
       draft: "Draft",
@@ -2734,6 +2776,19 @@ This page keeps the bio and public social links focused. Product positioning, da
       saveFailed: "Save failed",
       loading: "Loading…",
       draftPublicHint: "Draft: public URL is hidden. Log in and use Preview, or publish first.",
+      htmlHelper: {
+        title: "HTML article helper (style guide + AI prompt)",
+        styleGuide: "Style guide (Scheme C brutalist)",
+        style1: "Use classes chart-card, chart-note, data-table; palette cream #f5f2f0 / ink #151617 / gold #c9a227",
+        style2: "Charts via <canvas> + Chart.js (jsDelivr CDN only); sandboxed iframe for complex widgets",
+        style3: "Do not output a full <!DOCTYPE> page—body fragment only",
+        promptTitle: "AI prompt template",
+        exampleTitle: "Minimal HTML example (Chart.js)",
+        copy: "Copy",
+        copied: "Copied",
+        securityNote:
+          "Security: public pages sanitize with DOMPurify—safe tags + jsDelivr scripts only; inline scripts are stripped.",
+      },
       documents: {
         nav: "Document Admin",
         title: "Document admin",
