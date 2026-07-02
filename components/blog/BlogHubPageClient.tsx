@@ -5,39 +5,52 @@ import { useCallback, useEffect, useState } from "react";
 import BlogHeroSection from "@/components/blog/BlogHeroSection";
 import BlogPostCard from "@/components/blog/BlogPostCard";
 import BlogShell from "@/components/blog/BlogShell";
+import { LeaderboardPagination } from "@/components/v4/LeaderboardPagination";
 import { fetchBlogPosts } from "@/lib/blog/api";
 import { blogCategoryHint, blogCategoryLabel } from "@/lib/blog/categories";
 import type { BlogPostSummary } from "@/lib/blog/types";
 import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 
+const BLOG_POSTS_PAGE_SIZE = 12;
+
 export default function BlogHubPageClient() {
   const { t } = useI18n();
   const [posts, setPosts] = useState<BlogPostSummary[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [category, setCategory] = useState("");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  const totalPages = Math.max(1, Math.ceil(total / BLOG_POSTS_PAGE_SIZE));
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const data = await fetchBlogPosts({
-        page: 1,
-        page_size: 6,
+        page,
+        page_size: BLOG_POSTS_PAGE_SIZE,
         category: category || undefined,
       });
       setPosts(data.items);
+      setTotal(data.total);
       setCategories(data.categories);
     } catch {
       setPosts([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
-  }, [category]);
+  }, [category, page]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [category]);
 
   return (
     <BlogShell variant="hub" hideHeader>
@@ -96,6 +109,17 @@ export default function BlogHubPageClient() {
               ))}
             </div>
           )}
+
+          {!loading && totalPages > 1 ? (
+            <LeaderboardPagination
+              page={page}
+              totalPages={totalPages}
+              totalRows={total}
+              loading={loading}
+              onPageChange={setPage}
+              className="mt-8 rounded-xl border-2 border-border"
+            />
+          ) : null}
         </section>
       </div>
     </BlogShell>

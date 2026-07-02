@@ -255,12 +255,14 @@ export async function uploadBlogCourse(
   options: {
     titleZh: string;
     category?: string;
+    coverFile?: File;
   },
 ): Promise<BlogUploadCourseResponse> {
   const form = new FormData();
   form.append("file", file);
   form.append("title_zh", options.titleZh);
   if (options.category) form.append("category", options.category);
+  if (options.coverFile) form.append("cover", options.coverFile);
 
   const res = await authFetch("/api/blog/admin/courses", {
     method: "POST",

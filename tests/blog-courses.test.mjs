@@ -60,10 +60,18 @@ test("admin courses page and header expose cover management", () => {
   const header = readFileSync(new URL("../components/v4/V4SiteHeader.tsx", import.meta.url), "utf8");
   const navConfig = readFileSync(new URL("../lib/v4/navConfig.ts", import.meta.url), "utf8");
   const siteFooter = readFileSync(new URL("../components/v4/V4SiteFooter.tsx", import.meta.url), "utf8");
+  const hub = readFileSync(new URL("../components/blog/BlogHubPageClient.tsx", import.meta.url), "utf8");
+  const api = readFileSync(new URL("../lib/blog/api.ts", import.meta.url), "utf8");
 
   assert.match(adminPage, /uploadBlogAttachmentThumbnail/);
   assert.match(adminPage, /uploadBlogCourse/);
+  assert.match(adminPage, /deleteBlogAttachment/);
+  assert.match(adminPage, /coverFile/);
+  assert.match(adminPage, /confirmDelete/);
   assert.match(adminPage, /uploadNew/);
+  assert.match(api, /coverFile\?: File/);
+  assert.match(hub, /BLOG_POSTS_PAGE_SIZE = 12/);
+  assert.match(hub, /LeaderboardPagination/);
   const placeholder = readFileSync(new URL("../components/blog/CourseThumbnailPlaceholder.tsx", import.meta.url), "utf8");
   assert.match(placeholder, /resolveApiUrl\(thumbnailUrl\)/);
   assert.match(placeholder, /from "next\/image"/);

@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FileUp, ImagePlus, Upload } from "lucide-react";
+import { FileUp, ImagePlus, Trash2, Upload } from "lucide-react";
 
 import CourseThumbnailPlaceholder from "@/components/blog/CourseThumbnailPlaceholder";
 import {
+  deleteBlogAttachment,
   fetchBlogAttachments,
   uploadBlogAttachmentThumbnail,
   uploadBlogCourse,
@@ -45,6 +46,7 @@ export default function AdminCoursesPage() {
   const router = useRouter();
   const { locale, t } = useI18n();
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const newCoverInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const [courses, setCourses] = useState<BlogAttachment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,8 +55,11 @@ export default function AdminCoursesPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [uploadForm, setUploadForm] = useState(EMPTY_UPLOAD_FORM);
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
   const [videoDragOver, setVideoDragOver] = useState(false);
+  const [coverDragOver, setCoverDragOver] = useState(false);
   const [uploadingCourse, setUploadingCourse] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -99,6 +104,15 @@ export default function AdminCoursesPage() {
     }
   }
 
+  function handleCoverSelect(file: File | null) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError(t("blog.admin.courses.imageOnly"));
+      return;
+    }
+    setCoverFile(file);
+  }
+
   async function handleCourseUpload(e: React.FormEvent) {
     e.preventDefault();
     if (!token || !videoFile) return;
@@ -112,14 +126,31 @@ export default function AdminCoursesPage() {
       await uploadBlogCourse(videoFile, token, {
         titleZh: uploadForm.title_zh.trim(),
         category: uploadForm.category,
+        coverFile: coverFile ?? undefined,
       });
       setUploadForm(EMPTY_UPLOAD_FORM);
       setVideoFile(null);
+      setCoverFile(null);
       await load();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t("blog.admin.saveFailed"));
     } finally {
       setUploadingCourse(false);
+    }
+  }
+
+  async function handleDelete(courseId: string) {
+    if (!token) return;
+    if (!window.confirm(t("blog.admin.courses.confirmDelete"))) return;
+    setDeletingId(courseId);
+    setError(null);
+    try {
+      await deleteBlogAttachment(courseId, token);
+      await load();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t("blog.admin.saveFailed"));
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -212,6 +243,43 @@ export default function AdminCoursesPage() {
             ) : null}
           </div>
 
+          <div
+            role="button"
+            tabIndex={0}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setCoverDragOver(true);
+            }}
+            onDragLeave={() => setCoverDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setCoverDragOver(false);
+              handleCoverSelect(e.dataTransfer.files?.[0] ?? null);
+            }}
+            onClick={() => newCoverInputRef.current?.click()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                newCoverInputRef.current?.click();
+              }
+            }}
+            className={cn(
+              "flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-8 text-center transition-colors",
+              coverDragOver ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
+            )}
+          >
+            <ImagePlus className="mb-2 h-7 w-7 text-primary" />
+            <p className="text-sm font-medium">{t("blog.admin.courses.coverDropHint")}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t("blog.admin.courses.coverHint")}</p>
+            {coverFile ? (
+              <p className="mt-3 rounded-lg border-2 border-border bg-secondary px-3 py-1.5 text-xs font-mono">
+                {coverFile.name} · {formatFileSizeLocal(coverFile.size)}
+              </p>
+            ) : (
+              <p className="mt-2 text-xs text-muted-foreground">{t("blog.admin.courses.coverOptional")}</p>
+            )}
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block text-sm">
               <span className="mb-1 block font-medium text-muted-foreground">
@@ -265,6 +333,7 @@ export default function AdminCoursesPage() {
             {courses.map((course) => {
               const title = pickLocalized(locale, course.title_zh, course.title_en, course.original_filename);
               const isUploading = uploadingId === course.id;
+              const isDeleting = deletingId === course.id;
               return (
                 <li key={course.id} className="flex flex-wrap items-start gap-4 py-4">
                   <div className="relative h-24 w-40 shrink-0 overflow-hidden rounded-lg border-2 border-border">
@@ -307,6 +376,18 @@ export default function AdminCoursesPage() {
                     >
                       {t("blog.admin.preview")}
                     </Link>
+                    <button
+                      type="button"
+                      disabled={isDeleting}
+                      onClick={() => void handleDelete(course.id)}
+                      className={cn(
+                        "inline-flex items-center justify-center gap-1.5 rounded-lg border-2 border-destructive/40 px-3 py-2 text-xs font-semibold text-destructive hover:bg-destructive/5",
+                        isDeleting && "opacity-60",
+                      )}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      {isDeleting ? t("blog.admin.saving") : t("blog.admin.courses.delete")}
+                    </button>
                   </div>
                 </li>
               );
@@ -322,6 +403,17 @@ export default function AdminCoursesPage() {
         className="hidden"
         onChange={(e) => {
           handleVideoSelect(e.target.files?.[0] ?? null);
+          e.target.value = "";
+        }}
+      />
+
+      <input
+        ref={newCoverInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          handleCoverSelect(e.target.files?.[0] ?? null);
           e.target.value = "";
         }}
       />
