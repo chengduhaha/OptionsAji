@@ -146,23 +146,12 @@ export default function V4SiteHeader() {
             href="/blog/documents"
             className={cn(
               "whitespace-nowrap rounded-md px-2.5 py-2 text-sm transition-colors",
-              pathname === "/blog/documents"
+              pathname === "/blog/documents" || pathname.startsWith("/blog/courses")
                 ? "bg-primary/10 font-medium text-primary"
                 : "text-foreground/70 hover:bg-secondary hover:text-foreground",
             )}
           >
             {t("home.nav.library")}
-          </Link>
-          <Link
-            href="/blog/courses"
-            className={cn(
-              "whitespace-nowrap rounded-md px-2.5 py-2 text-sm transition-colors",
-              pathname === "/blog/courses"
-                ? "bg-primary/10 font-medium text-primary"
-                : "text-foreground/70 hover:bg-secondary hover:text-foreground",
-            )}
-          >
-            {t("blog.nav.courses")}
           </Link>
           <Link
             href="/about"
@@ -212,6 +201,18 @@ export default function V4SiteHeader() {
                     className="hidden whitespace-nowrap rounded-md border border-border bg-secondary px-2.5 py-2 text-sm font-medium sm:block"
                   >
                     {t("blog.admin.nav")}
+                  </Link>
+                  <Link
+                    href="/admin/documents"
+                    className="hidden whitespace-nowrap rounded-md border border-border bg-secondary px-2.5 py-2 text-sm font-medium lg:block"
+                  >
+                    {t("blog.admin.documents.nav")}
+                  </Link>
+                  <Link
+                    href="/admin/courses"
+                    className="hidden whitespace-nowrap rounded-md border border-primary/40 bg-primary/10 px-2.5 py-2 text-sm font-semibold text-primary lg:block"
+                  >
+                    {t("blog.admin.courses.nav")}
                   </Link>
                 </>
               ) : null}
@@ -318,12 +319,6 @@ export default function V4SiteHeader() {
               {t("home.nav.library")}
             </Link>
             <Link
-              href="/blog/courses"
-              className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-foreground"
-            >
-              {t("blog.nav.courses")}
-            </Link>
-            <Link
               href="/about"
               className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-foreground"
             >
@@ -347,6 +342,12 @@ export default function V4SiteHeader() {
                     </Link>
                     <Link href="/admin/blog" className="rounded-md px-3 py-2 text-sm hover:bg-secondary">
                       {t("blog.admin.nav")}
+                    </Link>
+                    <Link href="/admin/documents" className="rounded-md px-3 py-2 text-sm hover:bg-secondary">
+                      {t("blog.admin.documents.nav")}
+                    </Link>
+                    <Link href="/admin/courses" className="rounded-md px-3 py-2 text-sm font-semibold text-primary hover:bg-secondary">
+                      {t("blog.admin.courses.nav")}
                     </Link>
                   </>
                 ) : null}

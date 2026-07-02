@@ -9,7 +9,7 @@ import CourseThumbnailPlaceholder from "@/components/blog/CourseThumbnailPlaceho
 import { fetchBlogAttachments, uploadBlogAttachmentThumbnail } from "@/lib/blog/api";
 import type { BlogAttachment } from "@/lib/blog/types";
 import { blogCategoryLabel } from "@/lib/blog/categories";
-import { formatFileSize, formatVideoDuration, pickLocalized } from "@/lib/blog/format";
+import { formatVideoDuration, pickLocalized } from "@/lib/blog/format";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
@@ -93,8 +93,8 @@ export default function AdminCoursesPage() {
           <Link href="/admin/documents" className="text-muted-foreground hover:text-primary hover:underline">
             {t("blog.admin.documents.nav")}
           </Link>
-          <Link href="/blog/courses" className="font-semibold text-primary hover:underline">
-            {t("blog.nav.courses")}
+          <Link href="/blog/documents?tab=videos" className="font-semibold text-primary hover:underline">
+            {t("blog.library.tabVideos")}
           </Link>
         </div>
       </div>

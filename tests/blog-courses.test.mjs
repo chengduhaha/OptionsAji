@@ -6,10 +6,7 @@ test("blog courses API client uses authFetch and play-token flow", () => {
   const api = readFileSync(new URL("../lib/blog/api.ts", import.meta.url), "utf8");
   const types = readFileSync(new URL("../lib/blog/types.ts", import.meta.url), "utf8");
   const player = readFileSync(new URL("../components/blog/BlogCoursePlayer.tsx", import.meta.url), "utf8");
-  const listPage = readFileSync(
-    new URL("../components/blog/BlogCoursesPageClient.tsx", import.meta.url),
-    "utf8",
-  );
+  const coursesTab = readFileSync(new URL("../components/blog/BlogCoursesTab.tsx", import.meta.url), "utf8");
   const watchPage = readFileSync(new URL("../app/blog/courses/[id]/page.tsx", import.meta.url), "utf8");
   const proxy = readFileSync(new URL("../app/api/blog/[...path]/route.ts", import.meta.url), "utf8");
 
@@ -31,22 +28,38 @@ test("blog courses API client uses authFetch and play-token flow", () => {
   assert.match(player, /controlsList="nodownload/);
   assert.match(player, /onContextMenu/);
   assert.match(api, /uploadBlogAttachmentThumbnail/);
-  assert.match(listPage, /grid-cols-3/);
-  assert.match(listPage, /COURSES_PAGE_SIZE = 12/);
-  assert.doesNotMatch(listPage, /BlogCoursePlayer/);
+  assert.match(coursesTab, /grid-cols-3/);
+  assert.match(coursesTab, /COURSES_PAGE_SIZE = 12/);
+  assert.doesNotMatch(coursesTab, /BlogCoursePlayer/);
   assert.match(watchPage, /BlogCourseWatchPageClient/);
   assert.match(proxy, /video\//);
   assert.match(proxy, /Range/);
 });
 
-test("blog shell and courses page expose /blog/courses navigation", () => {
+test("member library hub uses tabs and redirects legacy /blog/courses", () => {
   const shell = readFileSync(new URL("../components/blog/BlogShell.tsx", import.meta.url), "utf8");
-  const page = readFileSync(new URL("../app/blog/courses/page.tsx", import.meta.url), "utf8");
+  const library = readFileSync(new URL("../components/blog/BlogLibraryPageClient.tsx", import.meta.url), "utf8");
+  const coursesPage = readFileSync(new URL("../app/blog/courses/page.tsx", import.meta.url), "utf8");
+  const footer = readFileSync(new URL("../lib/v4/navConfig.ts", import.meta.url), "utf8");
   const i18n = readFileSync(new URL("../lib/i18n/namespaces.ts", import.meta.url), "utf8");
 
-  assert.match(shell, /\/blog\/courses/);
-  assert.match(page, /BlogCoursesPageClient/);
-  assert.match(i18n, /courses:\s*\{/);
-  assert.match(i18n, /courses: "视频课程"/);
-  assert.match(i18n, /totalCount/);
+  assert.doesNotMatch(shell, /href: "\/blog\/courses"/);
+  assert.match(library, /tabDocuments/);
+  assert.match(library, /tabVideos/);
+  assert.match(library, /BlogDocumentsTab/);
+  assert.match(library, /BlogCoursesTab/);
+  assert.match(coursesPage, /redirect\("\/blog\/documents\?tab=videos"\)/);
+  assert.equal((footer.match(/\/blog\/courses/g) ?? []).length, 0);
+  assert.match(i18n, /library:\s*\{/);
+  assert.match(i18n, /tabVideos: "视频课程"/);
+});
+
+test("admin courses page and header expose cover management", () => {
+  const adminPage = readFileSync(new URL("../app/admin/courses/page.tsx", import.meta.url), "utf8");
+  const header = readFileSync(new URL("../components/v4/V4SiteHeader.tsx", import.meta.url), "utf8");
+  const siteFooter = readFileSync(new URL("../components/v4/V4SiteFooter.tsx", import.meta.url), "utf8");
+
+  assert.match(adminPage, /uploadBlogAttachmentThumbnail/);
+  assert.match(header, /\/admin\/courses/);
+  assert.match(siteFooter, /\/admin\/courses/);
 });

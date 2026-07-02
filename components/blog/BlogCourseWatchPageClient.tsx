@@ -46,7 +46,7 @@ export default function BlogCourseWatchPageClient({ courseId }: BlogCourseWatchP
   return (
     <BlogShell title={t("blog.courses.watchTitle")} subtitle={t("blog.courses.watchSubtitle")} variant="wide">
       <Link
-        href="/blog/courses"
+        href="/blog/documents?tab=videos"
         className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />

@@ -1120,6 +1120,12 @@ export const extraZh: DictionaryTree = {
     pdfCount: "{count} 个 PDF",
     disclaimer:
       "本平台内容仅供知识分享与教育交流，不构成任何投资建议。期权交易具有高风险，请独立决策、自负盈亏。",
+    library: {
+      title: "会员资料库",
+      subtitle: "PDF 报告与视频课程统一入口，会员可解锁完整历史资料与录播回放。",
+      tabDocuments: "PDF 资料",
+      tabVideos: "视频课程",
+    },
     documents: {
       title: "会员资料库",
       subtitle: "预览会员可查阅的历史报告、课程资料和研究文档。每个分类展示约 30% 最新文档，完整版面向会员开放。",
@@ -1308,6 +1314,7 @@ This page keeps the bio and public social links focused. Product positioning, da
     },
     admin: {
       nav: "文章管理",
+      footerTitle: "管理后台",
       title: "博客管理",
       subtitle: "创建文章、上传 PDF 附件（仅管理员）",
       viewBlog: "查看博客",
@@ -2493,6 +2500,12 @@ export const extraEn: DictionaryTree = {
     pdfCount: "{count} PDF(s)",
     disclaimer:
       "Educational content only—not investment advice. Options involve substantial risk; trade at your own discretion.",
+    library: {
+      title: "Member library",
+      subtitle: "PDF reports and video courses in one place. Members unlock the full archive and replays.",
+      tabDocuments: "PDF documents",
+      tabVideos: "Video courses",
+    },
     documents: {
       title: "Member library",
       subtitle: "Preview reports, course material, and research in the member archive. About 30% of the newest docs per category are public; members get the full library.",
@@ -2676,6 +2689,7 @@ This page keeps the bio and public social links focused. Product positioning, da
     },
     admin: {
       nav: "Blog Admin",
+      footerTitle: "Admin",
       title: "Blog admin",
       subtitle: "Create posts and upload PDFs (admin only)",
       viewBlog: "View blog",
