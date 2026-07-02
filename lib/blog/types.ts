@@ -97,6 +97,10 @@ export type BlogUploadPdfResponse = {
   post_id: string | null;
 };
 
+export type BlogUploadCourseResponse = {
+  attachment: BlogAttachment;
+};
+
 export type BlogPlayTokenResponse = {
   token: string;
   stream_url: string;

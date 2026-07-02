@@ -7,6 +7,7 @@ import type {
   BlogPostUpdateInput,
   BlogDocumentListResponse,
   BlogPlayTokenResponse,
+  BlogUploadCourseResponse,
   BlogUploadPdfResponse,
 } from "@/lib/blog/types";
 
@@ -246,6 +247,27 @@ export async function updateBlogAttachment(
     body: JSON.stringify(input),
   });
   return readJson<BlogAttachment>(res);
+}
+
+export async function uploadBlogCourse(
+  file: File,
+  token: string,
+  options: {
+    titleZh: string;
+    category?: string;
+  },
+): Promise<BlogUploadCourseResponse> {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("title_zh", options.titleZh);
+  if (options.category) form.append("category", options.category);
+
+  const res = await authFetch("/api/blog/admin/courses", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  });
+  return readJson<BlogUploadCourseResponse>(res);
 }
 
 export async function uploadBlogAttachmentThumbnail(

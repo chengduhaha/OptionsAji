@@ -28,6 +28,7 @@ test("blog courses API client uses authFetch and play-token flow", () => {
   assert.match(player, /controlsList="nodownload/);
   assert.match(player, /onContextMenu/);
   assert.match(api, /uploadBlogAttachmentThumbnail/);
+  assert.match(api, /uploadBlogCourse/);
   assert.match(coursesTab, /grid-cols-3/);
   assert.match(coursesTab, /COURSES_PAGE_SIZE = 12/);
   assert.doesNotMatch(coursesTab, /BlogCoursePlayer/);
@@ -61,6 +62,8 @@ test("admin courses page and header expose cover management", () => {
   const siteFooter = readFileSync(new URL("../components/v4/V4SiteFooter.tsx", import.meta.url), "utf8");
 
   assert.match(adminPage, /uploadBlogAttachmentThumbnail/);
+  assert.match(adminPage, /uploadBlogCourse/);
+  assert.match(adminPage, /uploadNew/);
   const placeholder = readFileSync(new URL("../components/blog/CourseThumbnailPlaceholder.tsx", import.meta.url), "utf8");
   assert.match(placeholder, /resolveApiUrl\(thumbnailUrl\)/);
   assert.match(placeholder, /from "next\/image"/);
