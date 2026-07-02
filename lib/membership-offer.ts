@@ -6,6 +6,8 @@ export const MEMBERSHIP_VALUE_KEYS = [
   "community",
 ] as const;
 
+export type BillingPeriod = "monthly" | "annual";
+
 export const TRIAL_BILLING = {
   priceZh: "¥49",
   priceEn: "$9.9",
@@ -13,16 +15,28 @@ export const TRIAL_BILLING = {
   periodEn: "/7 days",
 } as const;
 
+/** Monthly is a decoy anchor; annual is the recommended plan. */
 export const MEMBER_BILLING = {
+  monthly: {
+    priceZh: "¥598",
+    priceEn: "$79",
+    periodZh: "/月",
+    periodEn: "/mo",
+    annualCostZh: "¥7,176",
+    annualCostEn: "$948",
+    referenceEn: "≈ $79/mo",
+  },
   annual: {
     priceZh: "¥1,499",
     priceEn: "$199",
     periodZh: "/年",
     periodEn: "/yr",
-    wasZh: "¥1,999",
-    wasEn: "$249",
+    wasZh: "¥7,176",
+    wasEn: "$948",
     monthlyEquivZh: "月均 ¥125",
     monthlyEquivEn: "≈ $17/mo",
+    saveZh: "相较月付省 ¥5,677（约 79%）",
+    saveEn: "Save ~79% vs paying monthly",
     referenceEn: "≈ $199/yr",
   },
 } as const;

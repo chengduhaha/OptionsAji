@@ -54,7 +54,10 @@ export const extraZh: DictionaryTree = {
     billingMonthly: "月付",
     billingAnnual: "年付",
     activationCodeNote:
-      "标准会员为年付，激活码后缀 365D 为年会员（¥1,499/年）。7D 为 7 天体验，30D 为遗留月码。支付后获取激活码，在账户页兑换；时长可叠加。",
+      "激活码后缀 365D 为年会员（¥1,499/年），30D 为月会员（¥598/月）。7D 为 7 天体验。支付后获取激活码，在账户页兑换；时长可叠加。推荐年付更省约 79%。",
+    monthlyEquivalentLabel: "月付×12",
+    monthlyAnnualCost: "按此月价年付需",
+    switchToAnnual: "切换年付，省约 79% →",
     trialHint: "脚注：可先申请 7 天体验码（¥49 / $9.9）—联系阿吉或 Discord。",
     privateGroupHint: "想加入阿吉私享群？名额有限，",
     privateGroupCta: "联系等候名单",
@@ -1468,7 +1471,10 @@ export const extraEn: DictionaryTree = {
     billingMonthly: "Monthly",
     billingAnnual: "Annual",
     activationCodeNote:
-      "Standard membership is annual. Codes ending in 365D unlock one year (¥1,499/yr). 7D is a 7-day trial; 30D is a legacy monthly code. Redeem on your account page—duration stacks.",
+      "Codes ending in 365D unlock one year (¥1,499/yr); 30D unlocks one month (¥598/mo). 7D is a 7-day trial. Redeem on your account page—duration stacks. Annual saves ~79% vs monthly.",
+    monthlyEquivalentLabel: "12× monthly",
+    monthlyAnnualCost: "At this monthly rate, one year costs",
+    switchToAnnual: "Switch to annual—save ~79% →",
     trialHint: "Footnote: 7-day trial codes (¥49 / $9.9) available—contact Aji or Discord.",
     privateGroupHint: "Interested in the Aji private group? Limited spots—",
     privateGroupCta: "join the waitlist",

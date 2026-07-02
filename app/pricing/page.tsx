@@ -1,16 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { clsx } from "clsx";
 import { Check } from "lucide-react";
 
 import V4StandaloneShell from "@/components/v4/V4StandaloneShell";
-import { MEMBER_BILLING, PRICING_TIERS } from "@/lib/membership-offer";
+import {
+  MEMBER_BILLING,
+  PRICING_TIERS,
+  type BillingPeriod,
+} from "@/lib/membership-offer";
 import { useI18n } from "@/lib/i18n/context";
 
 export default function PricingPage() {
   const { t, locale } = useI18n();
   const isZh = locale === "zh";
+  const [billing, setBilling] = useState<BillingPeriod>("annual");
 
   const freeTier = PRICING_TIERS.find((tier) => tier.id === "free");
   const memberTier = PRICING_TIERS.find((tier) => tier.id === "member");
@@ -19,7 +25,10 @@ export default function PricingPage() {
     return null;
   }
 
+  const billingInfo = MEMBER_BILLING[billing];
   const annualBilling = MEMBER_BILLING.annual;
+  const monthlyBilling = MEMBER_BILLING.monthly;
+  const isAnnual = billing === "annual";
 
   return (
     <V4StandaloneShell
@@ -32,12 +41,17 @@ export default function PricingPage() {
 
           <article
             className={clsx(
-              "relative flex flex-col rounded-xl border border-primary/50 bg-card shadow-sm ring-1 ring-primary/20",
+              "relative flex flex-col rounded-xl border bg-card shadow-sm transition-colors",
+              isAnnual
+                ? "border-primary/50 ring-1 ring-primary/20"
+                : "border-border opacity-95",
             )}
           >
-            <div className="absolute -top-3 left-4 rounded-md bg-accent px-2 py-0.5 text-[10px] font-semibold text-accent-foreground">
-              {t("membershipOffer.recommended")}
-            </div>
+            {isAnnual ? (
+              <div className="absolute -top-3 left-4 rounded-md bg-accent px-2 py-0.5 text-[10px] font-semibold text-accent-foreground">
+                {t("membershipOffer.recommended")}
+              </div>
+            ) : null}
             <header className="border-b border-border px-4 py-4">
               <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                 {t(memberTier.eyebrowKey)}
@@ -48,23 +62,71 @@ export default function PricingPage() {
               </p>
             </header>
             <div className="flex flex-1 flex-col px-4 py-5">
+              <div className="mb-4 inline-flex rounded-lg border-2 border-border bg-secondary/40 p-1">
+                {(["monthly", "annual"] as const).map((period) => (
+                  <button
+                    key={period}
+                    type="button"
+                    onClick={() => setBilling(period)}
+                    className={clsx(
+                      "rounded-md px-3 py-1.5 text-xs font-semibold transition-colors",
+                      billing === period
+                        ? period === "annual"
+                          ? "bg-accent text-accent-foreground shadow-sm"
+                          : "bg-secondary text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {t(period === "monthly" ? "membershipOffer.billingMonthly" : "membershipOffer.billingAnnual")}
+                    {period === "annual" ? " ⭐" : ""}
+                  </button>
+                ))}
+              </div>
+
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground line-through">
-                  {isZh ? annualBilling.wasZh : annualBilling.wasEn}
-                </p>
-                <p className="font-heading text-5xl font-bold tracking-tight">
-                  {isZh ? annualBilling.priceZh : annualBilling.priceEn}
+                {isAnnual ? (
+                  <p className="text-sm text-muted-foreground line-through">
+                    {isZh ? annualBilling.wasZh : annualBilling.wasEn}
+                    <span className="ml-1.5 text-xs">({t("membershipOffer.monthlyEquivalentLabel")})</span>
+                  </p>
+                ) : null}
+                <p
+                  className={clsx(
+                    "font-heading text-5xl font-bold tracking-tight",
+                    !isAnnual && "text-muted-foreground",
+                  )}
+                >
+                  {isZh ? billingInfo.priceZh : billingInfo.priceEn}
                   <span className="text-lg font-semibold text-muted-foreground">
-                    {isZh ? annualBilling.periodZh : annualBilling.periodEn}
+                    {isZh ? billingInfo.periodZh : billingInfo.periodEn}
                   </span>
                 </p>
-                <p className="text-sm font-medium text-primary">
-                  {isZh ? annualBilling.monthlyEquivZh : annualBilling.monthlyEquivEn}
-                  <span className="mx-1.5 text-muted-foreground">·</span>
-                  <span className="text-muted-foreground">
-                    {isZh ? "参考价" : "Reference"} {annualBilling.referenceEn}
-                  </span>
-                </p>
+                {isAnnual ? (
+                  <p className="text-sm font-medium text-primary">
+                    {isZh ? annualBilling.monthlyEquivZh : annualBilling.monthlyEquivEn}
+                    <span className="mx-1.5 text-muted-foreground">·</span>
+                    <span className="font-semibold text-accent">
+                      {isZh ? annualBilling.saveZh : annualBilling.saveEn}
+                    </span>
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      {t("membershipOffer.monthlyAnnualCost")}
+                      {": "}
+                      <span className="font-mono font-medium text-foreground">
+                        {isZh ? monthlyBilling.annualCostZh : monthlyBilling.annualCostEn}
+                      </span>
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setBilling("annual")}
+                      className="text-left text-sm font-semibold text-accent underline-offset-2 hover:underline"
+                    >
+                      {t("membershipOffer.switchToAnnual")}
+                    </button>
+                  </div>
+                )}
               </div>
 
               <ul className="mt-5 flex-1 space-y-3">
@@ -77,7 +139,12 @@ export default function PricingPage() {
               </ul>
               <Link
                 href={memberTier.ctaHref}
-                className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:brightness-95"
+                className={clsx(
+                  "mt-6 inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold transition-colors",
+                  isAnnual
+                    ? "bg-primary text-primary-foreground hover:brightness-95"
+                    : "border border-border bg-background text-muted-foreground hover:bg-secondary",
+                )}
               >
                 {t(memberTier.ctaKey)}
               </Link>

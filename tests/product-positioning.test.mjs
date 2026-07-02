@@ -27,10 +27,12 @@ test("membership positioning is centralized for pricing and blog surfaces", () =
   assert.match(offer, /id: "member"/);
   assert.doesNotMatch(offer, /id: "premium"/);
   assert.match(offer, /¥1,499/);
-  assert.doesNotMatch(offer, /monthly:/);
+  assert.match(offer, /¥598/);
+  assert.match(offer, /monthly:/);
+  assert.match(offer, /saveZh.*79%/);
   assert.match(pricingPage, /md:grid-cols-2/);
   assert.match(pricingPage, /MEMBER_BILLING\.annual/);
-  assert.doesNotMatch(pricingPage, /billingMonthly|BillingPeriod|setBilling/);
+  assert.match(pricingPage, /billingMonthly|BillingPeriod|setBilling/);
   assert.doesNotMatch(pricingPage, /md:grid-cols-3/);
 });
 
