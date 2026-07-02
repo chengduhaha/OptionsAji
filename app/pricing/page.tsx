@@ -96,7 +96,7 @@ export default function PricingPage() {
           <h2 className="font-heading text-lg font-bold">{t("v3.membership.contactTitle")}</h2>
           <ul className="mt-4 space-y-2 font-mono text-sm">
             <li>
-              {t("v3.membership.contactWechat")}: <strong className="text-base">183456821</strong>
+              {t("v3.membership.contactWechat")}: <strong className="text-base">futurepulse5788</strong>
             </li>
             <li>
               {t("v3.membership.contactDiscord")}: <strong className="text-base">ajifinance</strong>

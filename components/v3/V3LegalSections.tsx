@@ -43,7 +43,7 @@ export default function V3LegalSections({ pageKey }: V3LegalSectionsProps) {
           </li>
           <li>
             <span className="font-bold">{t("v3.legal.contact.wechatLabel")}: </span>
-            183456821
+            futurepulse5788
           </li>
           <li>
             <span className="font-bold">{t("v3.legal.contact.discordLabel")}: </span>

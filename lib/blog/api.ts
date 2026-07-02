@@ -84,7 +84,8 @@ export async function fetchBlogPosts(params?: {
 export async function fetchBlogPost(slug: string, token?: string): Promise<BlogPostDetail> {
   const headers: HeadersInit = {};
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await authFetch(`/api/blog/posts/${encodeURIComponent(slug)}`, {
+  const fetcher = token ? authFetch : apiFetch;
+  const res = await fetcher(`/api/blog/posts/${encodeURIComponent(slug)}`, {
     headers,
     cache: "no-store",
   });
