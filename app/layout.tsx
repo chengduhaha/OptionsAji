@@ -2,6 +2,15 @@ import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
 import { JetBrains_Mono, Space_Grotesk, Syne } from "next/font/google";
 import Providers from "./providers";
+import {
+  DEFAULT_OG_IMAGE,
+  SITE_NAME,
+  SITE_OG_LOCALE,
+  SITE_TWITTER,
+  SITE_URL,
+  isVercelPreview,
+} from "@/lib/seo/site";
+import { OrganizationWebSiteJsonLd } from "@/components/seo/JsonLd";
 import "./globals.css";
 
 const syne = Syne({
@@ -21,15 +30,71 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
 });
 
+const previewNoindex = isVercelPreview();
+
 export const metadata: Metadata = {
-  title: "OptionsAji — Gamma Exposure",
-  description: "美股期权 Gamma Exposure 分析 — Strike 分布、Net GEX 趋势、Gamma Flip 估算",
-  keywords: ["期权", "GEX", "Gamma Exposure", "SPY", "OptionsAji"],
-  authors: [{ name: "OptionsAji" }],
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "OptionsAji — 美股期权数据分析与教育平台",
+    template: "%s | OptionsAji",
+  },
+  description:
+    "OptionsAji 是面向华语美股期权交易者的数据与教育平台：异动合约、成交量、持仓、GEX、波动率与情绪榜单，配合中文市场解读与课程。",
+  applicationName: SITE_NAME,
+  keywords: [
+    "期权",
+    "美股期权",
+    "OptionsAji",
+    "GEX",
+    "Gamma Exposure",
+    "异动期权",
+    "IV Rank",
+    "期权数据",
+    "期权教育",
+    "SPY",
+    "QQQ",
+  ],
+  authors: [{ name: SITE_NAME, url: SITE_URL }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  alternates: {
+    canonical: SITE_URL,
+  },
   openGraph: {
-    title: "OptionsAji — Gamma Exposure",
-    description: "Strike Gamma 分布 · Net GEX 趋势 · Gamma Flip 估算",
+    title: "OptionsAji — 美股期权数据分析与教育平台",
+    description:
+      "异动合约 · 成交量 · 持仓 · GEX · 波动率 · 情绪榜单 — 中文原生期权数据平台",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    locale: SITE_OG_LOCALE,
     type: "website",
+    images: [
+      {
+        url: DEFAULT_OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: "OptionsAji · 美股期权数据与教育",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "OptionsAji — 美股期权数据分析与教育平台",
+    description:
+      "异动合约 · 成交量 · 持仓 · GEX · 波动率 · 情绪榜单 — 中文原生期权数据平台",
+    site: SITE_TWITTER,
+    images: [DEFAULT_OG_IMAGE],
+  },
+  robots: {
+    index: !previewNoindex,
+    follow: !previewNoindex,
+    googleBot: {
+      index: !previewNoindex,
+      follow: !previewNoindex,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
 };
 
@@ -58,7 +123,10 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="bg-background text-foreground font-sans antialiased">
-        <Providers>{children}</Providers>
+        <Providers>
+          <OrganizationWebSiteJsonLd />
+          {children}
+        </Providers>
       </body>
     </html>
   );
