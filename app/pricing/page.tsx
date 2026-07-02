@@ -114,6 +114,9 @@ export default function PricingPage() {
               >
                 {t(memberTier.ctaKey)}
               </Link>
+              <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">
+                {t("membershipOffer.trialHint")}
+              </p>
             </div>
           </article>
         </div>

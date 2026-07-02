@@ -8,6 +8,13 @@ export const MEMBERSHIP_VALUE_KEYS = [
 
 export type BillingPeriod = "monthly" | "annual";
 
+export const TRIAL_BILLING = {
+  priceZh: "¥49",
+  priceEn: "$9.9",
+  periodZh: "/7天",
+  periodEn: "/7 days",
+} as const;
+
 export const MEMBER_BILLING = {
   monthly: {
     priceZh: "¥199",

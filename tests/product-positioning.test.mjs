@@ -31,6 +31,13 @@ test("membership positioning is centralized for pricing and blog surfaces", () =
   assert.doesNotMatch(pricingPage, /md:grid-cols-3/);
 });
 
+test("membership copy does not promise unavailable AI analyst or fixed library counts", () => {
+  const offerBlocks = topLevelBlocks(namespaces, "membershipOffer").join("\n");
+
+  assert.doesNotMatch(offerBlocks, /108/);
+  assert.doesNotMatch(offerBlocks, /AI 分析师与策略解读|AI analyst and strategy reads/i);
+});
+
 test("membership copy does not promise daily or weekly output cadence", () => {
   const blogBlocks = topLevelBlocks(namespaces, "blog");
 
