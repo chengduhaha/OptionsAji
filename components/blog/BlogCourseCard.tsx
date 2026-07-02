@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Lock } from "lucide-react";
+import { useCallback, useRef } from "react";
 
 import CourseThumbnailPlaceholder from "@/components/blog/CourseThumbnailPlaceholder";
 import { blogCategoryLabel } from "@/lib/blog/categories";
@@ -16,6 +17,8 @@ type BlogCourseCardProps = {
   locked?: boolean;
 };
 
+const PREFETCH_DEBOUNCE_MS = 200;
+
 function durationLabel(course: BlogAttachment): string {
   if (course.duration_sec != null && course.duration_sec > 0) {
     return formatVideoDuration(course.duration_sec);
@@ -25,13 +28,27 @@ function durationLabel(course: BlogAttachment): string {
 
 export default function BlogCourseCard({ course, locked = false }: BlogCourseCardProps) {
   const { locale, t } = useI18n();
+  const prefetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const title = pickLocalized(locale, course.title_zh, course.title_en, course.original_filename);
   const href = locked ? "/pricing" : `/blog/courses/${course.id}`;
 
-  const handlePrefetch = () => {
+  const handlePrefetch = useCallback(() => {
     if (locked) return;
-    void prefetchBlogPlayToken(course.id).catch(() => undefined);
-  };
+    if (prefetchTimerRef.current) {
+      clearTimeout(prefetchTimerRef.current);
+    }
+    prefetchTimerRef.current = setTimeout(() => {
+      prefetchTimerRef.current = null;
+      void prefetchBlogPlayToken(course.id).catch(() => undefined);
+    }, PREFETCH_DEBOUNCE_MS);
+  }, [course.id, locked]);
+
+  const cancelPrefetch = useCallback(() => {
+    if (prefetchTimerRef.current) {
+      clearTimeout(prefetchTimerRef.current);
+      prefetchTimerRef.current = null;
+    }
+  }, []);
 
   return (
     <article className="group">
@@ -39,6 +56,8 @@ export default function BlogCourseCard({ course, locked = false }: BlogCourseCar
         href={href}
         onMouseEnter={handlePrefetch}
         onFocus={handlePrefetch}
+        onMouseLeave={cancelPrefetch}
+        onBlur={cancelPrefetch}
         className={cn(
           "block overflow-hidden rounded-xl border-2 border-border bg-card transition-all",
           !locked &&

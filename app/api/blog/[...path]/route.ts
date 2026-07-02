@@ -69,8 +69,10 @@ async function forward(req: NextRequest, segments: string[]): Promise<Response> 
     if (contentLength) passthroughHeaders.set("Content-Length", contentLength);
     passthroughHeaders.set(
       "Cache-Control",
-      isVideo ? "no-store" : isImage ? "public, max-age=3600" : "public, max-age=300",
+      isVideo ? "no-store" : isImage ? "public, max-age=86400, stale-while-revalidate=604800" : "public, max-age=300",
     );
+    const etag = upstream.headers.get("etag");
+    if (etag) passthroughHeaders.set("ETag", etag);
 
     return new Response(upstream.body, {
       status: upstream.status,

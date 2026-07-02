@@ -1,6 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { Play } from "lucide-react";
+import { useState } from "react";
 
 import { resolveApiUrl } from "@/lib/apiBase";
 import { useI18n } from "@/lib/i18n/context";
@@ -18,13 +20,31 @@ export default function CourseThumbnailPlaceholder({
   alt = "",
 }: CourseThumbnailPlaceholderProps) {
   const { t } = useI18n();
+  const [imageFailed, setImageFailed] = useState(false);
 
-  if (thumbnailUrl) {
+  if (thumbnailUrl && !imageFailed) {
+    const src = resolveApiUrl(thumbnailUrl);
+    return (
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        unoptimized
+        loading="lazy"
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        className={cn("object-cover", className)}
+        onError={() => setImageFailed(true)}
+      />
+    );
+  }
+
+  if (thumbnailUrl && imageFailed) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={resolveApiUrl(thumbnailUrl)}
         alt={alt}
+        loading="lazy"
         className={cn("h-full w-full object-cover", className)}
       />
     );

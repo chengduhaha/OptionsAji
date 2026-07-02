@@ -1,6 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "api.options-aji.com", pathname: "/api/blog/**" },
+      { protocol: "https", hostname: "www.options-aji.com", pathname: "/api/blog/**" },
+      { protocol: "https", hostname: "options-aji.com", pathname: "/api/blog/**" },
+      // CDN placeholder — enable when media.options-aji.com DNS is configured
+      { protocol: "https", hostname: "media.options-aji.com", pathname: "/**" },
+      { protocol: "http", hostname: "localhost", port: "8000", pathname: "/api/blog/**" },
+      { protocol: "http", hostname: "127.0.0.1", port: "8000", pathname: "/api/blog/**" },
+    ],
+  },
   experimental: {
     serverActions: {
       allowedOrigins: ["*"],

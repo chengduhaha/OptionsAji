@@ -19,6 +19,9 @@ export function remapDirectBackendPath(path: string): string {
 }
 
 export function resolveApiUrl(path: string): string {
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
   const normalized = path.startsWith("/") ? path : `/${path}`;
   const base = apiBaseUrl();
   if (!base) return normalized;
