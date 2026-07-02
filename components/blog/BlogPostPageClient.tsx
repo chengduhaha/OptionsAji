@@ -1,9 +1,9 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import BlogHtmlContent from "@/components/blog/BlogHtmlContent";
 import BlogMarkdown from "@/components/blog/BlogMarkdown";
 import BlogPdfViewer from "@/components/blog/BlogPdfViewer";
 import BlogReadingProgress from "@/components/blog/BlogReadingProgress";
@@ -19,6 +19,11 @@ import { useAuth } from "@/lib/auth-context";
 import { formatMessage } from "@/lib/i18n/dictionary";
 import { useI18n } from "@/lib/i18n/context";
 import type { Locale } from "@/lib/i18n/types";
+
+const BlogHtmlContent = dynamic(() => import("@/components/blog/BlogHtmlContent"), {
+  ssr: false,
+  loading: () => <p className="text-sm text-muted-foreground">加载图表内容…</p>,
+});
 
 function pickLocalized(
   locale: Locale,
