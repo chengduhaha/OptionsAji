@@ -49,7 +49,7 @@ export default function V4SiteFooter() {
         {ready && isAdmin ? (
           <div className="mt-8 rounded-xl border border-primary/30 bg-primary/5 px-4 py-4">
             <h4 className="text-xs font-semibold uppercase tracking-wide text-primary">
-              {t("blog.admin.footerTitle")}
+              {t("blog.admin.hub")}
             </h4>
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
               <Link href="/admin/blog" className="text-foreground/80 hover:text-primary">
@@ -62,7 +62,7 @@ export default function V4SiteFooter() {
                 {t("blog.admin.courses.nav")}
               </Link>
               <Link href="/admin/codes" className="text-foreground/80 hover:text-primary">
-                Admin
+                {t("blog.admin.codes.nav")}
               </Link>
             </div>
           </div>

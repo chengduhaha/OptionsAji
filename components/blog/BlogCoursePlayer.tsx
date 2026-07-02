@@ -9,6 +9,7 @@ import { formatFileSize, formatVideoDuration, pickLocalized } from "@/lib/blog/f
 import { blogCategoryLabel } from "@/lib/blog/categories";
 import { getCachedPlayToken, prefetchBlogPlayToken } from "@/lib/blog/playTokenCache";
 import type { BlogAttachment } from "@/lib/blog/types";
+import VideoWatermarkOverlay from "@/components/blog/VideoWatermarkOverlay";
 import { useI18n } from "@/lib/i18n/context";
 
 type BlogCoursePlayerProps = {
@@ -33,6 +34,7 @@ export default function BlogCoursePlayer({
   const [error, setError] = useState<string | null>(null);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const reset = useCallback(() => {
     setStreamUrl(null);
@@ -41,6 +43,7 @@ export default function BlogCoursePlayer({
     setError(null);
     setDuration(0);
     setCurrentTime(0);
+    setIsPlaying(false);
   }, []);
 
   useEffect(() => {
@@ -121,19 +124,25 @@ export default function BlogCoursePlayer({
 
       <div className="relative aspect-video bg-[linear-gradient(145deg,#e8e4e0_0%,#d4cfc8_100%)]">
         {streamUrl ? (
-          <video
-            ref={videoRef}
-            className="h-full w-full bg-black object-contain"
-            controls
-            controlsList="nodownload noplaybackrate noremoteplayback"
-            disablePictureInPicture
-            playsInline
-            preload="metadata"
-            src={streamUrl}
-            onContextMenu={(event) => event.preventDefault()}
-            onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
-            onTimeUpdate={handleTimeUpdate}
-          />
+          <>
+            <video
+              ref={videoRef}
+              className="h-full w-full bg-black object-contain"
+              controls
+              controlsList="nodownload noplaybackrate noremoteplayback"
+              disablePictureInPicture
+              playsInline
+              preload="metadata"
+              src={streamUrl}
+              onContextMenu={(event) => event.preventDefault()}
+              onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
+              onTimeUpdate={handleTimeUpdate}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              onEnded={() => setIsPlaying(false)}
+            />
+            <VideoWatermarkOverlay playing={isPlaying} />
+          </>
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-3">
             {loading ? (

@@ -1014,8 +1014,13 @@ export const extraZh: DictionaryTree = {
       tagline: "期权阿吉",
     },
     nav: {
+      dataBoards: "数据榜单",
       hot: "热门榜单",
       advanced: "进阶榜单",
+      section: {
+        hot: "热门",
+        advanced: "进阶",
+      },
       openMenu: "打开菜单",
       tagline: {
         unusual: "成交量远超持仓，捕捉当日大举建仓",
@@ -1313,6 +1318,7 @@ This page keeps the bio and public social links focused. Product positioning, da
       },
     },
     admin: {
+      hub: "后台管理",
       nav: "文章管理",
       footerTitle: "管理后台",
       title: "博客管理",
@@ -1373,6 +1379,9 @@ This page keeps the bio and public social links focused. Product positioning, da
         hasCover: "已设置封面",
         noCover: "尚未上传封面",
         imageOnly: "仅支持 JPEG、PNG 或 WebP 图片",
+      },
+      codes: {
+        nav: "激活码管理",
       },
     },
   },
@@ -2394,8 +2403,13 @@ export const extraEn: DictionaryTree = {
       tagline: "OptionsAji",
     },
     nav: {
+      dataBoards: "Data boards",
       hot: "Hot boards",
       advanced: "Advanced",
+      section: {
+        hot: "Hot",
+        advanced: "Advanced",
+      },
       openMenu: "Open menu",
       tagline: {
         unusual: "Volume far above OI — spot unusual new positioning",
@@ -2688,6 +2702,7 @@ This page keeps the bio and public social links focused. Product positioning, da
       },
     },
     admin: {
+      hub: "Admin",
       nav: "Blog Admin",
       footerTitle: "Admin",
       title: "Blog admin",
@@ -2748,6 +2763,9 @@ This page keeps the bio and public social links focused. Product positioning, da
         hasCover: "Cover uploaded",
         noCover: "No cover yet",
         imageOnly: "JPEG, PNG, or WebP only",
+      },
+      codes: {
+        nav: "Activation codes",
       },
     },
   },

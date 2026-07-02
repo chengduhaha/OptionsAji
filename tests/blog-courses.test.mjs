@@ -57,9 +57,36 @@ test("member library hub uses tabs and redirects legacy /blog/courses", () => {
 test("admin courses page and header expose cover management", () => {
   const adminPage = readFileSync(new URL("../app/admin/courses/page.tsx", import.meta.url), "utf8");
   const header = readFileSync(new URL("../components/v4/V4SiteHeader.tsx", import.meta.url), "utf8");
+  const navConfig = readFileSync(new URL("../lib/v4/navConfig.ts", import.meta.url), "utf8");
   const siteFooter = readFileSync(new URL("../components/v4/V4SiteFooter.tsx", import.meta.url), "utf8");
 
   assert.match(adminPage, /uploadBlogAttachmentThumbnail/);
-  assert.match(header, /\/admin\/courses/);
+  assert.match(header, /blog\.admin\.hub/);
+  assert.match(header, /AdminNavDropdown/);
+  assert.match(navConfig, /V4_ADMIN_LINKS/);
+  assert.match(navConfig, /\/admin\/courses/);
   assert.match(siteFooter, /\/admin\/courses/);
+});
+
+test("course player overlays dynamic anti-piracy watermark while playing", () => {
+  const player = readFileSync(new URL("../components/blog/BlogCoursePlayer.tsx", import.meta.url), "utf8");
+  const watermark = readFileSync(new URL("../components/blog/VideoWatermarkOverlay.tsx", import.meta.url), "utf8");
+
+  assert.match(player, /VideoWatermarkOverlay/);
+  assert.match(player, /onPlay=\{\(\) => setIsPlaying\(true\)\}/);
+  assert.match(watermark, /watermarkLabel/);
+  assert.match(watermark, /pointer-events-none/);
+  assert.match(watermark, /randomBetween\(8000, 15000\)/);
+  assert.match(watermark, /访客/);
+});
+
+test("data boards nav is merged into a single dropdown", () => {
+  const header = readFileSync(new URL("../components/v4/V4SiteHeader.tsx", import.meta.url), "utf8");
+  const navConfig = readFileSync(new URL("../lib/v4/navConfig.ts", import.meta.url), "utf8");
+
+  assert.match(navConfig, /V4_DATA_BOARDS/);
+  assert.match(navConfig, /v4\.nav\.dataBoards/);
+  assert.doesNotMatch(navConfig, /V4_NAV_GROUPS/);
+  assert.match(header, /DataBoardsDropdown/);
+  assert.doesNotMatch(header, /V4_NAV_GROUPS/);
 });
