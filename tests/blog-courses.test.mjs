@@ -61,6 +61,8 @@ test("admin courses page and header expose cover management", () => {
   const siteFooter = readFileSync(new URL("../components/v4/V4SiteFooter.tsx", import.meta.url), "utf8");
 
   assert.match(adminPage, /uploadBlogAttachmentThumbnail/);
+  const placeholder = readFileSync(new URL("../components/blog/CourseThumbnailPlaceholder.tsx", import.meta.url), "utf8");
+  assert.match(placeholder, /resolveApiUrl\(thumbnailUrl\)/);
   assert.match(header, /blog\.admin\.hub/);
   assert.match(header, /AdminNavDropdown/);
   assert.match(navConfig, /V4_ADMIN_LINKS/);

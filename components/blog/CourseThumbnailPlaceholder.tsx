@@ -2,6 +2,7 @@
 
 import { Play } from "lucide-react";
 
+import { resolveApiUrl } from "@/lib/apiBase";
 import { useI18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +22,11 @@ export default function CourseThumbnailPlaceholder({
   if (thumbnailUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={thumbnailUrl} alt={alt} className={cn("h-full w-full object-cover", className)} />
+      <img
+        src={resolveApiUrl(thumbnailUrl)}
+        alt={alt}
+        className={cn("h-full w-full object-cover", className)}
+      />
     );
   }
 
