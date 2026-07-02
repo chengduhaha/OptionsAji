@@ -182,14 +182,23 @@ export async function fetchBlogCourses(params?: {
   category?: string;
   page?: number;
   page_size?: number;
+  sort?: "newest" | "oldest";
 }): Promise<BlogDocumentListResponse> {
   const qs = new URLSearchParams();
   if (params?.category) qs.set("category", params.category);
   if (params?.page) qs.set("page", String(params.page));
   if (params?.page_size) qs.set("page_size", String(params.page_size));
+  if (params?.sort) qs.set("sort", params.sort);
   const suffix = qs.toString() ? `?${qs.toString()}` : "";
   const res = await authFetch(`/api/blog/courses${suffix}`, { cache: "no-store" });
   return readJson<BlogDocumentListResponse>(res);
+}
+
+export async function fetchBlogCourse(attachmentId: string): Promise<BlogAttachment> {
+  const res = await authFetch(`/api/blog/courses/${encodeURIComponent(attachmentId)}`, {
+    cache: "no-store",
+  });
+  return readJson<BlogAttachment>(res);
 }
 
 export async function fetchBlogPlayToken(attachmentId: string): Promise<BlogPlayTokenResponse> {

@@ -15,6 +15,8 @@ export type BlogAttachment = {
   download_url: string;
   view_url: string;
   created_at: string | null;
+  duration_sec?: number | null;
+  thumbnail_url?: string | null;
 };
 
 export type BlogDocumentListResponse = {

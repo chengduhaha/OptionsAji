@@ -1,22 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { Play } from "lucide-react";
+import { Loader2, Play } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { BlogApiError, fetchBlogPlayToken } from "@/lib/blog/api";
+import { BlogApiError } from "@/lib/blog/api";
 import { formatFileSize, formatVideoDuration, pickLocalized } from "@/lib/blog/format";
 import { blogCategoryLabel } from "@/lib/blog/categories";
+import { getCachedPlayToken, prefetchBlogPlayToken } from "@/lib/blog/playTokenCache";
 import type { BlogAttachment } from "@/lib/blog/types";
 import { useI18n } from "@/lib/i18n/context";
 
 type BlogCoursePlayerProps = {
   course: BlogAttachment | null;
   isMember: boolean;
+  autoPlay?: boolean;
   onEndedPreview?: () => void;
 };
 
-export default function BlogCoursePlayer({ course, isMember, onEndedPreview }: BlogCoursePlayerProps) {
+export default function BlogCoursePlayer({
+  course,
+  isMember,
+  autoPlay = false,
+  onEndedPreview,
+}: BlogCoursePlayerProps) {
   const { locale, t } = useI18n();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
@@ -40,18 +47,28 @@ export default function BlogCoursePlayer({ course, isMember, onEndedPreview }: B
     reset();
   }, [course?.id, reset]);
 
+  const applyToken = useCallback(
+    (token: { stream_url: string; preview: boolean; preview_seconds: number | null }) => {
+      setStreamUrl(token.stream_url);
+      setPreviewSeconds(token.preview ? token.preview_seconds : null);
+      if (autoPlay) {
+        requestAnimationFrame(() => {
+          void videoRef.current?.play().catch(() => undefined);
+        });
+      }
+    },
+    [autoPlay],
+  );
+
   const loadStream = useCallback(async () => {
     if (!course) return;
     setLoading(true);
     setError(null);
     setPreviewEnded(false);
     try {
-      const token = await fetchBlogPlayToken(course.id);
-      setStreamUrl(token.stream_url);
-      setPreviewSeconds(token.preview ? token.preview_seconds : null);
-      requestAnimationFrame(() => {
-        void videoRef.current?.play().catch(() => undefined);
-      });
+      const cached = getCachedPlayToken(course.id);
+      const token = cached ?? (await prefetchBlogPlayToken(course.id));
+      applyToken(token);
     } catch (e: unknown) {
       if (e instanceof BlogApiError && e.status === 404) {
         setError(t("blog.courses.player.locked"));
@@ -61,13 +78,13 @@ export default function BlogCoursePlayer({ course, isMember, onEndedPreview }: B
     } finally {
       setLoading(false);
     }
-  }, [course, t]);
+  }, [applyToken, course, t]);
 
   useEffect(() => {
-    if (course) {
+    if (course && autoPlay) {
       void loadStream();
     }
-  }, [course, loadStream]);
+  }, [autoPlay, course, loadStream]);
 
   const handleTimeUpdate = () => {
     const video = videoRef.current;
@@ -89,9 +106,15 @@ export default function BlogCoursePlayer({ course, isMember, onEndedPreview }: B
   }
 
   const title = pickLocalized(locale, course.title_zh, course.title_en, course.original_filename);
+  const displayDuration =
+    course.duration_sec != null && course.duration_sec > 0
+      ? formatVideoDuration(course.duration_sec)
+      : duration > 0
+        ? formatVideoDuration(duration)
+        : null;
 
   return (
-    <section className="mb-8 overflow-hidden rounded-xl border-2 border-border bg-card shadow-[4px_4px_0_0_hsl(var(--foreground)/0.08)]">
+    <section className="overflow-hidden rounded-xl border-2 border-border bg-card shadow-[4px_4px_0_0_hsl(var(--foreground)/0.08)]">
       <div className="border-b-2 border-border bg-secondary/30 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {isMember ? t("blog.courses.player.playingMember") : t("blog.courses.player.playingGuest")}
       </div>
@@ -109,9 +132,12 @@ export default function BlogCoursePlayer({ course, isMember, onEndedPreview }: B
             onTimeUpdate={handleTimeUpdate}
           />
         ) : (
-          <div className="flex h-full items-center justify-center">
+          <div className="flex h-full flex-col items-center justify-center gap-3">
             {loading ? (
-              <p className="text-sm text-muted-foreground">{t("blog.loading")}</p>
+              <>
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm font-medium text-muted-foreground">{t("blog.courses.player.loadingVideo")}</p>
+              </>
             ) : error ? (
               <p className="px-4 text-center text-sm text-destructive">{error}</p>
             ) : (
@@ -155,7 +181,7 @@ export default function BlogCoursePlayer({ course, isMember, onEndedPreview }: B
       <div className="border-t-2 border-border px-4 py-4 sm:px-5">
         <h2 className="font-heading text-lg font-bold">{title}</h2>
         <div className="mt-2 flex flex-wrap gap-3 font-mono text-xs text-muted-foreground">
-          {duration > 0 ? <span>{formatVideoDuration(duration)}</span> : null}
+          {displayDuration ? <span>{displayDuration}</span> : null}
           <span>{formatFileSize(course.file_size)}</span>
           <span>
             {t("blog.courses.categoryLabel")}: {blogCategoryLabel(t, course.category)}
