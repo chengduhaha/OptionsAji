@@ -607,7 +607,7 @@ export const extraZh: DictionaryTree = {
       },
     },
     legal: {
-      placeholderBanner: "[PLACEHOLDER — 待法务审核 Legal review pending]",
+      lastUpdated: "最后更新：2026年7月",
       about: {
         title: "关于我们",
         subtitle: "About OptionsAji",
@@ -628,73 +628,157 @@ export const extraZh: DictionaryTree = {
       terms: {
         title: "服务条款",
         subtitle: "Terms of Service",
-        sectionCount: "4",
+        sectionCount: "11",
+        intro:
+          "欢迎使用 OptionsAji。本服务条款(\"条款\")是您与 AJI DIGITAL LABS LLC(一家在美国怀俄明州注册的有限责任公司,以下简称\"我们\")之间就使用 options-aji.com 网站及相关服务(\"服务\")所达成的具有法律约束力的协议。",
         s1: {
-          heading: "1. 接受条款",
-          body: "[PLACEHOLDER] 使用 OptionsAji 即表示您同意本服务条款。本文件为占位版本，正式条款经法务审核后替换。",
+          heading: "1. 服务接受",
+          body: "访问或使用本服务即表示您同意受本条款约束。若您不同意本条款,请勿使用本服务。",
         },
         s2: {
-          heading: "2. 服务范围",
-          body: "[PLACEHOLDER] 本平台提供数据分析、市场信息整理与教育内容。不构成投资建议、交易建议或收益承诺。",
+          heading: "2. 服务内容",
+          body: "我们提供美股期权数据分析工具、市场报告、教育课程资料及市场解读内容。服务包括免费部分和付费会员部分。付费内容需通过有效会员权限访问。",
         },
         s3: {
-          heading: "3. 账户与付费",
-          body: "[PLACEHOLDER] 会员订阅通过激活码或第三方支付（Creem/Stripe）完成。具体退款规则见「退款政策」。",
+          heading: "3. 账户与会员",
+          body: "- 您需注册账户以使用部分功能。您有责任维护账户信息的真实性和密码的保密性。\n- 会员权限通过购买或兑换激活码获得,绑定至您的账户,具有相应的有效期。\n- 会员权限仅供您本人使用,不得转让、分享、转售或供多人共用。我们保留因滥用而终止账户的权利。",
         },
         s4: {
-          heading: "4. 责任限制",
-          body: "[PLACEHOLDER] 因市场波动、数据延迟或第三方数据源错误导致的损失，OptionsAji 不承担赔偿责任。",
+          heading: "4. 用户行为规范",
+          body: "您同意不会:(a) 未经授权抓取、复制、转售或再分发本平台内容或数据;(b) 分享账户或会员权限给他人;(c) 从事任何非法活动或侵犯他人权利的行为;(d) 干扰或破坏服务的正常运行。",
+        },
+        s5: {
+          heading: "5. 知识产权",
+          body: "本平台的所有原创内容(包括分析报告、课程、文字、图表和平台设计)的知识产权归 AJI DIGITAL LABS LLC 所有。未经书面许可,不得复制、分发或用于商业用途。",
+        },
+        s6: {
+          heading: "6. 非投资建议",
+          body: "本服务仅提供信息与教育内容,不构成投资建议。详见《免责声明》。",
+        },
+        s7: {
+          heading: "7. 服务变更与终止",
+          body: "我们保留随时修改、暂停或终止全部或部分服务的权利。我们也保留在您违反本条款时终止您账户的权利。",
+        },
+        s8: {
+          heading: "8. 责任限制",
+          body: "在适用法律允许的最大范围内,AJI DIGITAL LABS LLC 不对因使用或无法使用本服务而产生的任何直接、间接、偶然或后果性损失承担责任,包括但不限于投资损失。",
+        },
+        s9: {
+          heading: "9. 管辖法律",
+          body: "本条款受美国怀俄明州法律管辖并据其解释,不考虑法律冲突原则。",
+        },
+        s10: {
+          heading: "10. 条款修改",
+          body: "我们可能不时更新本条款。更新后继续使用服务即视为接受修改后的条款。",
+        },
+        s11: {
+          heading: "11. 联系方式",
+          body: "如有疑问,请联系:support@options-aji.com",
         },
       },
       privacy: {
         title: "隐私政策",
         subtitle: "Privacy Policy",
-        sectionCount: "3",
+        sectionCount: "10",
+        intro:
+          "AJI DIGITAL LABS LLC(\"我们\")尊重并保护您的隐私。本隐私政策说明我们在您使用 options-aji.com(\"本平台\")时如何收集、使用和保护您的个人信息。",
         s1: {
-          heading: "1. 收集的信息",
-          body: "[PLACEHOLDER] 我们可能收集注册邮箱、登录日志、使用偏好及支付相关元数据（由 Creem/Stripe 处理，我们不存储完整卡号）。",
+          heading: "1. 我们收集的信息",
+          body: "- **账户信息**:注册时您提供的电子邮箱、密码(加密存储)。\n- **使用数据**:您访问的页面、使用的功能、访问时间等日志信息。\n- **技术信息**:IP 地址、浏览器类型、设备信息、Cookie。\n- **支付相关信息**:通过第三方支付渠道购买会员时,支付处理由第三方(如支付服务商)完成,我们不存储您的完整银行卡或支付账户信息。",
         },
         s2: {
-          heading: "2. 信息使用",
-          body: "[PLACEHOLDER] 用于账户管理、产品改进、安全审计及必要的客户支持。",
+          heading: "2. 我们如何使用信息",
+          body: "- 提供、维护和改进服务;\n- 管理您的账户和会员权限;\n- 与您沟通(如服务通知、支持回复);\n- 保障平台安全,防止滥用和欺诈;\n- 遵守法律义务。",
         },
         s3: {
-          heading: "3. 数据共享",
-          body: "[PLACEHOLDER] 除法律要求或支付处理必要外，我们不会向第三方出售您的个人信息。",
+          heading: "3. Cookie 的使用",
+          body: "我们使用 Cookie 及类似技术来维持登录状态、记住偏好和分析使用情况。您可通过浏览器设置管理 Cookie。",
+        },
+        s4: {
+          heading: "4. 信息共享",
+          body: "我们不出售您的个人信息。仅在以下情况共享:\n- 为提供服务所必需的第三方服务商(如支付处理、云服务、数据分析),且其受保密义务约束;\n- 法律要求或为保护我们的合法权利。",
+        },
+        s5: {
+          heading: "5. 数据安全",
+          body: "我们采取合理的技术和管理措施保护您的信息。但请理解,任何互联网传输或存储方式都无法保证绝对安全。",
+        },
+        s6: {
+          heading: "6. 数据保留",
+          body: "我们在提供服务所需的期间内保留您的信息,或依法律要求保留。",
+        },
+        s7: {
+          heading: "7. 您的权利",
+          body: "您有权访问、更正或删除您的个人信息。如需行使这些权利,请联系 support@options-aji.com。",
+        },
+        s8: {
+          heading: "8. 儿童隐私",
+          body: "本服务不面向 18 岁以下人士。我们不会故意收集未成年人的个人信息。",
+        },
+        s9: {
+          heading: "9. 政策更新",
+          body: "我们可能更新本隐私政策。重大变更将在平台上公告。",
+        },
+        s10: {
+          heading: "10. 联系方式",
+          body: "如对本隐私政策有任何疑问,请联系:support@options-aji.com",
         },
       },
       refund: {
         title: "退款政策",
         subtitle: "Refund Policy",
-        sectionCount: "3",
+        sectionCount: "5",
+        intro:
+          "感谢您成为 OptionsAji 会员。由于本平台提供的是数字内容和虚拟服务,我们制定以下退款政策。请在购买前仔细阅读。",
         s1: {
-          heading: "1. 数字订阅退款",
-          body: "[PLACEHOLDER — Stripe/Creem 合规占位] 激活码一经兑换并生效，原则上不予退款。未兑换的激活码可在购买后 7 日内申请退款。",
+          heading: "1. 退款申请条件",
+          body: "您可在以下全部条件满足时申请退款:\n- 自购买或激活会员之日起 **7 天(7 天)内**提出申请;且\n- 您**尚未大量下载或使用**会员专属资料(如历史报告、课程资料等);且\n- 您的会员激活码尚未被大量兑换使用。",
         },
         s2: {
-          heading: "2. 申请方式",
-          body: "[PLACEHOLDER] 请发送邮件至 support@options-aji.com，注明注册邮箱、订单信息与退款原因。",
+          heading: "2. 不予退款的情形",
+          body: "以下情况恕不退款:\n- 超过购买后 7 天;\n- 已大量下载、访问或使用会员专属内容(考虑到数字内容一经获取即无法收回);\n- 激活码已兑换并已使用相当部分有效期;\n- 因违反《服务条款》(如分享账户、转售内容)而被终止的账户。",
         },
         s3: {
-          heading: "3. 处理时效",
-          body: "[PLACEHOLDER] 我们将在 5–10 个工作日内回复。退款将原路返回至支付方式。",
+          heading: "3. 退款申请方式",
+          body: "请发送邮件至 **support@options-aji.com**,注明您的注册邮箱、购买时间和退款原因。我们将在收到申请后的 **7 个工作日内**审核并回复。",
+        },
+        s4: {
+          heading: "4. 退款处理",
+          body: "经批准的退款将按原付款方式退回。到账时间取决于支付渠道,通常为 5–10 个工作日。",
+        },
+        s5: {
+          heading: "5. 政策变更",
+          body: "我们保留随时修改本退款政策的权利。修改不影响修改前已完成的购买。\n\n如对本政策有任何疑问,请联系:support@options-aji.com",
         },
       },
       disclaimer: {
         title: "免责声明",
         subtitle: "Disclaimer",
-        sectionCount: "3",
+        sectionCount: "6",
+        intro:
+          "OptionsAji(以下简称\"本平台\",由 AJI DIGITAL LABS LLC 运营)是一个美股期权数据分析与教育平台。在使用本平台前,请仔细阅读并理解以下免责声明。",
         s1: {
-          heading: "非投资建议",
-          body: "OptionsAji 提供的所有数据、图表、榜单、AI 生成内容仅供数据分析与教育用途，不构成任何形式的投资建议、交易建议、荐股或收益承诺。",
+          heading: "1. 仅供信息与教育用途",
+          body: "本平台提供的所有内容,包括但不限于期权数据榜单、Gamma 敞口(GEX)分析、市场报告、个股研究、课程资料及市场解读,均仅供信息参考和教育学习之用。这些内容不构成、也不应被视为任何形式的投资建议、财务建议、交易建议或个性化推荐。",
         },
         s2: {
-          heading: "风险披露",
-          body: "期权交易具有高风险，可能导致全部本金损失。您应独立做出投资决策并自行承担全部风险。OptionsAji 不是注册投资顾问，不执行交易，不接触用户资金。",
+          heading: "2. 不提供投资顾问服务",
+          body: "本平台及 AJI DIGITAL LABS LLC 不是注册投资顾问(Registered Investment Adviser)、经纪商(Broker-Dealer)或任何持牌金融机构。我们不提供个性化投资建议,不代客交易,不管理或托管任何用户资金。",
         },
         s3: {
-          heading: "数据准确性",
-          body: "数据来自第三方（如 Futu OpenD），可能存在延迟、遗漏或错误。请勿将本平台数据作为唯一决策依据。",
+          heading: "3. 用户自行承担风险",
+          body: "期权交易涉及重大风险,可能导致您损失全部本金,甚至超过初始投资。任何基于本平台内容所做的投资或交易决策,完全由用户自行判断并承担全部责任。您应在做出任何投资决策前咨询独立的持牌专业人士。",
+        },
+        s4: {
+          heading: "4. 数据准确性",
+          body: "本平台的数据可能存在延迟(通常约 15 分钟),并可能包含错误或不完整之处。我们不对数据的准确性、完整性或及时性作出任何保证。用户不应仅依赖本平台数据做出交易决策。",
+        },
+        s5: {
+          heading: "5. 过往表现不预示未来",
+          body: "任何历史数据、分析或案例均不代表未来结果。过往表现不构成对未来收益的任何保证或暗示。",
+        },
+        s6: {
+          heading: "6. 无收益承诺",
+          body: "本平台不对任何投资收益、盈利或交易结果作出任何承诺、保证或暗示。\n\n使用本平台即表示您已阅读、理解并同意本免责声明的全部内容。",
         },
       },
       contact: {
@@ -727,7 +811,7 @@ export const extraZh: DictionaryTree = {
     },
     leaderboard: {
       answerPrefix: "这个榜单回答：",
-      refreshAt: "刷新 {time} ET",
+      refreshAt: "刷新 {time} 北京时间",
       filterType: "类型",
       all: "全部",
       dte7: "≤7天",
@@ -1840,7 +1924,7 @@ export const extraEn: DictionaryTree = {
       },
     },
     legal: {
-      placeholderBanner: "[PLACEHOLDER — Legal review pending]",
+      lastUpdated: "Last Updated: July 2026",
       about: {
         title: "About Us",
         subtitle: "关于我们",
@@ -1861,73 +1945,157 @@ export const extraEn: DictionaryTree = {
       terms: {
         title: "Terms of Service",
         subtitle: "服务条款",
-        sectionCount: "4",
+        sectionCount: "11",
+        intro:
+          "Welcome to OptionsAji. These Terms of Service (\"Terms\") constitute a legally binding agreement between you and AJI DIGITAL LABS LLC, a limited liability company registered in the State of Wyoming, USA (\"we\", \"us\"), governing your use of the options-aji.com website and related services (the \"Service\").",
         s1: {
-          heading: "1. Acceptance",
-          body: "[PLACEHOLDER] By using OptionsAji you agree to these Terms. This is a stub pending legal review.",
+          heading: "1. Acceptance of Terms",
+          body: "By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, do not use the Service.",
         },
         s2: {
-          heading: "2. Scope of service",
-          body: "[PLACEHOLDER] We provide data analysis, market information, and educational content—not investment advice or return promises.",
+          heading: "2. Description of Service",
+          body: "We provide U.S. equity options data analytics tools, market reports, educational course materials, and market commentary. The Service includes both free and paid membership content. Paid content requires valid membership access.",
         },
         s3: {
-          heading: "3. Accounts & billing",
-          body: "[PLACEHOLDER] Membership is via activation codes or third-party payment (Creem/Stripe). See Refund Policy for refunds.",
+          heading: "3. Accounts and Membership",
+          body: "- You must register an account to access certain features. You are responsible for maintaining accurate account information and the confidentiality of your password.\n- Membership access is obtained by purchasing or redeeming an activation key, is bound to your account, and carries a corresponding validity period.\n- Membership access is for your personal use only and may not be transferred, shared, resold, or used by multiple persons. We reserve the right to terminate accounts for abuse.",
         },
         s4: {
-          heading: "4. Limitation of liability",
-          body: "[PLACEHOLDER] OptionsAji is not liable for losses from market moves, data delays, or third-party data errors.",
+          heading: "4. User Conduct",
+          body: "You agree not to: (a) scrape, copy, resell, or redistribute the Platform's content or data without authorization; (b) share your account or membership access with others; (c) engage in any unlawful activity or infringe the rights of others; (d) interfere with or disrupt the Service.",
+        },
+        s5: {
+          heading: "5. Intellectual Property",
+          body: "All original content on the Platform (including analytical reports, courses, text, charts, and platform design) is the intellectual property of AJI DIGITAL LABS LLC. It may not be copied, distributed, or used commercially without written permission.",
+        },
+        s6: {
+          heading: "6. Not Investment Advice",
+          body: "The Service provides informational and educational content only and does not constitute investment advice. See our Disclaimer.",
+        },
+        s7: {
+          heading: "7. Modification and Termination",
+          body: "We reserve the right to modify, suspend, or discontinue all or part of the Service at any time. We also reserve the right to terminate your account if you violate these Terms.",
+        },
+        s8: {
+          heading: "8. Limitation of Liability",
+          body: "To the maximum extent permitted by law, AJI DIGITAL LABS LLC shall not be liable for any direct, indirect, incidental, or consequential damages arising from your use of or inability to use the Service, including but not limited to investment losses.",
+        },
+        s9: {
+          heading: "9. Governing Law",
+          body: "These Terms are governed by and construed in accordance with the laws of the State of Wyoming, USA, without regard to conflict of law principles.",
+        },
+        s10: {
+          heading: "10. Changes to Terms",
+          body: "We may update these Terms from time to time. Continued use of the Service after updates constitutes acceptance of the revised Terms.",
+        },
+        s11: {
+          heading: "11. Contact",
+          body: "For questions, contact: support@options-aji.com",
         },
       },
       privacy: {
         title: "Privacy Policy",
         subtitle: "隐私政策",
-        sectionCount: "3",
+        sectionCount: "10",
+        intro:
+          "AJI DIGITAL LABS LLC (\"we\", \"us\") respects and protects your privacy. This Privacy Policy explains how we collect, use, and protect your personal information when you use options-aji.com (the \"Platform\").",
         s1: {
-          heading: "1. Information we collect",
-          body: "[PLACEHOLDER] We may collect email, login logs, usage preferences, and payment metadata (processed by Creem/Stripe—we do not store full card numbers).",
+          heading: "1. Information We Collect",
+          body: "- **Account Information**: Email address and password (stored encrypted) provided at registration.\n- **Usage Data**: Log information such as pages visited, features used, and access times.\n- **Technical Information**: IP address, browser type, device information, and cookies.\n- **Payment-Related Information**: When you purchase membership through third-party payment channels, payment processing is handled by third parties (such as payment service providers). We do not store your full bank card or payment account details.",
         },
         s2: {
-          heading: "2. How we use it",
-          body: "[PLACEHOLDER] For account management, product improvement, security, and support.",
+          heading: "2. How We Use Information",
+          body: "- To provide, maintain, and improve the Service;\n- To manage your account and membership access;\n- To communicate with you (e.g., service notices, support responses);\n- To ensure platform security and prevent abuse and fraud;\n- To comply with legal obligations.",
         },
         s3: {
-          heading: "3. Sharing",
-          body: "[PLACEHOLDER] We do not sell personal data except as required by law or for payment processing.",
+          heading: "3. Use of Cookies",
+          body: "We use cookies and similar technologies to maintain login sessions, remember preferences, and analyze usage. You can manage cookies through your browser settings.",
+        },
+        s4: {
+          heading: "4. Information Sharing",
+          body: "We do not sell your personal information. We share it only in the following cases:\n- With third-party service providers necessary to deliver the Service (such as payment processing, cloud services, analytics), who are bound by confidentiality obligations;\n- When required by law or to protect our legitimate rights.",
+        },
+        s5: {
+          heading: "5. Data Security",
+          body: "We implement reasonable technical and administrative measures to protect your information. However, please understand that no method of internet transmission or storage can guarantee absolute security.",
+        },
+        s6: {
+          heading: "6. Data Retention",
+          body: "We retain your information for as long as necessary to provide the Service or as required by law.",
+        },
+        s7: {
+          heading: "7. Your Rights",
+          body: "You have the right to access, correct, or delete your personal information. To exercise these rights, contact support@options-aji.com.",
+        },
+        s8: {
+          heading: "8. Children's Privacy",
+          body: "The Service is not directed to individuals under 18. We do not knowingly collect personal information from minors.",
+        },
+        s9: {
+          heading: "9. Policy Updates",
+          body: "We may update this Privacy Policy. Material changes will be announced on the Platform.",
+        },
+        s10: {
+          heading: "10. Contact",
+          body: "For any questions about this Privacy Policy, contact: support@options-aji.com",
         },
       },
       refund: {
         title: "Refund Policy",
         subtitle: "退款政策",
-        sectionCount: "3",
+        sectionCount: "5",
+        intro:
+          "Thank you for becoming an OptionsAji member. As our Platform provides digital content and virtual services, the following Refund Policy applies. Please read it carefully before purchasing.",
         s1: {
-          heading: "1. Digital subscriptions",
-          body: "[PLACEHOLDER — Stripe/Creem compliance stub] Redeemed activation codes are generally non-refundable. Unused codes may be refunded within 7 days of purchase.",
+          heading: "1. Eligibility for Refund",
+          body: "You may request a refund only if all of the following conditions are met:\n- The request is made within **seven (7) days** of purchase or membership activation; and\n- You have **not extensively downloaded or used** member-exclusive materials (such as historical reports, course materials, etc.); and\n- Your activation key has not been substantially redeemed and used.",
         },
         s2: {
-          heading: "2. How to request",
-          body: "[PLACEHOLDER] Email support@options-aji.com with your registered email, order info, and reason.",
+          heading: "2. Non-Refundable Circumstances",
+          body: "Refunds will not be granted in the following cases:\n- More than 7 days have passed since purchase;\n- Member-exclusive content has been extensively downloaded, accessed, or used (as digital content cannot be returned once obtained);\n- The activation key has been redeemed and a substantial portion of the validity period has been used;\n- The account was terminated due to violation of the Terms of Service (e.g., account sharing, content reselling).",
         },
         s3: {
-          heading: "3. Processing time",
-          body: "[PLACEHOLDER] We respond within 5–10 business days. Refunds return to the original payment method.",
+          heading: "3. How to Request a Refund",
+          body: "Please email **support@options-aji.com** with your registered email address, purchase date, and reason for the refund. We will review and respond within **seven (7) business days** of receiving your request.",
+        },
+        s4: {
+          heading: "4. Refund Processing",
+          body: "Approved refunds will be returned via the original payment method. Processing time depends on the payment provider, typically 5–10 business days.",
+        },
+        s5: {
+          heading: "5. Changes to This Policy",
+          body: "We reserve the right to modify this Refund Policy at any time. Modifications do not affect purchases completed before the change.\n\nFor questions about this policy, contact: support@options-aji.com",
         },
       },
       disclaimer: {
         title: "Disclaimer",
         subtitle: "免责声明",
-        sectionCount: "3",
+        sectionCount: "6",
+        intro:
+          "OptionsAji (the \"Platform\"), operated by AJI DIGITAL LABS LLC, is a data analytics and educational platform focused on U.S. equity options. Please read and understand this Disclaimer carefully before using the Platform.",
         s1: {
-          heading: "Not investment advice",
-          body: "All data, charts, leaderboards, and AI-generated content on OptionsAji are for analysis and education only—not investment advice, recommendations, or return promises.",
+          heading: "1. For Informational and Educational Purposes Only",
+          body: "All content provided on the Platform, including but not limited to options data rankings, Gamma Exposure (GEX) analysis, market reports, stock research, course materials, and market commentary, is provided solely for informational and educational purposes. Such content does not constitute, and should not be construed as, investment advice, financial advice, trading advice, or any personalized recommendation of any kind.",
         },
         s2: {
-          heading: "Risk disclosure",
-          body: "Options trading is high risk and can result in total loss of capital. You must make your own decisions and bear all risk. OptionsAji is not a registered investment adviser and does not execute trades or hold funds.",
+          heading: "2. No Investment Advisory Services",
+          body: "Neither the Platform nor AJI DIGITAL LABS LLC is a Registered Investment Adviser, Broker-Dealer, or any licensed financial institution. We do not provide personalized investment advice, do not execute trades on behalf of users, and do not manage or hold any user funds.",
         },
         s3: {
-          heading: "Data accuracy",
-          body: "Data comes from third parties (e.g. Futu OpenD) and may be delayed, incomplete, or incorrect. Do not rely on this platform as your sole decision input.",
+          heading: "3. Users Assume All Risk",
+          body: "Options trading involves substantial risk and may result in the loss of your entire principal, or losses exceeding your initial investment. Any investment or trading decision made based on the Platform's content is made solely at the user's own discretion and responsibility. You should consult an independent, licensed professional before making any investment decision.",
+        },
+        s4: {
+          heading: "4. Data Accuracy",
+          body: "Data on the Platform may be delayed (typically by approximately 15 minutes) and may contain errors or omissions. We make no warranty as to the accuracy, completeness, or timeliness of any data. Users should not rely solely on the Platform's data when making trading decisions.",
+        },
+        s5: {
+          heading: "5. Past Performance Does Not Predict Future Results",
+          body: "Any historical data, analysis, or case studies do not represent future results. Past performance is not a guarantee or indication of future returns.",
+        },
+        s6: {
+          heading: "6. No Profit Guarantees",
+          body: "The Platform makes no promise, guarantee, or implication of any investment return, profit, or trading outcome.\n\nBy using the Platform, you acknowledge that you have read, understood, and agreed to this Disclaimer in its entirety.",
         },
       },
       contact: {

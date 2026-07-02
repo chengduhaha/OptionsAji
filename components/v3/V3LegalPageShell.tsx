@@ -35,8 +35,8 @@ export default function V3LegalPageShell({ pageKey, children }: V3LegalPageShell
         </header>
 
         <article className="border-[3px] border-ink bg-cream px-5 py-6 shadow-neo-sm space-y-4 text-sm leading-relaxed text-ink/85">
-          <p className="border-2 border-ink bg-peach/30 px-3 py-2 font-mono text-[11px] font-bold uppercase tracking-wide text-ink">
-            {t("v3.legal.placeholderBanner")}
+          <p className="text-xs text-ink/50">
+            {t("v3.legal.lastUpdated")}
           </p>
           {children}
         </article>

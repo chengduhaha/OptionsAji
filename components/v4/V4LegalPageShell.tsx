@@ -41,8 +41,8 @@ export default function V4LegalPageShell({ pageKey, children }: V4LegalPageShell
         </header>
 
         <article className="rounded-xl border border-border bg-card px-5 py-6 text-sm leading-relaxed">
-          <p className="mb-4 rounded-md border border-border bg-secondary/50 px-3 py-2 text-[11px] font-medium text-muted-foreground">
-            {t("v3.legal.placeholderBanner")}
+          <p className="mb-4 text-xs text-muted-foreground">
+            {t("v3.legal.lastUpdated")}
           </p>
           {children ?? <V3LegalSections pageKey={pageKey} />}
         </article>
