@@ -69,7 +69,7 @@ export default function BlogCourseCard({ course, active = false, locked = false,
                 ? "cursor-not-allowed border-border text-muted-foreground"
                 : "border-foreground bg-foreground text-background hover:bg-primary hover:text-foreground",
             )}
-            aria-label={locked ? t("blog.courses.playLocked") : t("blog.courses.playCourse", { title })}
+            aria-label={locked ? t("blog.courses.playLocked") : `${t("blog.courses.play")} ${title}`}
           >
             {locked ? <Lock className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 fill-current" />}
             {t("blog.courses.play")}
