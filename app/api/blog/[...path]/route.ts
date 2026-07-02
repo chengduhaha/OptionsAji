@@ -54,8 +54,9 @@ async function forward(req: NextRequest, segments: string[]): Promise<Response> 
   const contentType = upstream.headers.get("content-type") ?? "application/json";
   const isPdf = contentType.includes("application/pdf");
   const isVideo = contentType.includes("video/");
+  const isImage = contentType.startsWith("image/");
 
-  if (isPdf || isVideo) {
+  if (isPdf || isVideo || isImage) {
     const passthroughHeaders = new Headers();
     passthroughHeaders.set("Content-Type", contentType);
     const contentDisposition = upstream.headers.get("content-disposition");
@@ -66,7 +67,10 @@ async function forward(req: NextRequest, segments: string[]): Promise<Response> 
     if (acceptRanges) passthroughHeaders.set("Accept-Ranges", acceptRanges);
     const contentLength = upstream.headers.get("content-length");
     if (contentLength) passthroughHeaders.set("Content-Length", contentLength);
-    passthroughHeaders.set("Cache-Control", isVideo ? "no-store" : "public, max-age=300");
+    passthroughHeaders.set(
+      "Cache-Control",
+      isVideo ? "no-store" : isImage ? "public, max-age=3600" : "public, max-age=300",
+    );
 
     return new Response(upstream.body, {
       status: upstream.status,

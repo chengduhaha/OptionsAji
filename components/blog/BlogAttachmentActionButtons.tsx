@@ -8,11 +8,12 @@ import type { BlogAttachment } from "@/lib/blog/types";
 import { cn } from "@/lib/utils";
 
 type BlogAttachmentActionButtonsProps = {
-  attachment: Pick<BlogAttachment, "view_url" | "download_url" | "original_filename">;
+  attachment: Pick<BlogAttachment, "view_url" | "download_url" | "original_filename" | "media_kind">;
   previewTitle: string;
   openLabel: string;
   downloadLabel: string;
   variant?: "card" | "article" | "admin";
+  showDownload?: boolean;
 };
 
 const variantClasses = {
@@ -44,6 +45,7 @@ export default function BlogAttachmentActionButtons({
   openLabel,
   downloadLabel,
   variant = "card",
+  showDownload = attachment.media_kind !== "video",
 }: BlogAttachmentActionButtonsProps) {
   const {
     open,
@@ -73,15 +75,17 @@ export default function BlogAttachmentActionButtons({
           {isViewing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <OpenIcon className="h-3.5 w-3.5" />}
           {openLabel}
         </button>
-        <button
-          type="button"
-          disabled={isViewing || isDownloading}
-          onClick={() => void download(attachment.download_url, attachment.original_filename)}
-          className={styles.download}
-        >
-          {isDownloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-          {downloadLabel}
-        </button>
+        {showDownload ? (
+          <button
+            type="button"
+            disabled={isViewing || isDownloading}
+            onClick={() => void download(attachment.download_url, attachment.original_filename)}
+            className={styles.download}
+          >
+            {isDownloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+            {downloadLabel}
+          </button>
+        ) : null}
       </div>
 
       <BlogPdfPreviewModal

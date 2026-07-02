@@ -247,6 +247,22 @@ export async function updateBlogAttachment(
   return readJson<BlogAttachment>(res);
 }
 
+export async function uploadBlogAttachmentThumbnail(
+  attachmentId: string,
+  file: File,
+  token: string,
+): Promise<BlogAttachment> {
+  const form = new FormData();
+  form.append("file", file);
+
+  const res = await authFetch(`/api/blog/attachments/${encodeURIComponent(attachmentId)}/thumbnail`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  });
+  return readJson<BlogAttachment>(res);
+}
+
 export async function deleteBlogAttachment(attachmentId: string, token: string): Promise<void> {
   const res = await authFetch(`/api/blog/attachments/${encodeURIComponent(attachmentId)}`, {
     method: "DELETE",

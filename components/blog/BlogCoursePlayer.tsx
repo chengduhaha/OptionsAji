@@ -125,9 +125,12 @@ export default function BlogCoursePlayer({
             ref={videoRef}
             className="h-full w-full bg-black object-contain"
             controls
+            controlsList="nodownload noplaybackrate noremoteplayback"
+            disablePictureInPicture
             playsInline
             preload="metadata"
             src={streamUrl}
+            onContextMenu={(event) => event.preventDefault()}
             onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
             onTimeUpdate={handleTimeUpdate}
           />

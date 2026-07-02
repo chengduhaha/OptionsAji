@@ -184,6 +184,9 @@ export default function AdminBlogPage() {
           <Link href="/admin/documents" className="text-sm font-semibold text-primary hover:underline">
             {t("blog.admin.documents.nav")}
           </Link>
+          <Link href="/admin/courses" className="text-muted-foreground hover:text-primary hover:underline">
+            {t("blog.admin.courses.nav")}
+          </Link>
         </div>
       </div>
 

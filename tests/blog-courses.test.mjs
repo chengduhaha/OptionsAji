@@ -28,7 +28,9 @@ test("blog courses API client uses authFetch and play-token flow", () => {
   assert.match(player, /preload="metadata"/);
   assert.match(player, /loadingVideo/);
   assert.doesNotMatch(player, /createObjectURL|blob:/);
-  assert.match(player, /previewSeconds/);
+  assert.match(player, /controlsList="nodownload/);
+  assert.match(player, /onContextMenu/);
+  assert.match(api, /uploadBlogAttachmentThumbnail/);
   assert.match(listPage, /grid-cols-3/);
   assert.match(listPage, /COURSES_PAGE_SIZE = 12/);
   assert.doesNotMatch(listPage, /BlogCoursePlayer/);
