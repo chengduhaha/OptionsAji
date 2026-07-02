@@ -10,6 +10,7 @@ export type BlogAttachment = {
   description_en: string | null;
   is_sample: boolean;
   is_preview?: boolean;
+  media_kind?: "document" | "video";
   post_id: string | null;
   download_url: string;
   view_url: string;
@@ -90,4 +91,12 @@ export type BlogPostUpdateInput = Partial<BlogPostCreateInput>;
 export type BlogUploadPdfResponse = {
   attachment: BlogAttachment;
   post_id: string | null;
+};
+
+export type BlogPlayTokenResponse = {
+  token: string;
+  stream_url: string;
+  expires_at: string;
+  preview: boolean;
+  preview_seconds: number | null;
 };

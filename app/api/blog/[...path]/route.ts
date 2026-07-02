@@ -17,6 +17,8 @@ function buildForwardHeaders(req: NextRequest, targetUrl: string): Headers {
   if (contentType) headers.set("Content-Type", contentType);
   const auth = req.headers.get("authorization");
   if (auth) headers.set("Authorization", auth);
+  const range = req.headers.get("range");
+  if (range) headers.set("Range", range);
   const apiKey = process.env.OPTIONS_AJI_API_KEY ?? "";
   if (apiKey) headers.set("X-API-Key", apiKey);
   return headers;
@@ -49,20 +51,28 @@ async function forward(req: NextRequest, segments: string[]): Promise<Response> 
 
   try {
     const upstream = await fetch(targetUrl, init);
-    const contentType = upstream.headers.get("content-type") ?? "application/json";
-    const isPdf = contentType.includes("application/pdf");
+  const contentType = upstream.headers.get("content-type") ?? "application/json";
+  const isPdf = contentType.includes("application/pdf");
+  const isVideo = contentType.includes("video/");
 
-    if (isPdf) {
-      const buffer = await upstream.arrayBuffer();
-      return new Response(buffer, {
-        status: upstream.status,
-        headers: {
-          "Content-Type": contentType,
-          "Content-Disposition": upstream.headers.get("content-disposition") ?? "inline",
-          "Cache-Control": "public, max-age=300",
-        },
-      });
-    }
+  if (isPdf || isVideo) {
+    const passthroughHeaders = new Headers();
+    passthroughHeaders.set("Content-Type", contentType);
+    const contentDisposition = upstream.headers.get("content-disposition");
+    if (contentDisposition) passthroughHeaders.set("Content-Disposition", contentDisposition);
+    const contentRange = upstream.headers.get("content-range");
+    if (contentRange) passthroughHeaders.set("Content-Range", contentRange);
+    const acceptRanges = upstream.headers.get("accept-ranges");
+    if (acceptRanges) passthroughHeaders.set("Accept-Ranges", acceptRanges);
+    const contentLength = upstream.headers.get("content-length");
+    if (contentLength) passthroughHeaders.set("Content-Length", contentLength);
+    passthroughHeaders.set("Cache-Control", isVideo ? "no-store" : "public, max-age=300");
+
+    return new Response(upstream.body, {
+      status: upstream.status,
+      headers: passthroughHeaders,
+    });
+  }
 
     const bodyText = await upstream.text();
     return new Response(bodyText, {

@@ -22,6 +22,7 @@ const NAV_LINKS = [
   { href: "/blog", key: "blog.nav.home", exact: true },
   { href: "/blog#posts", key: "blog.nav.posts", hash: true },
   { href: "/blog/documents", key: "blog.nav.documents" },
+  { href: "/blog/courses", key: "blog.nav.courses" },
 ] as const;
 
 export default function BlogShell({

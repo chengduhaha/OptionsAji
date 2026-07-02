@@ -6,6 +6,7 @@ import type {
   BlogPostListResponse,
   BlogPostUpdateInput,
   BlogDocumentListResponse,
+  BlogPlayTokenResponse,
   BlogUploadPdfResponse,
 } from "@/lib/blog/types";
 
@@ -175,6 +176,28 @@ export async function fetchBlogDocuments(params?: {
   const suffix = qs.toString() ? `?${qs.toString()}` : "";
   const res = await authFetch(`/api/blog/documents${suffix}`, { cache: "no-store" });
   return readJson<BlogDocumentListResponse>(res);
+}
+
+export async function fetchBlogCourses(params?: {
+  category?: string;
+  page?: number;
+  page_size?: number;
+}): Promise<BlogDocumentListResponse> {
+  const qs = new URLSearchParams();
+  if (params?.category) qs.set("category", params.category);
+  if (params?.page) qs.set("page", String(params.page));
+  if (params?.page_size) qs.set("page_size", String(params.page_size));
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  const res = await authFetch(`/api/blog/courses${suffix}`, { cache: "no-store" });
+  return readJson<BlogDocumentListResponse>(res);
+}
+
+export async function fetchBlogPlayToken(attachmentId: string): Promise<BlogPlayTokenResponse> {
+  const res = await authFetch(`/api/blog/attachments/${encodeURIComponent(attachmentId)}/play-token`, {
+    method: "POST",
+    cache: "no-store",
+  });
+  return readJson<BlogPlayTokenResponse>(res);
 }
 
 export async function fetchBlogAttachments(

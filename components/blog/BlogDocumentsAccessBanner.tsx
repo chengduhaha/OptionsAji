@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 type BlogDocumentsAccessBannerProps = {
   access: BlogDocumentAccess;
   categoryFilter?: string;
+  i18nPrefix?: "blog.documents.accessBanner" | "blog.courses.accessBanner";
 };
 
 function formatDocAccessText(template: string, values: Record<string, string>): string {
@@ -23,8 +24,10 @@ function formatDocAccessText(template: string, values: Record<string, string>): 
 export default function BlogDocumentsAccessBanner({
   access,
   categoryFilter,
+  i18nPrefix = "blog.documents.accessBanner",
 }: BlogDocumentsAccessBannerProps) {
   const { t } = useI18n();
+  const key = (suffix: string) => `${i18nPrefix}.${suffix}`;
 
   const visible = access.visible_count;
   const total = access.member_total_count;
@@ -39,12 +42,12 @@ export default function BlogDocumentsAccessBanner({
           </span>
           <div className="min-w-0 flex-1">
             <p className="font-heading text-base font-bold sm:text-lg">
-              {formatDocAccessText(t("blog.documents.accessBanner.memberHeadline"), {
+              {formatDocAccessText(t(key("memberHeadline")), {
                 total: String(total),
               })}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              {t("blog.documents.accessBanner.memberSubline")}
+              {t(key("memberSubline"))}
             </p>
           </div>
         </div>
@@ -66,13 +69,13 @@ export default function BlogDocumentsAccessBanner({
             </span>
             <div>
               <p className="font-heading text-base font-bold sm:text-lg">
-                {formatDocAccessText(t("blog.documents.accessBanner.guestHeadline"), {
+                {formatDocAccessText(t(key("guestHeadline")), {
                   visible: String(visible),
                   total: String(total),
                 })}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                {t("blog.documents.accessBanner.guestSubline")}
+                {t(key("guestSubline"))}
               </p>
             </div>
           </div>
@@ -81,7 +84,7 @@ export default function BlogDocumentsAccessBanner({
             <div className="mt-4 sm:pl-11">
               <div className="flex items-center justify-between gap-3 text-xs font-medium text-muted-foreground">
                 <span>
-                  {formatDocAccessText(t("blog.documents.accessBanner.progressLabel"), {
+                  {formatDocAccessText(t(key("progressLabel")), {
                     visible: String(visible),
                     total: String(total),
                   })}
@@ -94,7 +97,7 @@ export default function BlogDocumentsAccessBanner({
                 aria-valuenow={visible}
                 aria-valuemin={0}
                 aria-valuemax={total}
-                aria-label={formatDocAccessText(t("blog.documents.accessBanner.progressLabel"), {
+                aria-label={formatDocAccessText(t(key("progressLabel")), {
                   visible: String(visible),
                   total: String(total),
                 })}
@@ -115,7 +118,7 @@ export default function BlogDocumentsAccessBanner({
             "hover:brightness-95 sm:self-center",
           )}
         >
-          {t("blog.documents.accessBanner.guestCta")}
+          {t(key("guestCta"))}
         </Link>
       </div>
 
@@ -128,13 +131,13 @@ export default function BlogDocumentsAccessBanner({
                 <span
                   key={row.category}
                   className="inline-flex items-center gap-1.5 rounded-full border-2 border-border bg-background px-3 py-1 text-xs font-medium"
-                  title={formatDocAccessText(t("blog.documents.accessBanner.categoryMore"), {
+                  title={formatDocAccessText(t(key("categoryMore")), {
                     locked: String(locked),
                   })}
                 >
                   <span className="text-muted-foreground">{blogCategoryLabel(t, row.category)}</span>
                   <span className="font-mono font-semibold text-foreground">
-                    {formatDocAccessText(t("blog.documents.accessBanner.categoryLine"), {
+                    {formatDocAccessText(t(key("categoryLine")), {
                       visible: String(row.guest_visible_count),
                       total: String(row.member_count),
                     })}
