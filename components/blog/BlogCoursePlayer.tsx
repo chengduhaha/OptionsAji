@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Lock, Play } from "lucide-react";
+import { Play } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { BlogApiError, fetchBlogPlayToken } from "@/lib/blog/api";
@@ -9,7 +9,6 @@ import { formatFileSize, formatVideoDuration, pickLocalized } from "@/lib/blog/f
 import { blogCategoryLabel } from "@/lib/blog/categories";
 import type { BlogAttachment } from "@/lib/blog/types";
 import { useI18n } from "@/lib/i18n/context";
-import { cn } from "@/lib/utils";
 
 type BlogCoursePlayerProps = {
   course: BlogAttachment | null;
