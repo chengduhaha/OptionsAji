@@ -54,3 +54,9 @@ test("blog attachment preview uses authenticated blob fetch and inline iframe mo
   assert.match(pdfViewer, /BlogAttachmentActionButtons/);
   assert.match(pdfViewer, /previewTitle=\{title\}/);
 });
+
+test("CSP allows blob URLs in PDF preview iframe", () => {
+  const config = readFileSync(new URL("../next.config.ts", import.meta.url), "utf8");
+  assert.match(config, /frame-src[^;]*blob:/);
+  assert.match(config, /object-src[^;]*blob:/);
+});
