@@ -76,7 +76,7 @@ export default function BlogCourseCard({ course, locked = false, priorityThumbna
           {locked ? (
             <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded border-2 border-foreground bg-primary px-2 py-0.5 text-[10px] font-extrabold">
               <Lock className="h-3 w-3" />
-              {t("blog.courses.memberOnly")}
+              {t("blog.courses.lockedUpgrade")}
             </span>
           ) : null}
           <span className="absolute bottom-2 right-2 rounded border border-foreground/80 bg-foreground/90 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-background">

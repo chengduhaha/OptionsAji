@@ -160,7 +160,12 @@ export default function BlogCoursesTab({ onAccessChange }: BlogCoursesTabProps) 
       ) : (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {courses.map((course, index) => (
-            <BlogCourseCard key={course.id} course={course} priorityThumbnail={index < 3} />
+            <BlogCourseCard
+              key={course.id}
+              course={course}
+              locked={course.is_locked === true}
+              priorityThumbnail={index < 3}
+            />
           ))}
         </div>
       )}

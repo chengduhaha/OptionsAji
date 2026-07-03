@@ -11,6 +11,14 @@ export function isMember(membership: MembershipContract | undefined): boolean {
   return membership?.is_member === true || membership?.tier === "admin";
 }
 
+export function isFullMember(membership: MembershipContract | undefined): boolean {
+  return membership?.tier === "admin" || membership?.is_full_member === true;
+}
+
+export function isTrialMember(membership: MembershipContract | undefined): boolean {
+  return membership?.is_trial_member === true && !isFullMember(membership);
+}
+
 export function membershipLabel(membership: MembershipContract | undefined, locale: "zh" | "en"): string {
   if (!membership || membership.tier === "guest") {
     return locale === "zh" ? "访客" : "Guest";

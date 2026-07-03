@@ -1,6 +1,7 @@
 "use client";
 
-import { FileText } from "lucide-react";
+import Link from "next/link";
+import { FileText, Lock } from "lucide-react";
 
 import BlogAttachmentActionButtons from "@/components/blog/BlogAttachmentActionButtons";
 import { blogCategoryLabel } from "@/lib/blog/categories";
@@ -35,6 +36,7 @@ export default function BlogDocumentCard({ doc, variant = "row" }: BlogDocumentC
   const { locale, t } = useI18n();
   const title = pickLocalized(locale, doc.title_zh, doc.title_en, doc.original_filename);
   const description = pickLocalized(locale, doc.description_zh, doc.description_en, "");
+  const locked = doc.is_locked === true;
 
   if (variant === "row") {
     return (
@@ -48,6 +50,12 @@ export default function BlogDocumentCard({ doc, variant = "row" }: BlogDocumentC
               <span className="rounded-full border border-border bg-secondary/60 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
                 {blogCategoryLabel(t, doc.category)}
               </span>
+              {locked ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                  <Lock className="h-3 w-3" />
+                  {t("blog.documents.lockedBadge")}
+                </span>
+              ) : null}
               <span className="font-mono text-[11px] text-muted-foreground">{formatFileSize(doc.file_size)}</span>
             </div>
             <h3 className="font-heading text-base font-bold leading-snug group-hover:text-primary">{title}</h3>
@@ -58,13 +66,22 @@ export default function BlogDocumentCard({ doc, variant = "row" }: BlogDocumentC
             )}
           </div>
         </div>
-        <BlogAttachmentActionButtons
-          attachment={doc}
-          previewTitle={title}
-          openLabel={t("blog.openPdf")}
-          downloadLabel={t("blog.downloadPdf")}
-          variant="card"
-        />
+        {locked ? (
+          <Link
+            href="/pricing"
+            className="inline-flex shrink-0 items-center justify-center rounded-lg border-2 border-primary bg-primary/10 px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
+          >
+            {t("blog.courses.lockedUpgrade")}
+          </Link>
+        ) : (
+          <BlogAttachmentActionButtons
+            attachment={doc}
+            previewTitle={title}
+            openLabel={t("blog.openPdf")}
+            downloadLabel={t("blog.downloadPdf")}
+            variant="card"
+          />
+        )}
       </article>
     );
   }
@@ -90,13 +107,22 @@ export default function BlogDocumentCard({ doc, variant = "row" }: BlogDocumentC
       <div className="mt-4 border-t border-border pt-4">
         <p className="truncate font-mono text-[11px] text-muted-foreground">{doc.original_filename}</p>
         <p className="mt-0.5 text-xs text-muted-foreground">{formatFileSize(doc.file_size)}</p>
-        <BlogAttachmentActionButtons
-          attachment={doc}
-          previewTitle={title}
-          openLabel={t("blog.openPdf")}
-          downloadLabel={t("blog.downloadPdf")}
-          variant="card"
-        />
+        {locked ? (
+          <Link
+            href="/pricing"
+            className="mt-3 inline-flex w-full items-center justify-center rounded-lg border-2 border-primary bg-primary/10 px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
+          >
+            {t("blog.courses.lockedUpgrade")}
+          </Link>
+        ) : (
+          <BlogAttachmentActionButtons
+            attachment={doc}
+            previewTitle={title}
+            openLabel={t("blog.openPdf")}
+            downloadLabel={t("blog.downloadPdf")}
+            variant="card"
+          />
+        )}
       </div>
     </article>
   );

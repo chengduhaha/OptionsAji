@@ -31,7 +31,7 @@ export default function BlogCourseWatchPageClient({ courseId }: BlogCourseWatchP
         prefetchBlogPlayToken(courseId).catch(() => undefined),
       ]);
       setCourse(data);
-      setIsMember(!data.is_preview);
+      setIsMember(!data.is_preview && !data.is_locked);
     } catch (e: unknown) {
       if (e instanceof BlogApiError && e.status === 404) {
         setError(t("blog.courses.player.locked"));
@@ -69,6 +69,17 @@ export default function BlogCourseWatchPageClient({ courseId }: BlogCourseWatchP
         <p className="rounded-xl border-2 border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
           {error}
         </p>
+      ) : course?.is_locked ? (
+        <div className="rounded-xl border-2 border-primary/30 bg-primary/5 px-6 py-10 text-center">
+          <h2 className="font-heading text-xl font-bold">{t("blog.courses.player.lockedTitle")}</h2>
+          <p className="mx-auto mt-3 max-w-lg text-sm text-muted-foreground">{t("blog.courses.player.lockedBody")}</p>
+          <Link
+            href="/pricing"
+            className="mt-6 inline-flex rounded-lg border-2 border-primary bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+          >
+            {t("blog.courses.player.lockedCta")}
+          </Link>
+        </div>
       ) : course ? (
         <BlogCoursePlayer course={course} isMember={isMember} autoPlay />
       ) : null}

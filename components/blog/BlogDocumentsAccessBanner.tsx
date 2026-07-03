@@ -33,7 +33,7 @@ export default function BlogDocumentsAccessBanner({
   const total = access.member_total_count;
   const progressPct = total > 0 ? Math.min(100, Math.round((visible / total) * 100)) : 0;
 
-  if (access.is_member) {
+  if (access.is_full_member) {
     return (
       <div className="mb-8 rounded-xl border-2 border-border bg-secondary/20 px-5 py-4 sm:px-6">
         <div className="flex items-start gap-3">
@@ -50,6 +50,65 @@ export default function BlogDocumentsAccessBanner({
               {t(key("memberSubline"))}
             </p>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (access.is_trial_member) {
+    return (
+      <div className="mb-8 rounded-xl border-2 border-primary/40 bg-primary/5 px-5 py-5 shadow-[4px_4px_0_0_hsl(var(--primary)/0.15)] sm:px-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border-2 border-primary/50 bg-primary/10">
+                <Lock className="h-4 w-4 text-primary" aria-hidden />
+              </span>
+              <div>
+                <p className="font-heading text-base font-bold sm:text-lg">
+                  {formatDocAccessText(t(key("trialHeadline")), {
+                    visible: String(visible),
+                    total: String(total),
+                  })}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">{t(key("trialSubline"))}</p>
+              </div>
+            </div>
+            {total > 0 ? (
+              <div className="mt-4 sm:pl-11">
+                <div className="flex items-center justify-between gap-3 text-xs font-medium text-muted-foreground">
+                  <span>
+                    {formatDocAccessText(t(key("progressLabel")), {
+                      visible: String(visible),
+                      total: String(total),
+                    })}
+                  </span>
+                  <span className="font-mono">{progressPct}%</span>
+                </div>
+                <div
+                  className="mt-2 h-2.5 overflow-hidden rounded-full border-2 border-border bg-background"
+                  role="progressbar"
+                  aria-valuenow={visible}
+                  aria-valuemin={0}
+                  aria-valuemax={total}
+                >
+                  <div
+                    className="h-full rounded-full bg-primary transition-all"
+                    style={{ width: `${progressPct}%` }}
+                  />
+                </div>
+              </div>
+            ) : null}
+          </div>
+          <Link
+            href="/pricing"
+            className={cn(
+              "inline-flex shrink-0 items-center justify-center rounded-lg border-2 border-primary bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground",
+              "hover:brightness-95 sm:self-center",
+            )}
+          >
+            {t(key("trialCta"))}
+          </Link>
         </div>
       </div>
     );

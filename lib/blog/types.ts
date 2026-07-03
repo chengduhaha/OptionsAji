@@ -10,6 +10,7 @@ export type BlogAttachment = {
   description_en: string | null;
   is_sample: boolean;
   is_preview?: boolean;
+  is_locked?: boolean;
   media_kind?: "document" | "video";
   post_id: string | null;
   download_url: string;
@@ -37,12 +38,16 @@ export type BlogDocumentCategoryBreakdown = {
 export type BlogDocumentAccess = {
   tier: "guest" | "free" | "member" | "admin";
   is_member: boolean;
+  is_full_member?: boolean;
+  is_trial_member?: boolean;
+  membership_kind?: "trial" | "full" | null;
   membership_expires_at: string | null;
   days_remaining: number | null;
   expiring_soon: boolean;
   visible_count: number;
   member_total_count: number;
   guest_teaser_count: number;
+  trial_teaser_count?: number;
   category_breakdown: BlogDocumentCategoryBreakdown[];
 };
 

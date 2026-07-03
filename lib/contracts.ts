@@ -417,6 +417,9 @@ export interface ScannerTemplateContract {
 export interface MembershipContract {
   tier: "guest" | "free" | "member" | "admin";
   is_member: boolean;
+  is_full_member?: boolean;
+  is_trial_member?: boolean;
+  membership_kind?: "trial" | "full" | null;
   membership_expires_at: string | null;
   days_remaining: number | null;
   expiring_soon: boolean;
