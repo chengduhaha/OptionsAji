@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { isUsableAccessToken } from "@/lib/jwtPresence";
 
 export const runtime = "nodejs";
 
@@ -21,27 +22,10 @@ function cookieOptions() {
   };
 }
 
-async function verifyTokenWithBackend(token: string): Promise<boolean> {
-  const base = (process.env.OPTIONS_AJI_BACKEND_URL ?? "").trim();
-  if (!base) return false;
-
-  const headers = new Headers({ Accept: "application/json", Authorization: `Bearer ${token}` });
-  const apiKey = process.env.OPTIONS_AJI_API_KEY ?? "";
-  if (apiKey) headers.set("X-API-Key", apiKey);
-
-  try {
-    const res = await fetch(`${base.replace(/\/$/, "")}/api/auth/me`, {
-      method: "GET",
-      headers,
-      cache: "no-store",
-    });
-    return res.ok;
-  } catch {
-    return false;
-  }
-}
-
-/** Mirror localStorage JWT into an HttpOnly cookie for /admin middleware. */
+/**
+ * Mirror localStorage JWT into an HttpOnly cookie for /admin middleware.
+ * Validates locally to avoid Vercel → api.options-aji.com server hops blocked by Cloudflare Bot Fight.
+ */
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("authorization") ?? "";
   let token = authHeader.replace(/^Bearer\s+/i, "").trim();
@@ -62,8 +46,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const valid = await verifyTokenWithBackend(token);
-  if (!valid) {
+  if (!isUsableAccessToken(token)) {
     return NextResponse.json(
       { success: false, error: { code: "invalid_token", message: "登录已失效，请重新登录。" } },
       { status: 401 },

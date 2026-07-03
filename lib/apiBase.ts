@@ -59,12 +59,6 @@ export function withAuthHeaders(init?: RequestInit): Headers {
   return headers;
 }
 
-/** Same-origin path for auth routes so HttpOnly session cookies land on the site domain. */
-export function sameOriginApiUrl(path: string): string {
-  const normalized = path.startsWith("/") ? path : `/${path}`;
-  return normalized;
-}
-
 /** Client-side fetch that honors NEXT_PUBLIC_API_BASE and injects X-API-Key. */
 export function apiFetch(input: string, init?: RequestInit): Promise<Response> {
   const url =
@@ -72,18 +66,6 @@ export function apiFetch(input: string, init?: RequestInit): Promise<Response> {
       ? input
       : resolveApiUrl(input);
   return fetch(url, { ...init, headers: withApiKeyHeaders(init) });
-}
-
-/**
- * Auth calls always go through the Next.js /api/auth proxy (same origin) so the
- * backend Set-Cookie can be mirrored for edge middleware on /admin/*.
- */
-export function authSameOriginFetch(input: string, init?: RequestInit): Promise<Response> {
-  const url =
-    input.startsWith("http://") || input.startsWith("https://")
-      ? input
-      : sameOriginApiUrl(input);
-  return fetch(url, { ...init, credentials: "include", headers: withApiKeyHeaders(init) });
 }
 
 /** Same as apiFetch but forwards JWT for membership-gated endpoints. */
