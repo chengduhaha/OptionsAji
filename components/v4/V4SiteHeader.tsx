@@ -174,9 +174,14 @@ export default function V4SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-border bg-background shadow-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
         <Link href="/" className="flex flex-shrink-0 items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary font-heading text-sm font-bold text-primary-foreground">
-            A
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/aji-avatar.png"
+            alt="OptionsAji 阿吉"
+            width={32}
+            height={32}
+            className="h-8 w-8 rounded-md border-2 border-primary object-cover shadow-[2px_2px_0_0_hsl(var(--primary))]"
+          />
           <span className="leading-tight">
             <span className="block font-heading text-base font-bold tracking-tight">OptionsAji</span>
             <span className="block text-[11px] text-muted-foreground">{t("v4.brand.tagline")}</span>

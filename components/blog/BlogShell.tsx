@@ -41,9 +41,14 @@ export default function BlogShell({
         <div className={cn("mx-auto flex flex-wrap items-center justify-between gap-4 px-4 py-3", maxWidth)}>
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-primary bg-primary font-heading text-sm font-bold text-primary-foreground shadow-[2px_2px_0_0_hsl(var(--primary))]">
-                A
-              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/aji-avatar.png"
+                alt="OptionsAji 阿吉"
+                width={36}
+                height={36}
+                className="h-9 w-9 rounded-lg border-2 border-primary object-cover shadow-[2px_2px_0_0_hsl(var(--primary))]"
+              />
               <span className="hidden font-heading text-sm font-bold sm:inline">OptionsAji</span>
             </Link>
             <span className="hidden text-muted-foreground sm:inline">/</span>

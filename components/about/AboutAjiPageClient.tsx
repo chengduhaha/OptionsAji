@@ -50,10 +50,13 @@ export default function AboutAjiPageClient() {
           </div>
 
           <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-            <div className="flex aspect-square items-center justify-center rounded-2xl border-2 border-primary/30 bg-primary/5 shadow-[4px_4px_0_0_hsl(var(--primary)/0.2)]">
-              <span className="flex h-24 w-24 items-center justify-center rounded-2xl border-2 border-primary bg-primary font-heading text-4xl font-bold text-primary-foreground">
-                A
-              </span>
+            <div className="flex aspect-square items-center justify-center rounded-2xl border-2 border-primary/30 bg-primary/5 shadow-[4px_4px_0_0_hsl(var(--primary)/0.2)] p-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/aji-avatar.png"
+                alt="阿吉 · OptionsAji 主理人"
+                className="h-full w-full rounded-2xl border-2 border-primary object-cover shadow-[2px_2px_0_0_hsl(var(--primary))]"
+              />
             </div>
             <div className="rounded-xl border-2 border-border bg-card p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">

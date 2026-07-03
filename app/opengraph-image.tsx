@@ -1,6 +1,8 @@
 import { ImageResponse } from "next/og";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 export const alt = "OptionsAji · 美股期权数据与教育";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -12,10 +14,13 @@ const GOLD = "#D4AF37";
 
 /**
  * Default OpenGraph / Twitter share image. Generated once per build and
- * CDN-cached by Vercel. No external fonts (uses system sans-serif) so the
- * edge runtime stays fast and dependency-free.
+ * CDN-cached by Vercel. Uses the Aji pop-art avatar as the brand mark.
  */
 export default async function OpengraphImage() {
+  const avatarPath = path.join(process.cwd(), "public", "aji-avatar.png");
+  const avatarBytes = await readFile(avatarPath);
+  const avatarSrc = `data:image/png;base64,${avatarBytes.toString("base64")}`;
+
   return new ImageResponse(
     (
       <div
@@ -33,23 +38,15 @@ export default async function OpengraphImage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: 12,
-              background: INK,
-              color: GOLD,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 36,
-              fontWeight: 800,
-              letterSpacing: -1,
-            }}
-          >
-            阿
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={avatarSrc}
+            width={64}
+            height={64}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            style={{ width: 64, height: 64, borderRadius: 14, objectFit: "cover", border: `3px solid ${INK}` } as any}
+            alt="OptionsAji 阿吉"
+          />
           <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: -0.5 }}>
             OptionsAji
           </div>

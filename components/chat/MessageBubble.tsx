@@ -194,9 +194,12 @@ export default function MessageBubble({ message }: { message: Message }) {
 function AvatarOA() {
   return (
     <div className="relative flex-shrink-0">
-      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center text-[10px] font-bold text-primary-foreground shadow-md shadow-primary/20">
-        OA
-      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/aji-avatar.png"
+        alt="OptionsAji 阿吉"
+        className="w-8 h-8 rounded-lg border border-primary/40 object-cover shadow-md shadow-primary/20"
+      />
       <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green rounded-full border-2 border-background" />
     </div>
   );
