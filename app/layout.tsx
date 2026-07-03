@@ -120,6 +120,10 @@ export default function RootLayout({
       className={`${GeistSans.variable} ${spaceGrotesk.variable} ${syne.variable} ${jetbrainsMono.variable}`}
     >
       <head>
+        <link rel="dns-prefetch" href="https://api.options-aji.com" />
+        <link rel="dns-prefetch" href="https://media.options-aji.com" />
+        <link rel="preconnect" href="https://api.options-aji.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://media.options-aji.com" crossOrigin="anonymous" />
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="bg-background text-foreground font-sans antialiased">

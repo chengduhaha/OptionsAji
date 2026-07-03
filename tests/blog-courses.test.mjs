@@ -8,6 +8,10 @@ test("blog courses API client uses authFetch and play-token flow", () => {
   const player = readFileSync(new URL("../components/blog/BlogCoursePlayer.tsx", import.meta.url), "utf8");
   const coursesTab = readFileSync(new URL("../components/blog/BlogCoursesTab.tsx", import.meta.url), "utf8");
   const watchPage = readFileSync(new URL("../app/blog/courses/[id]/page.tsx", import.meta.url), "utf8");
+  const watchClient = readFileSync(
+    new URL("../components/blog/BlogCourseWatchPageClient.tsx", import.meta.url),
+    "utf8",
+  );
   const proxy = readFileSync(new URL("../app/api/blog/[...path]/route.ts", import.meta.url), "utf8");
 
   assert.match(api, /export async function fetchBlogCourses/);
@@ -21,8 +25,9 @@ test("blog courses API client uses authFetch and play-token flow", () => {
   assert.match(types, /thumbnail_url/);
   assert.match(types, /media_kind/);
   assert.match(player, /prefetchBlogPlayToken|getCachedPlayToken/);
+  assert.match(player, /resolveApiUrl\(token\.stream_url\)/);
   assert.match(player, /<video/);
-  assert.match(player, /preload="metadata"/);
+  assert.match(player, /preload=\{autoPlay \? "metadata" : "none"\}/);
   assert.match(player, /loadingVideo/);
   assert.doesNotMatch(player, /createObjectURL|blob:/);
   assert.match(player, /controlsList="nodownload/);
@@ -33,6 +38,8 @@ test("blog courses API client uses authFetch and play-token flow", () => {
   assert.match(coursesTab, /COURSES_PAGE_SIZE = 12/);
   assert.doesNotMatch(coursesTab, /BlogCoursePlayer/);
   assert.match(watchPage, /BlogCourseWatchPageClient/);
+  assert.match(watchClient, /Promise\.all/);
+  assert.match(watchClient, /prefetchBlogPlayToken/);
   assert.match(proxy, /video\//);
   assert.match(proxy, /Range/);
 });

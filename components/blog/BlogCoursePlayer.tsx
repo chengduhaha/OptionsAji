@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Loader2, Play } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { resolveApiUrl } from "@/lib/apiBase";
 import { BlogApiError } from "@/lib/blog/api";
 import { formatFileSize, formatVideoDuration, pickLocalized } from "@/lib/blog/format";
 import { blogCategoryLabel } from "@/lib/blog/categories";
@@ -52,7 +53,7 @@ export default function BlogCoursePlayer({
 
   const applyToken = useCallback(
     (token: { stream_url: string; preview: boolean; preview_seconds: number | null }) => {
-      setStreamUrl(token.stream_url);
+      setStreamUrl(resolveApiUrl(token.stream_url));
       setPreviewSeconds(token.preview ? token.preview_seconds : null);
       if (autoPlay) {
         requestAnimationFrame(() => {
@@ -132,7 +133,7 @@ export default function BlogCoursePlayer({
               controlsList="nodownload noplaybackrate noremoteplayback"
               disablePictureInPicture
               playsInline
-              preload="metadata"
+              preload={autoPlay ? "metadata" : "none"}
               src={streamUrl}
               onContextMenu={(event) => event.preventDefault()}
               onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}

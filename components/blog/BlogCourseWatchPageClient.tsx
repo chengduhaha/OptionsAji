@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import BlogCoursePlayer from "@/components/blog/BlogCoursePlayer";
 import BlogShell from "@/components/blog/BlogShell";
 import { BlogApiError, fetchBlogCourse } from "@/lib/blog/api";
+import { prefetchBlogPlayToken } from "@/lib/blog/playTokenCache";
 import type { BlogAttachment } from "@/lib/blog/types";
 import { useI18n } from "@/lib/i18n/context";
 
@@ -25,7 +26,10 @@ export default function BlogCourseWatchPageClient({ courseId }: BlogCourseWatchP
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchBlogCourse(courseId);
+      const [data] = await Promise.all([
+        fetchBlogCourse(courseId),
+        prefetchBlogPlayToken(courseId).catch(() => undefined),
+      ]);
       setCourse(data);
       setIsMember(!data.is_preview);
     } catch (e: unknown) {

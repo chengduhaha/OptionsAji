@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 type BlogCourseCardProps = {
   course: BlogAttachment;
   locked?: boolean;
+  priorityThumbnail?: boolean;
 };
 
 const PREFETCH_DEBOUNCE_MS = 200;
@@ -26,7 +27,7 @@ function durationLabel(course: BlogAttachment): string {
   return formatFileSize(course.file_size);
 }
 
-export default function BlogCourseCard({ course, locked = false }: BlogCourseCardProps) {
+export default function BlogCourseCard({ course, locked = false, priorityThumbnail = false }: BlogCourseCardProps) {
   const { locale, t } = useI18n();
   const prefetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const title = pickLocalized(locale, course.title_zh, course.title_en, course.original_filename);
@@ -67,7 +68,11 @@ export default function BlogCourseCard({ course, locked = false }: BlogCourseCar
         aria-label={locked ? t("blog.courses.playLocked") : title}
       >
         <div className="relative aspect-video overflow-hidden border-b-2 border-border">
-          <CourseThumbnailPlaceholder thumbnailUrl={course.thumbnail_url} alt={title} />
+          <CourseThumbnailPlaceholder
+            thumbnailUrl={course.thumbnail_url}
+            alt={title}
+            priority={priorityThumbnail}
+          />
           {locked ? (
             <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded border-2 border-foreground bg-primary px-2 py-0.5 text-[10px] font-extrabold">
               <Lock className="h-3 w-3" />
