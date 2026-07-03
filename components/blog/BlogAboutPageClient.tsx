@@ -8,6 +8,7 @@ const SOCIAL_KEYS = ["douyin", "xiaohongshu", "wechat", "video", "youtube", "x"]
 
 const SOCIAL_LINKS: Partial<Record<(typeof SOCIAL_KEYS)[number], string>> = {
   x: "https://x.com/AJiOptions",
+  youtube: "https://www.youtube.com/@Happybeanplus",
 };
 
 export default function BlogAboutPageClient() {

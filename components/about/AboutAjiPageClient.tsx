@@ -12,6 +12,7 @@ const SOCIAL_KEYS = ["douyin", "xiaohongshu", "wechat", "video", "youtube", "x"]
 
 const SOCIAL_LINKS: Record<string, string> = {
   x: "https://x.com/AJiOptions",
+  youtube: "https://www.youtube.com/@Happybeanplus",
 };
 
 export default function AboutAjiPageClient() {
