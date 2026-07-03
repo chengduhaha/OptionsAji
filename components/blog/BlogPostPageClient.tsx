@@ -12,32 +12,25 @@ import BlogShell from "@/components/blog/BlogShell";
 import BlogTableOfContents from "@/components/blog/BlogTableOfContents";
 import { BlogApiError, fetchBlogPost } from "@/lib/blog/api";
 import { blogCategoryLabel } from "@/lib/blog/categories";
+import { isEnglishFallback, pickLocalized } from "@/lib/blog/format";
 import { extractHeadings } from "@/lib/blog/headings";
 import { estimateReadingMinutes } from "@/lib/blog/reading-time";
 import type { BlogPostDetail } from "@/lib/blog/types";
 import { useAuth } from "@/lib/auth-context";
 import { formatMessage } from "@/lib/i18n/dictionary";
 import { useI18n } from "@/lib/i18n/context";
-import type { Locale } from "@/lib/i18n/types";
 
 const BlogHtmlContent = dynamic(() => import("@/components/blog/BlogHtmlContent"), {
   ssr: false,
-  loading: () => <p className="text-sm text-muted-foreground">加载图表内容…</p>,
+  loading: () => <HtmlLoadingFallback />,
 });
 
-function pickLocalized(
-  locale: Locale,
-  zh: string | null | undefined,
-  en: string | null | undefined,
-  fallback: string,
-): string {
-  if (locale === "en" && en?.trim()) return en;
-  if (zh?.trim()) return zh;
-  if (en?.trim()) return en;
-  return fallback;
+function HtmlLoadingFallback() {
+  const { t } = useI18n();
+  return <p className="text-sm text-muted-foreground">{t("blog.article.htmlLoading")}</p>;
 }
 
-function formatDate(value: string | null, locale: Locale): string {
+function formatDate(value: string | null, locale: "zh" | "en"): string {
   if (!value) return "";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
@@ -126,9 +119,10 @@ export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
   const title = pickLocalized(locale, post.title_zh, post.title_en, post.slug);
   const body = pickLocalized(locale, post.body_zh, post.body_en, post.body_zh);
   const excerpt = pickLocalized(locale, post.excerpt_zh, post.excerpt_en, "");
+  const showingChineseFallback = isEnglishFallback(locale, post.body_en, post.body_zh);
   const isHtml = post.content_format === "html";
   const dateStr = formatDate(post.published_at, locale);
-  const readingMinutes = estimateReadingMinutes(isHtml ? post.title_zh : body);
+  const readingMinutes = estimateReadingMinutes(body);
   const readTimeLabel = formatMessage(t("blog.article.readTime"), { minutes: readingMinutes });
 
   const metaParts = [blogCategoryLabel(t, post.category), dateStr, readTimeLabel].filter(Boolean);
@@ -183,6 +177,12 @@ export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
             </div>
           ) : null}
         </header>
+
+        {showingChineseFallback ? (
+          <div className="mb-6 border-2 border-primary/40 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
+            {t("blog.article.translationFallback")}
+          </div>
+        ) : null}
 
         <div
           className={

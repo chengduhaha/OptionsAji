@@ -16,8 +16,14 @@ export function formatVideoDuration(seconds: number): string {
   return `${minutes}:${String(secs).padStart(2, "0")}`;
 }
 
+import type { Locale } from "@/lib/i18n/types";
+
+export function hasLocalizedContent(value: string | null | undefined): boolean {
+  return Boolean(value?.trim());
+}
+
 export function pickLocalized(
-  locale: "zh" | "en",
+  locale: Locale,
   zh: string | null | undefined,
   en: string | null | undefined,
   fallback: string,
@@ -26,4 +32,12 @@ export function pickLocalized(
   if (zh?.trim()) return zh;
   if (en?.trim()) return en;
   return fallback;
+}
+
+export function isEnglishFallback(
+  locale: Locale,
+  en: string | null | undefined,
+  zh: string | null | undefined,
+): boolean {
+  return locale === "en" && !hasLocalizedContent(en) && hasLocalizedContent(zh);
 }

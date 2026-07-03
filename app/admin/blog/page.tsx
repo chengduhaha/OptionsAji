@@ -22,7 +22,9 @@ const EMPTY_FORM = {
   title_zh: "",
   title_en: "",
   excerpt_zh: "",
+  excerpt_en: "",
   body_zh: "",
+  body_en: "",
   category: "insights",
   tags: "",
   status: "draft" as "draft" | "published",
@@ -76,7 +78,9 @@ export default function AdminBlogPage() {
         title_zh: detail.title_zh,
         title_en: detail.title_en ?? "",
         excerpt_zh: detail.excerpt_zh ?? "",
+        excerpt_en: detail.excerpt_en ?? "",
         body_zh: detail.body_zh,
+        body_en: detail.body_en ?? "",
         category: detail.category,
         tags: detail.tags.join(", "),
         status: detail.status,
@@ -87,10 +91,14 @@ export default function AdminBlogPage() {
     }
   }
 
-  async function handleHtmlFile(file: File | null) {
+  async function handleHtmlFile(file: File | null, locale: "zh" | "en") {
     if (!file) return;
     const text = await file.text();
-    setForm((f) => ({ ...f, body_zh: text, content_format: "html" }));
+    if (locale === "zh") {
+      setForm((f) => ({ ...f, body_zh: text, content_format: "html" }));
+    } else {
+      setForm((f) => ({ ...f, body_en: text, content_format: "html" }));
+    }
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -108,7 +116,9 @@ export default function AdminBlogPage() {
         title_zh: form.title_zh,
         title_en: form.title_en || undefined,
         excerpt_zh: form.excerpt_zh || undefined,
+        excerpt_en: form.excerpt_en || undefined,
         body_zh: form.body_zh,
+        body_en: form.body_en || undefined,
         content_format: form.content_format,
         category: form.category,
         tags,
@@ -273,10 +283,54 @@ export default function AdminBlogPage() {
             <input
               type="file"
               accept=".html,text/html"
-              onChange={(e) => void handleHtmlFile(e.target.files?.[0] ?? null)}
+              onChange={(e) => void handleHtmlFile(e.target.files?.[0] ?? null, "zh")}
             />
           </label>
         ) : null}
+
+        <fieldset className="space-y-4 rounded-lg border border-border/60 bg-secondary/20 p-4">
+          <legend className="px-1 text-sm font-semibold text-muted-foreground">
+            {t("blog.admin.englishSection")}
+          </legend>
+          <label className="block text-sm">
+            <span className="mb-1 block text-muted-foreground">{t("blog.admin.titleEn")}</span>
+            <input
+              value={form.title_en}
+              onChange={(e) => setForm((f) => ({ ...f, title_en: e.target.value }))}
+              className="w-full rounded-md border border-border bg-background px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="mb-1 block text-muted-foreground">{t("blog.admin.excerptEn")}</span>
+            <textarea
+              value={form.excerpt_en}
+              onChange={(e) => setForm((f) => ({ ...f, excerpt_en: e.target.value }))}
+              rows={2}
+              className="w-full rounded-md border border-border bg-background px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="mb-1 block text-muted-foreground">
+              {isHtml ? t("blog.admin.bodyHtmlEn") : t("blog.admin.bodyMarkdownEn")}
+            </span>
+            <textarea
+              value={form.body_en}
+              onChange={(e) => setForm((f) => ({ ...f, body_en: e.target.value }))}
+              rows={isHtml ? 16 : 12}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-xs"
+            />
+          </label>
+          {isHtml ? (
+            <label className="block text-sm">
+              <span className="mb-1 block text-muted-foreground">{t("blog.admin.htmlUploadEn")}</span>
+              <input
+                type="file"
+                accept=".html,text/html"
+                onChange={(e) => void handleHtmlFile(e.target.files?.[0] ?? null, "en")}
+              />
+            </label>
+          ) : null}
+        </fieldset>
 
         <label className="block text-sm">
           <span className="mb-1 block text-muted-foreground">{t("blog.admin.tags")}</span>
@@ -346,6 +400,7 @@ export default function AdminBlogPage() {
                   <p className="text-xs text-muted-foreground">
                     /blog/{post.slug} · {post.status} · {post.category}
                     {post.content_format === "html" ? " · HTML" : " · MD"}
+                    {post.title_en ? ` · ${t("blog.admin.hasEnglish")}` : ""}
                     {post.attachment_count > 0 ? ` · PDF×${post.attachment_count}` : ""}
                   </p>
                   {post.status === "draft" ? (

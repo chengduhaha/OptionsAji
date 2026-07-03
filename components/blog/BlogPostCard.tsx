@@ -4,21 +4,10 @@ import Link from "next/link";
 import { Calendar, FileText } from "lucide-react";
 
 import { blogCategoryLabel } from "@/lib/blog/categories";
+import { pickLocalized } from "@/lib/blog/format";
 import type { BlogPostSummary } from "@/lib/blog/types";
 import { useI18n } from "@/lib/i18n/context";
 import type { Locale } from "@/lib/i18n/types";
-
-function pickLocalized(
-  locale: Locale,
-  zh: string | null | undefined,
-  en: string | null | undefined,
-  fallback: string,
-): string {
-  if (locale === "en" && en?.trim()) return en;
-  if (zh?.trim()) return zh;
-  if (en?.trim()) return en;
-  return fallback;
-}
 
 function formatDate(value: string | null, locale: Locale): string {
   if (!value) return "";

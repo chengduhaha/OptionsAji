@@ -68,6 +68,7 @@ export type ArticleJsonLdProps = {
   tags?: string[];
   image?: string;
   authorName?: string;
+  inLanguage?: string;
 };
 
 export function ArticleJsonLd({
@@ -79,6 +80,7 @@ export function ArticleJsonLd({
   tags,
   image,
   authorName = SITE_NAME,
+  inLanguage = "zh-CN",
 }: ArticleJsonLdProps) {
   const schema: JsonLdSchema = {
     "@context": "https://schema.org",
@@ -87,7 +89,7 @@ export function ArticleJsonLd({
     description,
     url,
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
-    inLanguage: "zh-CN",
+    inLanguage,
     author: { "@type": "Organization", name: authorName },
     publisher: {
       "@type": "Organization",
