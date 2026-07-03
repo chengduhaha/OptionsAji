@@ -55,12 +55,25 @@ async function forward(req: NextRequest, segments: string[]): Promise<Response> 
   try {
     const upstream = await fetch(targetUrl, init);
     const bodyText = await upstream.text();
+    const responseHeaders = new Headers();
+    responseHeaders.set("Content-Type", upstream.headers.get("content-type") ?? "application/json");
+    responseHeaders.set("Cache-Control", "no-store");
+
+    const setCookies =
+      typeof upstream.headers.getSetCookie === "function"
+        ? upstream.headers.getSetCookie()
+        : [];
+    if (setCookies.length === 0) {
+      const raw = upstream.headers.get("set-cookie");
+      if (raw) setCookies.push(raw);
+    }
+    for (const cookie of setCookies) {
+      responseHeaders.append("Set-Cookie", cookie);
+    }
+
     return new Response(bodyText, {
       status: upstream.status,
-      headers: {
-        "Content-Type": upstream.headers.get("content-type") ?? "application/json",
-        "Cache-Control": "no-store",
-      },
+      headers: responseHeaders,
     });
   } catch (error: unknown) {
     const rendered =

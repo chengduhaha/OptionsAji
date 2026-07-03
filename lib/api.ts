@@ -2,7 +2,7 @@
  * Typed API client for OptionsAji backend.
  * Browser: same-origin /api proxy by default; set NEXT_PUBLIC_API_BASE to call FastAPI directly.
  */
-import { apiFetch } from "@/lib/apiBase";
+import { apiFetch, authSameOriginFetch } from "@/lib/apiBase";
 import type {
   AgentBriefContract,
   AnalystPriceTargetContract,
@@ -106,6 +106,25 @@ async function fetchJSON<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json();
 }
 
+async function fetchAuthJSON<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers({ "Content-Type": "application/json" });
+  new Headers(init?.headers).forEach((value, key) => headers.set(key, value));
+  const apiKey = process.env.NEXT_PUBLIC_API_KEY?.trim();
+  if (apiKey && !headers.has("X-API-Key")) {
+    headers.set("X-API-Key", apiKey);
+  }
+  const res = await authSameOriginFetch(path, {
+    ...init,
+    headers,
+  });
+  if (!res.ok) {
+    const payload = (await res.json().catch(() => null)) as JsonObject | null;
+    const msg = parseApiError(payload);
+    throw new Error(msg || `API ${path} failed: ${res.status}`);
+  }
+  return res.json();
+}
+
 // ── Market Overview ────────────────────────────────────────────────────────────
 export const api = {
   auth: {
@@ -115,36 +134,36 @@ export const api = {
       display_name?: string | null;
       turnstile_token?: string | null;
     }) =>
-      fetchJSON<AuthRegisterContract>("/api/auth/register", {
+      fetchAuthJSON<AuthRegisterContract>("/api/auth/register", {
         method: "POST",
         body: JSON.stringify(payload),
       }),
     verifyRegister: (payload: { email: string; code: string }) =>
-      fetchJSON<AuthTokenContract>("/api/auth/register/verify", {
+      fetchAuthJSON<AuthTokenContract>("/api/auth/register/verify", {
         method: "POST",
         body: JSON.stringify(payload),
       }),
     resendVerification: (email: string, turnstileToken?: string | null) =>
-      fetchJSON<AuthResendVerificationContract>("/api/auth/register/resend", {
+      fetchAuthJSON<AuthResendVerificationContract>("/api/auth/register/resend", {
         method: "POST",
         body: JSON.stringify({ email, turnstile_token: turnstileToken ?? null }),
       }),
     login: (payload: { email: string; password: string; turnstile_token?: string | null }) =>
-      fetchJSON<AuthTokenContract>("/api/auth/login", {
+      fetchAuthJSON<AuthTokenContract>("/api/auth/login", {
         method: "POST",
         body: JSON.stringify(payload),
       }),
     me: (token: string) =>
-      fetchJSON<AuthTokenContract["user"]>("/api/auth/me", {
+      fetchAuthJSON<AuthTokenContract["user"]>("/api/auth/me", {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       }),
     logout: (token: string) =>
-      fetchJSON<{ success: boolean }>("/api/auth/logout", {
+      fetchAuthJSON<{ success: boolean }>("/api/auth/logout", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       }),
     redeem: (token: string, code: string) =>
-      fetchJSON<import("@/lib/contracts").RedeemCodeContract>("/api/auth/redeem", {
+      fetchAuthJSON<import("@/lib/contracts").RedeemCodeContract>("/api/auth/redeem", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ code }),

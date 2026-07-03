@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { api } from "@/lib/api";
+import { clearAuthSessionCookie, syncAuthSessionCookie } from "@/lib/authSession";
 import type {
   AuthRegisterContract,
   AuthResendVerificationContract,
@@ -98,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     let cancelled = false;
     setLoading(true);
-    refreshMe().finally(() => {
+    Promise.all([syncAuthSessionCookie(token).catch(() => {}), refreshMe()]).finally(() => {
       if (!cancelled) setLoading(false);
     });
     return () => {
@@ -110,6 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (email: string, password: string, turnstileToken?: string | null) => {
       const data = await api.auth.login({ email, password, turnstile_token: turnstileToken ?? null });
       persistToken(data.access_token);
+      await syncAuthSessionCookie(data.access_token);
       setUser(data.user);
       setLoading(false);
     },
@@ -135,6 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         code,
       });
       persistToken(data.access_token);
+      await syncAuthSessionCookie(data.access_token);
       setUser(data.user);
       setLoading(false);
     },
@@ -154,6 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         /* ignore */
       }
     }
+    await clearAuthSessionCookie();
     persistToken(null);
     setUser(null);
     setLoading(false);

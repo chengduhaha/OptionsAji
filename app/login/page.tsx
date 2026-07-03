@@ -35,8 +35,10 @@ function LoginInner() {
       return;
     }
     setBusy(true);
+    const turnstileForSubmit = turnstileToken;
+    setTurnstileToken(null);
     try {
-      await login(email.trim(), password, turnstileToken);
+      await login(email.trim(), password, turnstileForSubmit);
       router.replace(nextPath);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t("v3.auth.loginFailed"));
