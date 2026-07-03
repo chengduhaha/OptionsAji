@@ -42,6 +42,7 @@ export const V4_ADMIN_LINKS = [
   { href: "/admin/documents", labelKey: "blog.admin.documents.nav" },
   { href: "/admin/courses", labelKey: "blog.admin.courses.nav" },
   { href: "/admin/codes", labelKey: "blog.admin.codes.nav" },
+  { href: "/admin/users", labelKey: "blog.admin.users.nav" },
 ] as const;
 
 export const V4_FOOTER_COLS: { titleKey: string; links: { href: string; labelKey: string }[] }[] = [

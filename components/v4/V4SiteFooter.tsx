@@ -64,6 +64,9 @@ export default function V4SiteFooter() {
               <Link href="/admin/codes" className="text-foreground/80 hover:text-primary">
                 {t("blog.admin.codes.nav")}
               </Link>
+              <Link href="/admin/users" className="text-foreground/80 hover:text-primary">
+                {t("blog.admin.users.nav")}
+              </Link>
             </div>
           </div>
         ) : null}

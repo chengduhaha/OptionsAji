@@ -430,6 +430,7 @@ export interface AuthUserContract {
   created_at: string | null;
   email_verified: boolean;
   membership?: MembershipContract;
+  last_login_at?: string | null;
   access_keys?: {
     total: number;
     active: number;
