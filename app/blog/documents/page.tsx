@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import BlogLibraryPageClient from "@/components/blog/BlogLibraryPageClient";
 
 export const metadata = {
-  title: "会员资料库 | 阿吉博客",
+  title: "会员资料库",
   description: "浏览历史报告、课程资料、研究文档与视频课程。",
 };
 

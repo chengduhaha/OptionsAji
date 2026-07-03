@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "注册 — OptionsAji",
+  title: "注册",
   description: "注册 OptionsAji 账号，开始使用期权数据与教育内容。",
   robots: { index: false, follow: false },
 };

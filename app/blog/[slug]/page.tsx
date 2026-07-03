@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ? pickMetadataText(post.excerpt_zh, post.excerpt_en, "OptionsAji 阿吉博客")
     : "OptionsAji 阿吉博客 — 美股期权深度分析";
 
-  const pageTitle = `${title} | OptionsAji`;
+  const pageTitle = title;
   const ogImage = pickOgImage(post);
 
   return {

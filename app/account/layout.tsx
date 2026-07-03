@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "账户 — OptionsAji",
+  title: "账户",
   description: "管理 OptionsAji 账户、会员订阅与激活码。",
   robots: { index: false, follow: false },
 };
