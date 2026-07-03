@@ -86,7 +86,10 @@ export function buildPageMetadata({
       : baseOpenGraph;
 
   return {
-    title,
+    // `absolute` opts out of the root layout's `%s | OptionsAji` template so
+    // titles that already include the brand suffix (e.g. board SEO copy) are
+    // not doubled to "... | OptionsAji | OptionsAji".
+    title: { absolute: title },
     description,
     alternates: { canonical },
     keywords,
