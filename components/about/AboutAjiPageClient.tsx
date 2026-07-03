@@ -8,7 +8,11 @@ import V4SiteFooter from "@/components/v4/V4SiteFooter";
 import V4SiteHeader from "@/components/v4/V4SiteHeader";
 import { useI18n } from "@/lib/i18n/context";
 
-const SOCIAL_KEYS = ["douyin", "xiaohongshu", "wechat", "video", "youtube"] as const;
+const SOCIAL_KEYS = ["douyin", "xiaohongshu", "wechat", "video", "youtube", "x"] as const;
+
+const SOCIAL_LINKS: Record<string, string> = {
+  x: "https://x.com/AJiOptions",
+};
 
 export default function AboutAjiPageClient() {
   const { locale, t } = useI18n();
@@ -37,14 +41,25 @@ export default function AboutAjiPageClient() {
               <h2 className="font-heading text-2xl font-bold">{t("blog.about.socialTitle")}</h2>
               <p className="mt-2 text-sm text-muted-foreground">{t("blog.about.socialBody")}</p>
               <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-                {SOCIAL_KEYS.map((key) => (
-                  <li
-                    key={key}
-                    className="rounded-xl border-2 border-border bg-background px-4 py-3 text-sm font-medium transition-colors hover:border-primary/40"
-                  >
-                    {t(`blog.about.social.${key}`)}
-                  </li>
-                ))}
+                {SOCIAL_KEYS.map((key) => {
+                  const href = SOCIAL_LINKS[key];
+                  const label = t(`blog.about.social.${key}`);
+                  return (
+                    <li
+                      key={key}
+                      className="rounded-xl border-2 border-border bg-background px-4 py-3 text-sm font-medium transition-colors hover:border-primary/40"
+                    >
+                      {href ? (
+                        <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 hover:text-primary">
+                          {label}
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </a>
+                      ) : (
+                        label
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </section>
           </div>
