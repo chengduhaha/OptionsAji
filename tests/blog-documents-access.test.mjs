@@ -60,3 +60,8 @@ test("CSP allows blob URLs in PDF preview iframe", () => {
   assert.match(config, /frame-src[^;]*blob:/);
   assert.match(config, /object-src[^;]*blob:/);
 });
+
+test("CSP allows R2 presigned URLs for course video playback", () => {
+  const config = readFileSync(new URL("../next.config.ts", import.meta.url), "utf8");
+  assert.match(config, /media-src[^;]*https:\/\/\*\.r2\.cloudflarestorage\.com/);
+});

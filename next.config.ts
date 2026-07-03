@@ -34,7 +34,7 @@ const nextConfig: NextConfig = {
           "connect-src 'self' https://api.options-aji.com https://media.options-aji.com https://challenges.cloudflare.com",
           "frame-src 'self' blob: https://challenges.cloudflare.com",
           "object-src 'self' blob:",
-          "media-src 'self' https://api.options-aji.com https://media.options-aji.com blob:",
+          "media-src 'self' https://api.options-aji.com https://media.options-aji.com https://*.r2.cloudflarestorage.com blob:",
         ].join("; "),
       },
     ];
