@@ -266,7 +266,7 @@ export default function AdminUsersPage() {
                   {pageItems.map((u) => {
                     const mState = membershipState(u);
                     const m = u.membership;
-                    const keys = u.access_keys;
+                    const code = u.activation_code;
                     const isSelf = u.id === user.id;
                     return (
                       <tr key={u.id} className="border-b border-border align-top hover:bg-secondary/30">
@@ -300,15 +300,16 @@ export default function AdminUsersPage() {
                           {u.last_login_at ? formatDate(u.last_login_at) : t("blog.admin.users.neverLogin")}
                         </td>
                         <td className="px-3 py-3 text-xs">
-                          {keys && keys.total > 0 ? (
+                          {code && code.code_prefix ? (
                             <div className="flex flex-col gap-0.5">
-                              <span className="font-mono">
-                                {keys.total} · {t("blog.admin.users.activeLabel")} {keys.active} ·{" "}
-                                {t("blog.admin.users.revokedLabel")} {keys.revoked}
+                              <span className="font-mono">{code.code_prefix}</span>
+                              <span className="text-[11px] text-muted-foreground">
+                                {code.duration_tier}
+                                {code.duration_days != null ? ` · ${code.duration_days}d` : ""}
                               </span>
-                              {keys.latest_expires_at ? (
+                              {code.redeemed_at ? (
                                 <span className="text-[11px] text-muted-foreground">
-                                  {t("blog.admin.users.expiresOn")}: {formatDate(keys.latest_expires_at)}
+                                  {t("blog.admin.users.redeemedAt")}: {formatDate(code.redeemed_at)}
                                 </span>
                               ) : null}
                             </div>

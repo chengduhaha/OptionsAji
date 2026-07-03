@@ -442,6 +442,13 @@ export interface AuthUserContract {
     latest_expires_at: string | null;
     latest_last_used_at: string | null;
   };
+  activation_code?: {
+    code_prefix: string | null;
+    duration_tier: string | null;
+    duration_days: number | null;
+    redeemed_at: string | null;
+    status: string | null;
+  };
 }
 
 export interface AuthTokenContract {
