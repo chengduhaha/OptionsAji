@@ -12,12 +12,14 @@ type CourseThumbnailPlaceholderProps = {
   className?: string;
   thumbnailUrl?: string | null;
   alt?: string;
+  priority?: boolean;
 };
 
 export default function CourseThumbnailPlaceholder({
   className,
   thumbnailUrl,
   alt = "",
+  priority = false,
 }: CourseThumbnailPlaceholderProps) {
   const { t } = useI18n();
   const [imageFailed, setImageFailed] = useState(false);
@@ -30,7 +32,8 @@ export default function CourseThumbnailPlaceholder({
         alt={alt}
         fill
         unoptimized
-        loading="lazy"
+        priority={priority}
+        loading={priority ? "eager" : "lazy"}
         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         className={cn("object-cover", className)}
         onError={() => setImageFailed(true)}

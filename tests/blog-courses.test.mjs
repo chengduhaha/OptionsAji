@@ -82,7 +82,8 @@ test("admin courses page and header expose cover management", () => {
   const placeholder = readFileSync(new URL("../components/blog/CourseThumbnailPlaceholder.tsx", import.meta.url), "utf8");
   assert.match(placeholder, /resolveApiUrl\(thumbnailUrl\)/);
   assert.match(placeholder, /from "next\/image"/);
-  assert.match(placeholder, /loading="lazy"/);
+  assert.match(placeholder, /priority\?: boolean/);
+  assert.match(placeholder, /loading=\{priority \? "eager" : "lazy"\}/);
   assert.match(header, /blog\.admin\.hub/);
   assert.match(header, /AdminNavDropdown/);
   assert.match(navConfig, /V4_ADMIN_LINKS/);
