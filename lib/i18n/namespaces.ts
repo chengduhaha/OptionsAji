@@ -1172,6 +1172,7 @@ export const extraZh: DictionaryTree = {
         categoryMore: "另有 {locked} 篇会员专享",
       },
       categories: {
+        "daily-report": "暗流日报",
         "market-report": "市场报告",
         unusual: "异动观察",
         "unusual-flow": "期权异动",
