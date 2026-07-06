@@ -29,6 +29,7 @@ const EMPTY_FORM = {
   tags: "",
   status: "draft" as "draft" | "published",
   content_format: "markdown" as "markdown" | "html",
+  members_only: false,
 };
 
 export default function AdminBlogPage() {
@@ -85,6 +86,7 @@ export default function AdminBlogPage() {
         tags: detail.tags.join(", "),
         status: detail.status,
         content_format: detail.content_format ?? "markdown",
+        members_only: detail.members_only ?? false,
       });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t("blog.admin.loadFailed"));
@@ -123,6 +125,7 @@ export default function AdminBlogPage() {
         category: form.category,
         tags,
         status: form.status,
+        members_only: form.members_only,
       };
       if (editingId) {
         await updateBlogPost(editingId, payload, token);
@@ -354,6 +357,14 @@ export default function AdminBlogPage() {
               <option value="draft">{t("blog.admin.draft")}</option>
               <option value="published">{t("blog.admin.published")}</option>
             </select>
+          </label>
+          <label className="inline-flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={form.members_only}
+              onChange={(e) => setForm((f) => ({ ...f, members_only: e.target.checked }))}
+            />
+            <span className="text-muted-foreground">{t("blog.admin.membersOnly")}</span>
           </label>
           <label className="text-sm">
             <span className="mr-2 text-muted-foreground">{t("blog.admin.pdf")}</span>

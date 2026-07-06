@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import BlogMarkdown from "@/components/blog/BlogMarkdown";
+import BlogMemberPaywall from "@/components/blog/BlogMemberPaywall";
 import BlogPdfViewer from "@/components/blog/BlogPdfViewer";
 import BlogReadingProgress from "@/components/blog/BlogReadingProgress";
 import BlogShareButtons from "@/components/blog/BlogShareButtons";
@@ -19,6 +20,7 @@ import type { BlogPostDetail } from "@/lib/blog/types";
 import { useAuth } from "@/lib/auth-context";
 import { formatMessage } from "@/lib/i18n/dictionary";
 import { useI18n } from "@/lib/i18n/context";
+import { cn } from "@/lib/utils";
 
 const BlogHtmlContent = dynamic(() => import("@/components/blog/BlogHtmlContent"), {
   ssr: false,
@@ -47,7 +49,7 @@ type BlogPostPageClientProps = {
 
 export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
   const { locale, t } = useI18n();
-  const { isAdmin } = useAuth();
+  const { isAdmin, token } = useAuth();
   const [post, setPost] = useState<BlogPostDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
@@ -58,7 +60,7 @@ export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
     setLoading(true);
     setError(null);
     setErrorCode(null);
-    fetchBlogPost(slug)
+    fetchBlogPost(slug, token ?? undefined)
       .then((data) => {
         if (!cancelled) setPost(data);
       })
@@ -83,7 +85,7 @@ export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
     return () => {
       cancelled = true;
     };
-  }, [slug, t]);
+  }, [slug, t, token]);
 
   if (loading) {
     return (
@@ -128,6 +130,7 @@ export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
   const metaParts = [blogCategoryLabel(t, post.category), dateStr, readTimeLabel].filter(Boolean);
   const tocHeadings = isHtml ? [] : extractHeadings(body);
   const hasToc = tocHeadings.length > 0;
+  const isLocked = post.locked === true;
 
   return (
     <BlogShell variant="wide" hideHeader>
@@ -164,8 +167,13 @@ export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
               {excerpt}
             </p>
           ) : null}
-          {post.tags.length > 0 ? (
+          {post.tags.length > 0 || post.members_only ? (
             <div className="mt-5 flex flex-wrap gap-2">
+              {post.members_only ? (
+                <span className="inline-flex items-center gap-1 border border-primary/40 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+                  {t("blog.article.membersOnlyBadge")}
+                </span>
+              ) : null}
               {post.tags.map((tag) => (
                 <span
                   key={tag}
@@ -192,13 +200,26 @@ export default function BlogPostPageClient({ slug }: BlogPostPageClientProps) {
           }
         >
           <div className="min-w-0">
-            <div className="border-2 border-foreground bg-card p-6 shadow-neo sm:p-8 md:px-11 md:py-10">
-              {isHtml ? (
-                <BlogHtmlContent html={body} />
-              ) : (
-                <BlogMarkdown content={body} headings={tocHeadings} />
-              )}
-              {post.attachments.length > 0 ? <BlogPdfViewer attachments={post.attachments} /> : null}
+            <div className="relative border-2 border-foreground bg-card shadow-neo sm:p-8 md:px-11 md:py-10">
+              <div className={cn("p-6", isLocked && "max-h-[70vh] overflow-hidden")}>
+                {isHtml ? (
+                  <BlogHtmlContent html={body} />
+                ) : (
+                  <BlogMarkdown content={body} headings={tocHeadings} />
+                )}
+                {!isLocked && post.attachments.length > 0 ? (
+                  <BlogPdfViewer attachments={post.attachments} />
+                ) : null}
+              </div>
+              {isLocked ? (
+                <>
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-card"
+                  />
+                  <BlogMemberPaywall />
+                </>
+              ) : null}
             </div>
 
             <footer className="mt-10 border-t-2 border-border pt-6">

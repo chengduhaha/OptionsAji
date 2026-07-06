@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Calendar, FileText } from "lucide-react";
+import { Calendar, FileText, Lock } from "lucide-react";
 
 import { blogCategoryLabel } from "@/lib/blog/categories";
 import { pickLocalized } from "@/lib/blog/format";
@@ -35,6 +35,12 @@ export default function BlogPostCard({ post }: BlogPostCardProps) {
         <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 font-semibold text-primary">
           {blogCategoryLabel(t, post.category)}
         </span>
+        {post.members_only ? (
+          <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-0.5 font-semibold text-amber-700 dark:text-amber-200">
+            <Lock className="h-3 w-3" aria-hidden />
+            {t("blog.article.membersOnlyBadge")}
+          </span>
+        ) : null}
         {post.published_at ? (
           <span className="inline-flex items-center gap-1">
             <Calendar className="h-3 w-3" />

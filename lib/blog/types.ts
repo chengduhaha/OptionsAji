@@ -65,12 +65,15 @@ export type BlogPostSummary = {
   published_at: string | null;
   updated_at: string | null;
   attachment_count: number;
+  members_only?: boolean;
 };
 
 export type BlogPostDetail = BlogPostSummary & {
   body_zh: string;
   body_en: string | null;
   attachments: BlogAttachment[];
+  locked?: boolean;
+  preview_ratio?: number | null;
 };
 
 export type BlogPostListResponse = {
@@ -93,6 +96,7 @@ export type BlogPostCreateInput = {
   category: string;
   tags: string[];
   status: "draft" | "published";
+  members_only?: boolean;
 };
 
 export type BlogPostUpdateInput = Partial<BlogPostCreateInput>;
